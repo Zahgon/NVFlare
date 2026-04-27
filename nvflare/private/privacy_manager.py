@@ -30,40 +30,16 @@ class Scope(object):
         self.task_result_filters = {FilterKey.IN: [], FilterKey.OUT: []}
 
     def set_name(self, name: str):
-        if not isinstance(name, str):
-            raise TypeError(f"scope name must be str but got {type(name)}")
-        self.name = name
+        pass
 
     def set_props(self, props: dict):
-        if not isinstance(props, dict):
-            raise TypeError(f"scope properties must be dict but got {type(props)}")
-        self.props = props
+        pass
 
     def add_task_data_filter(self, f: Filter, direction):
-        if not FilterChain.validate_direction(direction):
-            raise TypeError("Filter chain direction {} is not supported.".format(direction))
-        if not isinstance(f, Filter):
-            raise TypeError(f"task data filter must be Filter but got {type(f)}")
-        f.set_prop(FilterContextKey.CHAIN_TYPE, FilterChainType.TASK_DATA_CHAIN)
-        f.set_prop(FilterContextKey.SOURCE, FilterSource.SITE)
-        if direction == FilterKey.INOUT:
-            self.task_data_filters[FilterKey.IN].append(f)
-            self.task_data_filters[FilterKey.OUT].append(f)
-        else:
-            self.task_data_filters.get(direction).append(f)
+        pass
 
     def add_task_result_filter(self, f: Filter, direction):
-        if not FilterChain.validate_direction(direction):
-            raise TypeError("Filter chain direction {} is not supported.".format(direction))
-        if not isinstance(f, Filter):
-            raise TypeError(f"task result filter must be Filter but got {type(f)}")
-        f.set_prop(FilterContextKey.CHAIN_TYPE, FilterChainType.TASK_RESULT_CHAIN)
-        f.set_prop(FilterContextKey.SOURCE, FilterSource.SITE)
-        if direction == FilterKey.INOUT:
-            self.task_result_filters[FilterKey.IN].append(f)
-            self.task_result_filters[FilterKey.OUT].append(f)
-        else:
-            self.task_result_filters.get(direction).append(f)
+        pass
 
 
 class PrivacyManager(object):
@@ -88,13 +64,10 @@ class PrivacyManager(object):
             self.policy_defined = False
 
     def get_scope(self, name: Union[None, str]):
-        if not name:
-            return self.default_scope
-
-        return self.name_to_scopes.get(name)
+        pass
 
     def is_policy_defined(self):
-        return self.policy_defined
+        pass
 
 
 class PrivacyService(object):
@@ -102,23 +75,15 @@ class PrivacyService(object):
 
     @staticmethod
     def initialize(manager: PrivacyManager):
-        if manager and not isinstance(manager, PrivacyManager):
-            raise TypeError(f"manager must be an instance of PrivacyManager, but get {type(manager)}.")
-        PrivacyService.manager = manager
+        pass
 
     @staticmethod
     def get_scope(name: Union[None, str]):
-        if not PrivacyService.manager:
-            return None
-        else:
-            return PrivacyService.manager.get_scope(name)
+        pass
 
     @staticmethod
     def is_policy_defined():
-        if not PrivacyService.manager:
-            return False
-        else:
-            return PrivacyService.manager.is_policy_defined()
+        pass
 
     @staticmethod
     def is_scope_allowed(scope_name: str):
@@ -130,12 +95,8 @@ class PrivacyService(object):
         Returns:
 
         """
-        if not PrivacyService.is_policy_defined():
-            return True
-
-        scope = PrivacyService.get_scope(scope_name)
-        return scope is not None
+        pass
 
     @staticmethod
     def get_manager():
-        return PrivacyService.manager
+        pass

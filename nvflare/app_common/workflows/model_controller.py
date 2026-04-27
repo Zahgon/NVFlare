@@ -37,7 +37,7 @@ class ModelController(BaseModelController, ABC):
     @abstractmethod
     def run(self):
         """Main `run` routine for the controller workflow."""
-        raise NotImplementedError
+        pass
 
     def send_model_and_wait(
         self,
@@ -63,13 +63,7 @@ class ModelController(BaseModelController, ABC):
         Returns:
             List[FLModel]
         """
-        return super().broadcast_model(
-            task_name=task_name,
-            data=data,
-            targets=targets,
-            min_responses=min_responses,
-            timeout=timeout,
-        )
+        pass
 
     def send_model(
         self,
@@ -94,15 +88,7 @@ class ModelController(BaseModelController, ABC):
         Returns:
             None
         """
-        super().broadcast_model(
-            task_name=task_name,
-            data=data,
-            targets=targets,
-            min_responses=min_responses,
-            timeout=timeout,
-            blocking=False,
-            callback=callback,
-        )
+        pass
 
     def load_model(self) -> FLModel:
         """Load initial model from persistor. If persistor is not configured, returns empty FLModel.
@@ -110,7 +96,7 @@ class ModelController(BaseModelController, ABC):
         Returns:
             FLModel
         """
-        return super().load_model()
+        pass
 
     def save_model(self, model: FLModel) -> None:
         """Saves model with persistor. If persistor is not configured, does not save.
@@ -121,7 +107,7 @@ class ModelController(BaseModelController, ABC):
         Returns:
             None
         """
-        super().save_model(model)
+        pass
 
     def sample_clients(self, num_clients: int = None) -> List[str]:
         """Returns a list of `num_clients` clients.
@@ -133,4 +119,4 @@ class ModelController(BaseModelController, ABC):
         Returns:
             A list of clients names.
         """
-        return super().sample_clients(num_clients)
+        pass

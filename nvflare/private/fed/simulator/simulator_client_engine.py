@@ -30,10 +30,7 @@ class SimulatorParentClientEngine(ClientEngine):
         }
 
     def get_all_job_ids(self):
-        jobs = []
-        for job in self.client_executor.run_processes.keys():
-            jobs.append(job)
-        return jobs
+        pass
 
     def abort_app(self, job_id: str) -> str:
-        return self.client_executor.run_processes.pop(job_id)
+        pass

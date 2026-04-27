@@ -33,29 +33,4 @@ class NPFormatter(Formatter):
         Returns:
             str: Human readable validation results.
         """
-        # Get the val shareables
-        validation_shareables_dict = fl_ctx.get_prop(AppConstants.VALIDATION_RESULT, {})
-
-        # Result dictionary
-        res = {}
-
-        try:
-            # This is a 2d dictionary with each validation result at
-            # validation_shareables_dict[data_client][model_client]
-            for data_client in validation_shareables_dict.keys():
-                validation_dict = validation_shareables_dict[data_client]
-                if validation_dict:
-                    res[data_client] = {}
-                    for model_name in validation_dict.keys():
-                        # Load the shareable
-                        dxo_path = validation_dict[model_name]
-                        metric_dxo = from_file(dxo_path)
-
-                        # Get metrics from shareable
-                        if metric_dxo and metric_dxo.data_kind == DataKind.METRICS:
-                            metrics = metric_dxo.data
-                            res[data_client][model_name] = metrics
-        except Exception as e:
-            self.log_error(fl_ctx, f"Exception: {secure_format_exception(e)}")
-
-        return f"{res}"
+        pass

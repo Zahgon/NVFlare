@@ -22,43 +22,43 @@ from nvflare.fuel.utils.fobs.decomposer import Decomposer
 
 class TupleDecomposer(Decomposer):
     def supported_type(self):
-        return tuple
+        pass
 
     def decompose(self, target: tuple, manager: DatumManager = None) -> Any:
-        return list(target)
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> tuple:
-        return tuple(data)
+        pass
 
 
 class SetDecomposer(Decomposer):
     def supported_type(self):
-        return set
+        pass
 
     def decompose(self, target: set, manager: DatumManager = None) -> Any:
-        return list(target)
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> set:
-        return set(data)
+        pass
 
 
 class OrderedDictDecomposer(Decomposer):
     def supported_type(self):
-        return OrderedDict
+        pass
 
     def decompose(self, target: OrderedDict, manager: DatumManager = None) -> Any:
-        return list(target.items())
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> OrderedDict:
-        return OrderedDict(data)
+        pass
 
 
 class DatetimeDecomposer(Decomposer):
     def supported_type(self):
-        return datetime
+        pass
 
     def decompose(self, target: datetime, manager: DatumManager = None) -> Any:
-        return target.isoformat()
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> datetime:
-        return datetime.fromisoformat(data)
+        pass

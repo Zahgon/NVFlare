@@ -35,34 +35,22 @@ class Message:
         self.payload = payload
 
     def set_header(self, key: str, value):
-        if self.headers is None:
-            self.headers = {}
-
-        self.headers[key] = value
+        pass
 
     def add_headers(self, headers: dict):
-        if self.headers is None:
-            self.headers = {}
-        self.headers.update(headers)
+        pass
 
     def get_header(self, key: str, default=None):
-        if self.headers is None:
-            return None
-
-        return self.headers.get(key, default)
+        pass
 
     def remove_header(self, key: str):
-        if self.headers:
-            self.headers.pop(key, None)
+        pass
 
     def set_prop(self, key: str, value):
-        setattr(self, key, value)
+        pass
 
     def get_prop(self, key: str, default=None):
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            return default
+        pass
 
 
 class MessageReceiver(ABC):

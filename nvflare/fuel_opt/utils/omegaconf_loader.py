@@ -21,18 +21,10 @@ class OmegaConfConfig(Config):
         super(OmegaConfConfig, self).__init__(conf, ConfigFormat.OMEGACONF, file_path)
 
     def to_dict(self, resolve: Optional[bool] = True) -> Dict:
-        from omegaconf import OmegaConf
-
-        return OmegaConf.to_container(self.conf, resolve=resolve)
+        pass
 
     def to_str(self, element: Optional[Dict] = None) -> str:
-        from omegaconf import OmegaConf
-
-        if element is None:
-            return OmegaConf.to_yaml(self.conf)
-        else:
-            config = OmegaConf.create(element)
-            return OmegaConf.to_yaml(config)
+        pass
 
 
 class OmegaConfLoader(ConfigLoader):
@@ -40,22 +32,13 @@ class OmegaConfLoader(ConfigLoader):
         super(OmegaConfLoader, self).__init__(ConfigFormat.OMEGACONF)
 
     def load_config(self, file_path: str) -> Config:
-        conf = self._from_file(file_path)
-        return OmegaConfConfig(conf, file_path)
+        pass
 
     def load_config_from_str(self, config_str: str) -> Config:
-        from omegaconf import OmegaConf
-
-        conf = OmegaConf.create(config_str)
-        return OmegaConfConfig(conf)
+        pass
 
     def load_config_from_dict(self, config_dict: dict) -> Config:
-        from omegaconf import OmegaConf
-
-        conf = OmegaConf.create(config_dict)
-        return OmegaConfConfig(conf)
+        pass
 
     def _from_file(self, file_path):
-        from omegaconf import OmegaConf
-
-        return OmegaConf.load(file_path)
+        pass

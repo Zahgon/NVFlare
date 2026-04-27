@@ -34,27 +34,14 @@ class TBI(FLComponent):
 
     @staticmethod
     def get_positive_float_var(var_name, default):
-        return acu.get_positive_float_var(var_name, default)
+        pass
 
     @staticmethod
     def get_positive_int_var(var_name, default):
-        return acu.get_positive_int_var(var_name, default)
+        pass
 
     def _any_component_is_not_ready(self, fl_ctx: FLContext) -> bool:
-        any_component_not_ready = fl_ctx.get_prop(FLContextKey.NOT_READY_TO_END_RUN, False)
-
-        if any_component_not_ready:
-            self.log_debug(fl_ctx, "NOT_READY_TO_END_RUN property is set")
-            return True
-
-        # check any one has raised NotReadyToEndRun exception
-        exceptions = fl_ctx.get_prop(FLContextKey.EXCEPTIONS)
-        if isinstance(exceptions, dict):
-            for handler_name, ex in exceptions.items():
-                if isinstance(ex, NotReadyToEndRun):
-                    self.log_debug(fl_ctx, f"component {handler_name} is not ready to end run")
-                    return True
-        return False
+        pass
 
     def check_end_run_readiness(self, fl_ctx: FLContext):
         """Check with all components for their readiness to end run
@@ -65,25 +52,4 @@ class TBI(FLComponent):
         Returns:
 
         """
-        max_wait = self.get_positive_float_var(ConfigVarName.END_RUN_READINESS_TIMEOUT, 5.0)
-        check_interval = self.get_positive_float_var(ConfigVarName.END_RUN_READINESS_CHECK_INTERVAL, 0.5)
-
-        self.log_debug(fl_ctx, f"=== end_run_readiness: {max_wait=} {check_interval=}")
-        check_start_time = time.time()
-        while True:
-            fl_ctx.remove_prop(FLContextKey.NOT_READY_TO_END_RUN, force_removal=True)
-            fl_ctx.remove_prop(FLContextKey.EXCEPTIONS, force_removal=True)
-
-            self.log_info(fl_ctx, "Firing CHECK_END_RUN_READINESS ...")
-            self.fire_event(EventType.CHECK_END_RUN_READINESS, fl_ctx)
-
-            if self._any_component_is_not_ready(fl_ctx):
-                if time.time() - check_start_time > max_wait:
-                    # we have waited too long
-                    self.log_warning(fl_ctx, f"quit waiting for component ready-to-end-run after {max_wait} seconds")
-                    return
-                else:
-                    time.sleep(check_interval)
-            else:
-                # all components are ready to end
-                return
+        pass

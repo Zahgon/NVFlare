@@ -31,111 +31,47 @@ class DefaultValuePolicy:
 
     @classmethod
     def valid_policy(cls, p: str):
-        return p in [cls.DISALLOW, cls.ANY, cls.RANDOM, cls.EMPTY, cls.ALL]
+        pass
 
 
 def check_positive_int(name, value):
-    if not isinstance(value, int):
-        raise TypeError(f"{name} must be an int, but got {type(value)}.")
-    if value <= 0:
-        raise ValueError(f"{name} must > 0, but got {value}")
+    pass
 
 
 def check_non_negative_int(name, value):
-    if not isinstance(value, int):
-        raise TypeError(f"{name} must be an int, but got {type(value)}.")
-    if value < 0:
-        raise ValueError(f"{name} must >= 0, but got {value}")
+    pass
 
 
 def check_positive_number(name, value):
-    if not isinstance(value, (int, float)):
-        raise TypeError(f"{name} must be a number, but got {type(value)}.")
-    if value <= 0:
-        raise ValueError(f"{name} must > 0, but got {value}")
+    pass
 
 
 def check_number_range(name, value, min_value=None, max_value=None):
-    if not isinstance(value, (int, float)):
-        raise TypeError(f"{name} must be a number, but got {type(value)}.")
-
-    if min_value is not None:
-        if not isinstance(min_value, (int, float)):
-            raise TypeError(f"{name}: min_value must be a number but got {type(min_value)}.")
-        if value < min_value:
-            raise ValueError(f"{name} must be >= {min_value} but got {value}")
-
-    if max_value is not None:
-        if not isinstance(max_value, (int, float)):
-            raise TypeError(f"{name}: max_value must be a number but got {type(max_value)}.")
-        if value > max_value:
-            raise ValueError(f"{name} must be <= {max_value} but got {value}")
+    pass
 
 
 def check_non_negative_number(name, value):
-    if not isinstance(value, (int, float)):
-        raise TypeError(f"{name} must be a number, but got {type(value)}.")
-    if value < 0:
-        raise ValueError(f"{name} must >= 0, but got {value}")
+    pass
 
 
 def check_str(name, value):
-    check_object_type(name, value, str)
+    pass
 
 
 def check_non_empty_str(name, value):
-    check_object_type(name, value, str)
-    v = value.strip()
-    if not v:
-        raise ValueError(f"{name} must not be empty")
+    pass
 
 
 def check_object_type(name, value, obj_type):
-    if not isinstance(value, obj_type):
-        raise TypeError(f"{name} must be {obj_type}, but got {type(value)}.")
+    pass
 
 
 def check_callable(name, value):
-    if not callable(value):
-        raise ValueError(f"{name} must be callable, but got {type(value)}.")
+    pass
 
 
 def _determine_candidates_value(var_name: str, candidates, base: list):
-    if not isinstance(base, list):
-        raise TypeError(f"base must be list but got {type(base)}")
-
-    if candidates is None:
-        return None  # empty
-
-    if isinstance(candidates, str):
-        nc = candidates.strip()
-        if not nc:
-            return []
-
-        c = nc.lower()
-        if c == SYMBOL_ALL:
-            return base
-        elif c == SYMBOL_NONE:
-            return None
-        elif nc in base:
-            return [nc]
-        else:
-            raise ValueError(f"value of '{var_name}' ({candidates}) is invalid")
-
-    if not isinstance(candidates, list):
-        raise ValueError(f"invalid '{var_name}': expect str or list of str but got {type(candidates)}")
-
-    validated = []
-    for c in candidates:
-        if not isinstance(c, str):
-            raise ValueError(f"invalid value in '{var_name}': must be str but got {type(c)}")
-        n = c.strip()
-        if n not in base:
-            raise ValueError(f"invalid value '{n}' in '{var_name}'")
-        if n not in validated:
-            validated.append(n)
-
-    return validated
+    pass
 
 
 def validate_candidates(var_name: str, candidates, base: list, default_policy: str, allow_none: bool):
@@ -173,50 +109,11 @@ def validate_candidates(var_name: str, candidates, base: list, default_policy: s
     Returns:
 
     """
-    if not DefaultValuePolicy.valid_policy(default_policy):
-        raise ValueError(f"invalid default policy {default_policy}")
-
-    c = _determine_candidates_value(var_name, candidates, base)
-
-    if c is None:
-        if not allow_none:
-            raise ValueError(f"{var_name} must not be none")
-        else:
-            return []  # empty
-
-    if not c:
-        # empty
-        if default_policy == DefaultValuePolicy.EMPTY:
-            return []
-        elif default_policy == DefaultValuePolicy.ALL:
-            return base
-        elif default_policy == DefaultValuePolicy.DISALLOW:
-            raise ValueError(f"invalid value '{candidates}' in '{var_name}': it must be subset of {base}")
-        elif default_policy == DefaultValuePolicy.RANDOM:
-            return [random.choice(base)]
-        else:
-            # any
-            return [base[0]]
-    return c
+    pass
 
 
 def _determine_candidate_value(var_name: str, candidate, base: list):
-    if candidate is None:
-        return None
-
-    if not isinstance(candidate, str):
-        raise ValueError(f"invalid '{var_name}': must be str but got {type(candidate)}")
-    n = candidate.strip()
-    if n in base:
-        return n
-
-    c = n.lower()
-    if c == SYMBOL_NONE:
-        return None
-    elif not c:
-        return ""
-    else:
-        raise ValueError(f"invalid value '{candidate}' in '{var_name}'")
+    pass
 
 
 def validate_candidate(var_name: str, candidate, base: list, default_policy: str, allow_none: bool):
@@ -251,38 +148,8 @@ def validate_candidate(var_name: str, candidate, base: list, default_policy: str
     Returns:
 
     """
-    if not DefaultValuePolicy.valid_policy(default_policy):
-        raise ValueError(f"invalid default policy {default_policy}")
-
-    if default_policy == DefaultValuePolicy.ALL:
-        raise ValueError(f"the policy '{default_policy}' is not applicable to validate_candidate")
-
-    c = _determine_candidate_value(var_name, candidate, base)
-    if c is None:
-        if not allow_none:
-            raise ValueError(f"{var_name} must be specified")
-        else:
-            return ""
-
-    if not c:
-        if default_policy == DefaultValuePolicy.EMPTY:
-            return ""
-        elif default_policy == DefaultValuePolicy.ANY:
-            return base[0]
-        elif default_policy == DefaultValuePolicy.RANDOM:
-            return random.choice(base)
-        else:
-            raise ValueError(f"invalid value '{candidate}' in '{var_name}': it must be one of {base}")
-    else:
-        return c
+    pass
 
 
 def normalize_config_arg(value):
-    if value is False:
-        return None  # specified to be "empty"
-    if isinstance(value, str):
-        if value.strip().lower() == SYMBOL_NONE:
-            return None
-    if not value:
-        return ""  # meaning to take default
-    return value
+    pass

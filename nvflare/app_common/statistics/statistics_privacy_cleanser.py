@@ -35,13 +35,4 @@ class StatisticsPrivacyCleanser(ABC):
             filtered metrics with feature metrics that violating the privacy policy be removed from the original metrics
 
         """
-        statistics_modified = False
-        for key in statistic_keys:
-            if key != StC.STATS_COUNT:
-                for ds_name in list(statistics[key].keys()):
-                    for feature in list(statistics[key][ds_name].keys()):
-                        if not validation_result[ds_name][feature]:
-                            statistics[key][ds_name].pop(feature, None)
-                            statistics_modified = True
-
-        return statistics, statistics_modified
+        pass

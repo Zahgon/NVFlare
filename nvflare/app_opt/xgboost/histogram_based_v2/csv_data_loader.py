@@ -70,15 +70,4 @@ class CSVDataLoader(XGBDataLoader):
 
     def load_data(self):
 
-        train_path = f"{self.folder}/{self.client_id}/train.csv"
-        valid_path = f"{self.folder}/{self.client_id}/valid.csv"
-
-        if self.rank == 0 or self.data_split_mode == xgb.core.DataSplitMode.ROW:
-            label = "&label_column=0"
-        else:
-            label = ""
-
-        train_data = xgb.DMatrix(train_path + f"?format=csv{label}", data_split_mode=self.data_split_mode)
-        valid_data = xgb.DMatrix(valid_path + f"?format=csv{label}", data_split_mode=self.data_split_mode)
-
-        return train_data, valid_data
+        pass

@@ -35,33 +35,13 @@ class BaseDriver(Driver, ABC):
         self.conn_lock = threading.Lock()
 
     def add_connection(self, conn: Connection):
-        with self.conn_lock:
-            self.connections[conn.name] = conn
-
-        conn.state = ConnState.CONNECTED
-        self._notify_monitor(conn)
-
-        log.debug(f"Connection created: {self.get_name()}:{conn}")
+        pass
 
     def close_connection(self, conn: Connection):
-        log.debug(f"Connection removed: {self.get_name()}:{conn}")
-
-        conn.state = ConnState.CLOSED
-        self._notify_monitor(conn)
-
-        with self.conn_lock:
-            if not self.connections.pop(conn.name, None):
-                log.debug(f"{conn.name} is already removed from driver")
+        pass
 
     def close_all(self):
-        with self.conn_lock:
-            for name in sorted(self.connections.keys()):
-                conn = self.connections[name]
-                log.debug(f"Closing connection: {self.get_name()}:{conn}")
-                conn.close()
+        pass
 
     def _notify_monitor(self, conn: Connection):
-        if not self.conn_monitor:
-            raise CommError(CommError.ERROR, f"Connection monitor not registered for driver {self.get_name()}")
-
-        self.conn_monitor.state_change(conn)
+        pass

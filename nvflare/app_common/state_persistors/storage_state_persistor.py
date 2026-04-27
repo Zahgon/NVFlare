@@ -41,13 +41,7 @@ class StorageStatePersistor(StatePersistor):
         Returns:
             storage location
         """
-        path = os.path.join(self.uri_root, snapshot.job_id)
-        if snapshot.completed:
-            full_uri = self.storage.delete_object(path)
-        else:
-            full_uri = self.storage.create_object(uri=path, data=fobs.dumps(snapshot), meta={}, overwrite_existing=True)
-
-        return full_uri
+        pass
 
     def retrieve(self) -> FLSnapshot:
         """Call to load the persisted FL components snapshot from the persisted location.
@@ -55,12 +49,7 @@ class StorageStatePersistor(StatePersistor):
         Returns:
             retrieved Snapshot
         """
-        all_items = self.storage.list_objects(self.uri_root)
-        fl_snapshot = FLSnapshot()
-        for item in all_items:
-            snapshot = fobs.loads(self.storage.get_data(item))
-            fl_snapshot.add_snapshot(snapshot.job_id, snapshot)
-        return fl_snapshot
+        pass
 
     def retrieve_run(self, job_id: str) -> RunSnapshot:
         """Call to load the persisted RunSnapshot of a job from the persisted location.
@@ -72,16 +61,11 @@ class StorageStatePersistor(StatePersistor):
             RunSnapshot of the job_id
 
         """
-        path = os.path.join(self.uri_root, job_id)
-        snapshot = fobs.loads(self.storage.get_data(uri=path))
-        return snapshot
+        pass
 
     def delete(self):
         """Deletes the FL snapshot."""
-
-        all_items = self.storage.list_objects(self.uri_root)
-        for item in all_items:
-            self.storage.delete_object(item)
+        pass
 
     def delete_run(self, job_id: str):
         """Deletes the RunSnapshot of a job.
@@ -89,5 +73,4 @@ class StorageStatePersistor(StatePersistor):
         Args:
             job_id: job_id
         """
-        path = os.path.join(self.uri_root, job_id)
-        self.storage.delete_object(path)
+        pass

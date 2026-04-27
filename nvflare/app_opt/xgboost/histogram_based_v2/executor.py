@@ -65,84 +65,13 @@ class XGBExecutor(Executor):
         Returns: a XGBClientAdaptor object
 
         """
-        engine = fl_ctx.get_engine()
-        return engine.get_component(self.adaptor_component_id)
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            adaptor = self.get_adaptor(fl_ctx)
-            if not adaptor:
-                self.system_panic(f"cannot get component for {self.adaptor_component_id}", fl_ctx)
-                return
-
-            if not isinstance(adaptor, XGBClientAdaptor):
-                self.system_panic(
-                    f"invalid component '{self.adaptor_component_id}': expect XGBClientAdaptor but got {type(adaptor)}",
-                    fl_ctx,
-                )
-                return
-
-            adaptor.set_abort_signal(self.abort_signal)
-            adaptor.initialize(fl_ctx)
-            self.adaptor = adaptor
-        elif event_type == Constant.EVENT_XGB_ABORTED:
-            self._notify_client_done(Constant.EXIT_CODE_JOB_ABORT, fl_ctx)
-        elif event_type == EventType.END_RUN:
-            self.abort_signal.trigger(True)
+        pass
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        if task_name == self.configure_task_name:
-            # there are two important config params for the client:
-            #   the rank assigned to the client;
-            #   number of rounds for training.
-            ranks = shareable.get(Constant.CONF_KEY_CLIENT_RANKS)
-            if not ranks:
-                self.log_error(fl_ctx, f"missing {Constant.CONF_KEY_CLIENT_RANKS} from config")
-                return make_reply(ReturnCode.BAD_TASK_DATA)
-
-            if not isinstance(ranks, dict):
-                self.log_error(fl_ctx, f"expect config data to be dict but got {ranks}")
-                return make_reply(ReturnCode.BAD_TASK_DATA)
-
-            me = fl_ctx.get_identity_name()
-            my_rank = ranks.get(me)
-            if my_rank is None:
-                self.log_error(fl_ctx, f"missing rank for me ({me}) in config data")
-                return make_reply(ReturnCode.BAD_TASK_DATA)
-
-            self.log_info(fl_ctx, f"got my rank: {my_rank}")
-
-            num_rounds = shareable.get(Constant.CONF_KEY_NUM_ROUNDS)
-            if not num_rounds:
-                self.log_error(fl_ctx, f"missing {Constant.CONF_KEY_NUM_ROUNDS} from config")
-                return make_reply(ReturnCode.BAD_TASK_DATA)
-
-            # configure the XGB client target via the adaptor
-            self.adaptor.configure(
-                shareable,
-                fl_ctx,
-            )
-            self.fire_event(Constant.EVENT_XGB_JOB_CONFIGURED, fl_ctx)
-            config_error = fl_ctx.get_prop(Constant.PARAM_KEY_CONFIG_ERROR, None)
-            if not config_error:
-                return make_reply(ReturnCode.OK)
-            else:
-                self.log_error(fl_ctx, f"Config error: {config_error}")
-                return make_reply(ReturnCode.SERVICE_UNAVAILABLE, {ReservedKey.EXCEPTIONS: config_error})
-        elif task_name == self.start_task_name:
-            # start adaptor
-            try:
-                self.adaptor.start(fl_ctx)
-            except Exception as ex:
-                self.log_exception(fl_ctx, f"failed to start adaptor: {secure_format_exception(ex)}")
-                return make_reply(ReturnCode.EXECUTION_EXCEPTION)
-
-            # start to monitor the XGB target via the adaptor
-            self.adaptor.monitor_target(fl_ctx, self._notify_client_done)
-            return make_reply(ReturnCode.OK)
-        else:
-            self.log_error(fl_ctx, f"ignored unsupported {task_name}")
-            return make_reply(ReturnCode.TASK_UNSUPPORTED)
+        pass
 
     def _notify_client_done(self, rc, fl_ctx: FLContext):
         """This is called when the XGB client target is done.
@@ -155,23 +84,4 @@ class XGBExecutor(Executor):
         Returns: None
 
         """
-        if rc != 0:
-            self.log_error(fl_ctx, f"XGB Client stopped with RC {rc}")
-            error = fl_ctx.get_prop(FLContextKey.FATAL_SYSTEM_ERROR)
-            error_msg = f", error: {error}" if error else ""
-            self.system_panic(f"XGB Client stopped with non zero RC {rc}{error_msg}", fl_ctx)
-        else:
-            self.log_info(fl_ctx, "XGB Client Stopped")
-
-        # tell server that this client is done
-        engine = fl_ctx.get_engine()
-        req = Shareable()
-        req[Constant.MSG_KEY_EXIT_CODE] = rc
-        engine.send_aux_request(
-            targets=[FQCN.ROOT_SERVER],
-            topic=Constant.TOPIC_CLIENT_DONE,
-            request=req,
-            timeout=0,  # fire and forget
-            fl_ctx=fl_ctx,
-            optional=True,
-        )
+        pass

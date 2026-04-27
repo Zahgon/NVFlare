@@ -39,32 +39,14 @@ class Node(object):
         self.props = {}
 
     def path(self):
-        if len(self.paths) <= 0:
-            return ""
-
-        return ".".join(self.paths)
+        pass
 
     def parent_element(self):
-        if self.parent:
-            return self.parent.element
-        else:
-            return None
+        pass
 
 
 def _child_node(node: Node, key, pos, element) -> Node:
-    child = Node(element)
-    child.processor = node.processor
-    child.level = node.level + 1
-    child.position = pos
-    child.parent = node
-    child.paths = copy.copy(node.paths)
-
-    child.key = key
-    if pos > 0:
-        child.key = "#{}".format(pos)
-
-    child.paths.append(child.key)
-    return child
+    pass
 
 
 class JsonObjectProcessor(ABC):
@@ -95,65 +77,13 @@ class JsonScanner(object):
         self.logger = get_obj_logger(self)
 
     def _do_scan(self, node: Node):
-        try:
-            node.processor.process_element(node)
-        except ComponentNotAuthorized as e:
-            secure_log_traceback(self.logger)
-
-            if self.location:
-                raise ComponentNotAuthorized(
-                    "Error processing {} in JSON element {}: path: {}, exception: {}".format(
-                        self.location, node.element, node.path(), secure_format_exception(e)
-                    )
-                )
-            else:
-                raise ComponentNotAuthorized(
-                    "Error in JSON element: {}, path: {}, exception: {}".format(
-                        node.element, node.path(), secure_format_exception(e)
-                    )
-                )
-
-        except Exception as e:
-            secure_log_traceback(self.logger)
-            config = ConfigFactory.load_config(self.location[0])
-            elmt_str = config.to_str(node.element)
-            location = config.get_location()
-            raise ConfigError(self.get_process_err_msg(e, elmt_str, location, node))
-
-        element = node.element
-
-        if isinstance(element, dict):
-            # need to make a copy of the element dict in case the processor modifies the dict
-            iter_dict = copy.copy(element)
-            for k, v in iter_dict.items():
-                self._do_scan(_child_node(node, k, 0, v))
-        elif isinstance(element, list):
-            for i in range(len(element)):
-                self._do_scan(_child_node(node, node.key, i + 1, element[i]))
-
-        if node.exit_cb is not None:
-            try:
-                node.exit_cb(node)
-            except Exception as e:
-                raise ConfigError(self.get_post_proces_err_msg(e, node))
+        pass
 
     def get_process_err_msg(self, e, elmt, location, node):
-        location_msg = f" processing '{location}' " if location else ""
-        msg = "Error{}in element '{}': path: '{}', exception: '{}'".format(
-            location_msg, elmt, node.path(), secure_format_exception(e)
-        )
-        return msg
+        pass
 
     def get_post_proces_err_msg(self, e, node):
-        location = f" {self.location} in " if self.location else ""
-        msg = "Error post-processing{}JSON element: {}, exception: {}".format(
-            location, node.path(), secure_format_exception(e)
-        )
-        return msg
+        pass
 
     def scan(self, processor: JsonObjectProcessor):
-        if not isinstance(processor, JsonObjectProcessor):
-            raise ValueError(f"processor must be JsonObjectProcessor, but got type {type(processor)}")
-        node = Node(self.data)
-        node.processor = processor
-        self._do_scan(node)
+        pass

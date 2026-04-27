@@ -114,7 +114,7 @@ class CommandEntry(object):
         self.client_cmd = client_cmd
 
     def full_command_name(self) -> str:
-        return "{}.{}".format(self.scope.name, self.name)
+        pass
 
 
 class _Scope(object):
@@ -130,9 +130,7 @@ class _Scope(object):
     def register_command(
         self, cmd_name: str, cmd_desc: str, cmd_usage: str, handler_func, authz_func, visible, confirm, client_cmd
     ):
-        self.entries[cmd_name] = CommandEntry(
-            self, cmd_name, cmd_desc, cmd_usage, handler_func, authz_func, visible, confirm, client_cmd
-        )
+        pass
 
 
 class CommandRegister(object):
@@ -153,41 +151,16 @@ class CommandRegister(object):
         self.mapped_cmds = []
 
     def _get_scope(self, name: str):
-        scope = self.scopes.get(name, None)
-        if scope is None:
-            scope = _Scope(name)
-            self.scopes[name] = scope
-        return scope
+        pass
 
     def get_command_entries(self, cmd_name: str):
-        return self.cmd_map.get(cmd_name, [])
+        pass
 
     def register_module_spec(self, module_spec: CommandModuleSpec, include_invisible=True):
-        for cmd_spec in module_spec.cmd_specs:
-            assert isinstance(cmd_spec, CommandSpec)
-            cmd_spec.scope_name = module_spec.name
-
-            if cmd_spec.enabled and (cmd_spec.visible or include_invisible):
-                self.add_command(
-                    scope_name=module_spec.name,
-                    cmd_name=cmd_spec.name,
-                    desc=cmd_spec.description,
-                    usage=cmd_spec.usage,
-                    handler=cmd_spec.handler_func,
-                    authz_func=cmd_spec.authz_func,
-                    visible=cmd_spec.visible,
-                    confirm=cmd_spec.confirm,
-                    client_cmd=cmd_spec.client_cmd,
-                )
-
-        conn_props = module_spec.conn_props
-        if conn_props:
-            self.conn_props.update(conn_props)
+        pass
 
     def register_module(self, module: CommandModule, include_invisible=True):
-        self.modules.append(module)
-        module_spec = module.get_spec()
-        self.register_module_spec(module_spec, include_invisible)
+        pass
 
     def add_command(
         self,
@@ -203,49 +176,10 @@ class CommandRegister(object):
         map_client_cmd=False,
     ):
 
-        if client_cmd and map_client_cmd:
-            self.mapped_cmds.append(
-                CommandSpec(
-                    scope_name=scope_name,
-                    name=cmd_name,
-                    description=desc,
-                    usage=usage,
-                    confirm=confirm,
-                    visible=visible,
-                    handler_func=None,
-                    client_cmd=client_cmd,
-                )
-            )
-            return
-
-        scope = self._get_scope(scope_name)
-        scope.register_command(
-            cmd_name=cmd_name,
-            cmd_desc=desc,
-            cmd_usage=usage,
-            handler_func=handler,
-            authz_func=authz_func,
-            visible=visible,
-            confirm=confirm,
-            client_cmd=client_cmd,
-        )
+        pass
 
     def _add_cmd_entry(self, cmd_name, entry):
-        entry_list = self.cmd_map.get(cmd_name, None)
-        if entry_list is None:
-            entry_list = []
-            self.cmd_map[cmd_name] = entry_list
-        entry_list.append(entry)
+        pass
 
     def finalize(self, add_cmd_func=None):
-        if len(self.cmd_map) > 0:
-            # already finalized
-            return
-
-        for scope_name, scope in self.scopes.items():
-            for cmd_name, entry in scope.entries.items():
-                assert isinstance(entry, CommandEntry)
-                self._add_cmd_entry(cmd_name, entry)
-                self._add_cmd_entry(entry.full_command_name(), entry)
-                if add_cmd_func:
-                    add_cmd_func(entry)
+        pass

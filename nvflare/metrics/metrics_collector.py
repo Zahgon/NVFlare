@@ -48,29 +48,8 @@ class MetricsCollector(FLComponent, ABC):
 
     def collect_event_metrics(self, event: str, tags, fl_ctx: FLContext):
 
-        current_time = time.time()
-        metric_name = event
-
-        metrics = {MetricKeys.count: 1, MetricKeys.type: MetricTypes.COUNTER}
-        duration_metrics = {MetricKeys.time_taken: 0, MetricKeys.type: MetricTypes.GAUGE}
-
-        if event in self.get_single_events():
-            self.publish_metrics(metrics, metric_name, tags, fl_ctx)
-        elif event in self.get_pair_events().keys():
-            self.publish_metrics(metrics, metric_name, tags, fl_ctx)
-            key = self.pair_events.get(event)
-            if not self.event_start_time.get(key):
-                # begin
-                self.event_start_time[key] = current_time
-            else:
-                # end
-                time_taken = current_time - self.event_start_time.get(key)
-                # wipe out the start time for next event
-                self.event_start_time[key] = None
-                duration_metrics[MetricKeys.time_taken] = time_taken
-                metric_name = key
-                self.publish_metrics(duration_metrics, metric_name, tags, fl_ctx)
+        pass
 
     def publish_metrics(self, metrics: dict, metric_name: str, tags: dict, fl_ctx: FLContext):
 
-        collect_metrics(self, self.streaming_to_server, metrics, metric_name, tags, self.data_bus, fl_ctx)
+        pass

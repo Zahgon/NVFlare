@@ -82,16 +82,13 @@ class JobMetricsCollector(MetricsCollector):
         }
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        job_id = fl_ctx.get_job_id()
-        tags: dict = self.tags
-        tags["job_id"] = job_id
-        super().collect_event_metrics(event=event, tags=tags, fl_ctx=fl_ctx)
+        pass
 
     def publish_metrics(self, metrics: dict, metric_name: str, tags: dict, fl_ctx: FLContext):
-        collect_metrics(self, self.streaming_to_server, metrics, metric_name, tags, self.data_bus, fl_ctx)
+        pass
 
     def get_single_events(self):
-        return self.single_events
+        pass
 
     def get_pair_events(self):
-        return self.pair_events
+        pass

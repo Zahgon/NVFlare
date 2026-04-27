@@ -23,12 +23,11 @@ from nvflare.apis.utils.format_check import type_pattern_mapping
 
 
 def _split_unquoted_args(line: str) -> List[str]:
-    line = re.sub(" +", " ", line)
-    return line.split(" ")
+    pass
 
 
 def _has_quotes(line: str) -> bool:
-    return '"' in line or "'" in line
+    pass
 
 
 def _split_quoted_args(line: str) -> List[str]:
@@ -37,17 +36,11 @@ def _split_quoted_args(line: str) -> List[str]:
     Fall back to the unquoted whitespace splitter for malformed quoting so we
     don't turn previously accepted inputs into parse errors.
     """
-    try:
-        args = shlex.split(line)
-        return args if args else _split_unquoted_args(line)
-    except ValueError:
-        return _split_unquoted_args(line)
+    pass
 
 
 def split_to_args(line: str) -> List[str]:
-    if _has_quotes(line):
-        return _split_quoted_args(line)
-    return _split_unquoted_args(line)
+    pass
 
 
 def parse_command_line(line: str) -> (str, List[str], str):
@@ -59,30 +52,11 @@ def parse_command_line(line: str) -> (str, List[str], str):
     Returns:
 
     """
-    if _has_quotes(line):
-        return line, _split_quoted_args(line), None
-
-    # cmd props are after "#"
-    parts = line.split("#", maxsplit=1)
-    line = parts[0].strip()
-    props = parts[1] if len(parts) > 1 else None
-    return line, _split_unquoted_args(line), props
+    pass
 
 
 def join_args(segs: List[str]) -> str:
-    result = ""
-    sep = ""
-    for a in segs:
-        needs_quotes = any(ch.isspace() for ch in a) or '"' in a or "\\" in a
-        if needs_quotes:
-            escaped = a.replace("\\", "\\\\").replace('"', '\\"')
-            p = f'"{escaped}"'
-        else:
-            p = a
-        result = result + sep + p
-        sep = " "
-
-    return result
+    pass
 
 
 class ArgValidator(argparse.ArgumentParser):
@@ -96,69 +70,32 @@ class ArgValidator(argparse.ArgumentParser):
         self.err = ""
 
     def error(self, message):
-        self.err = message
+        pass
 
     def validate(self, args):
-        try:
-            result = self.parse_args(args)
-            return self.err, result
-        except Exception:
-            return 'argument error; try "? cmdName to show supported usage for a command"', None
+        pass
 
     def get_usage(self) -> str:
-        buffer = io.StringIO()
-        self.print_help(buffer)
-        usage_output = buffer.getvalue().split("\n", 1)[1]
-        buffer.close()
-        return usage_output
+        pass
 
 
 def process_targets_into_str(targets: List[str]) -> str:
-    if not isinstance(targets, list):
-        raise SyntaxError("targets is not a list.")
-    if not all(isinstance(t, str) for t in targets):
-        raise SyntaxError("all targets in the list of targets must be strings.")
-    for t in targets:
-        try:
-            validate_required_target_string(t)
-        except SyntaxError:
-            raise SyntaxError(f"invalid target {t}")
-    return " ".join(targets)
+    pass
 
 
 def validate_required_target_string(target: str) -> str:
     """Returns the target string if it exists and is valid."""
-    if not target:
-        raise SyntaxError("target is required but not specified.")
-    if not isinstance(target, str):
-        raise SyntaxError("target is not str.")
-    if not re.match("^[A-Za-z0-9._-]*$", target):
-        raise SyntaxError("target must be a string of only valid characters and no spaces.")
-    return target
+    pass
 
 
 def validate_options_string(options: str) -> str:
     """Returns the options string if it is valid."""
-    if not isinstance(options, str):
-        raise SyntaxError("options is not str.")
-    if not re.match("^[A-Za-z0-9- ]*$", options):
-        raise SyntaxError("options must be a string of only valid characters.")
-    return options
+    pass
 
 
 def validate_path_string(path: str) -> str:
     """Returns the path string if it is valid."""
-    if not isinstance(path, str):
-        raise SyntaxError("path is not str.")
-    if not re.match("^[A-Za-z0-9-._/]*$", path):
-        raise SyntaxError("unsupported characters in path {}".format(path))
-    if os.path.isabs(path):
-        raise SyntaxError("absolute path is not allowed")
-    paths = path.split(os.path.sep)
-    for p in paths:
-        if p == "..":
-            raise SyntaxError(".. in path name is not allowed")
-    return path
+    pass
 
 
 def get_file_extension(file: str) -> str:
@@ -171,13 +108,7 @@ def get_file_extension(file: str) -> str:
     Returns: extension part of the file name
 
     """
-    parts = file.split(".")
-    last_part = parts[-1]
-    if last_part.isnumeric():
-        parts.pop(-1)
-        file = ".".join(parts)
-    _, ex = os.path.splitext(file)
-    return ex
+    pass
 
 
 def validate_text_file_name(file_name: str) -> str:
@@ -189,30 +120,13 @@ def validate_text_file_name(file_name: str) -> str:
     Returns: error string if invalid; or empty string if valid
 
     """
-    file_extension = get_file_extension(file_name)
-    if file_extension not in [".txt", ".log", ".json", ".csv", ".sh", ".config", ".py"]:
-        return (
-            f"this command cannot be applied to file {file_name}. Only files with the following extensions are "
-            "permitted: .txt, .log, .json, .csv, .sh, .config, .py"
-        )
-    else:
-        return ""
+    pass
 
 
 def validate_file_string(file: str) -> str:
     """Returns the file string if it is valid."""
-    validate_path_string(file)
-    err = validate_text_file_name(file)
-    if err:
-        raise SyntaxError(err)
-    return file
+    pass
 
 
 def validate_sp_string(sp_string) -> str:
-    if re.match(
-        type_pattern_mapping.get("sp_end_point"),
-        sp_string,
-    ):
-        return sp_string
-    else:
-        raise SyntaxError("sp_string must be of the format example.com:8002:8003")
+    pass

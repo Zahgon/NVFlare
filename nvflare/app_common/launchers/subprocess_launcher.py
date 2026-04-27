@@ -39,28 +39,7 @@ def get_line(buffer: bytearray):
         line is None if no newline found
 
     """
-    size = len(buffer)
-    r = buffer.find(b"\r")
-    if r < 0:
-        r = size + 1
-    n = buffer.find(b"\n")
-    if n < 0:
-        n = size + 1
-    index = min(r, n)
-
-    if index >= size:
-        return None, buffer
-
-    # if \r and \n are adjacent, treat them as one
-    if abs(r - n) == 1:
-        index = index + 1
-
-    line = buffer[:index].decode().rstrip()
-    if index >= size - 1:
-        remaining = bytearray()
-    else:
-        remaining = buffer[index + 1 :]
-    return line, remaining
+    pass
 
 
 # Matches the start of a formatted NVFlare log line after stripping ANSI color
@@ -79,32 +58,12 @@ def _route_subprocess_line(line: str, logger) -> None:
     training scripts have no timestamp, so we wrap them with logger.info() to
     ensure they reach both the terminal and log.txt.
     """
-    plain = _ANSI_ESC_RE.sub("", line)
-    if _LOG_LINE_RE.match(plain):
-        print(line)
-    else:
-        logger.info(line)
+    pass
 
 
 def log_subprocess_output(process, logger):
 
-    buffer = bytearray()
-    while True:
-        chunk = process.stdout.read1(4096)
-        if not chunk:
-            break
-        buffer = buffer + chunk
-
-        while True:
-            line, buffer = get_line(buffer)
-            if line is None:
-                break
-
-            if line:
-                _route_subprocess_line(line, logger)
-
-    if buffer:
-        _route_subprocess_line(buffer.decode(), logger)
+    pass
 
 
 class SubprocessLauncher(Launcher):
@@ -135,74 +94,25 @@ class SubprocessLauncher(Launcher):
         self.logger = get_obj_logger(self)
 
     def initialize(self, fl_ctx: FLContext):
-        self._app_dir = self.get_app_dir(fl_ctx)
-        if self._launch_once:
-            self._start_external_process(fl_ctx)
+        pass
 
     def finalize(self, fl_ctx: FLContext) -> None:
-        if self._launch_once and self._process:
-            self._stop_external_process()
+        pass
 
     def needs_deferred_stop(self) -> bool:
-        return not self._launch_once
+        pass
 
     def launch_task(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> bool:
-        if not self._launch_once:
-            self._start_external_process(fl_ctx)
-        return True
+        pass
 
     def stop_task(self, task_name: str, fl_ctx: FLContext, abort_signal: Signal) -> None:
-        if not self._launch_once:
-            self._stop_external_process()
+        pass
 
     def _start_external_process(self, fl_ctx: FLContext):
-        with self._lock:
-            if self._process is None:
-                self.logger.info("_start_external_process: launching new subprocess")
-                command = self._script
-                env = os.environ.copy()
-                env["CLIENT_API_TYPE"] = "EX_PROCESS_API"
-
-                workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-                job_id = fl_ctx.get_prop(FLContextKey.CURRENT_JOB_ID)
-                app_custom_folder = workspace.get_app_custom_dir(job_id)
-                add_custom_dir_to_path(app_custom_folder, env)
-
-                command_seq = shlex.split(command)
-                self._process = subprocess.Popen(
-                    command_seq,
-                    shell=False,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    cwd=self._app_dir,
-                    env=env,
-                )
-                self._log_thread = Thread(target=log_subprocess_output, args=(self._process, self.logger))
-                self._log_thread.start()
+        pass
 
     def _stop_external_process(self):
-        with self._lock:
-            if self._process:
-                try:
-                    self._process.wait(self._shutdown_timeout)
-                except subprocess.TimeoutExpired:
-                    pass
-                self.logger.info(f"_stop_external_process: terminating pid={self._process.pid}")
-                self._process.terminate()
-                self._log_thread.join()
-                if self._clean_up_script:
-                    command_seq = shlex.split(self._clean_up_script)
-                    process = subprocess.Popen(command_seq, cwd=self._app_dir, shell=False)
-                    process.wait()
-                self._process = None
+        pass
 
     def check_run_status(self, task_name: str, fl_ctx: FLContext) -> str:
-        with self._lock:
-            if self._process is None:
-                return LauncherRunStatus.NOT_RUNNING
-            return_code = self._process.poll()
-            if return_code is None:
-                return LauncherRunStatus.RUNNING
-            if return_code == 0:
-                return LauncherRunStatus.COMPLETE_SUCCESS
-            return LauncherRunStatus.COMPLETE_FAILED
+        pass

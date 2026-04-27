@@ -27,8 +27,4 @@ class ApiError(Exception):
             self.details = details
 
     def to_dict(self):
-        return {
-            "status": self.status,
-            "message": str(self),
-            "details": self.details,
-        }
+        pass

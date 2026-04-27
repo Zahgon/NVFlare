@@ -43,28 +43,11 @@ class BlobStream(Stream):
 
     def read(self, chunk_size: int) -> BytesAlike:
 
-        if self.pos >= self.get_size():
-            return EOS
-
-        next_pos = self.pos + chunk_size
-        if next_pos > self.get_size():
-            next_pos = self.get_size()
-
-        if self.buffer_list:
-            buf = self.buffer_list.read(self.pos, next_pos)
-        else:
-            buf = self.blob_view[self.pos : next_pos]
-
-        self.pos = next_pos
-
-        return buf
+        pass
 
     @staticmethod
     def buffer_len(buffer: BytesAlike):
-        if not isinstance(buffer, list):
-            return len(buffer)
-
-        return sum(len(buf) for buf in buffer)
+        pass
 
 
 class BlobTask:
@@ -90,88 +73,15 @@ class BlobHandler:
 
     def handle_blob_cb(self, future: StreamFuture, stream: Stream, resume: bool, *args, **kwargs) -> int:
 
-        if resume:
-            log.warning("Resume is not supported, ignored")
-
-        blob_task = BlobTask(future, stream)
-
-        stream_thread_pool.submit(self._read_stream, blob_task)
-        callback_thread_pool.submit(self._run_blob_cb, future, stream, args, kwargs)
-
-        return 0
+        pass
 
     def _run_blob_cb(self, future: StreamFuture, stream: Stream, args: tuple, kwargs: dict):
         """Run blob_cb on the callback pool; preserve exception handling (log + task.stop) as in ByteReceiver."""
-        try:
-            self.blob_cb(future, *args, **kwargs)
-        except Exception as ex:
-            # Suppress only when blob_cb is surfacing an already-recorded stream
-            # failure (for example by calling future.result()). If blob_cb fails
-            # after the future completed successfully, we still need to stop the
-            # task so the sender receives the callback error.
-            with future.lock:
-                already_failed = future.error is not None
-            if already_failed:
-                kind = "StreamError" if isinstance(ex, StreamError) else "Exception"
-                log.debug(f"{kind} from blob_cb suppressed; future already failed: {ex}")
-            else:
-                log.error(f"blob_cb threw: {ex}\n{secure_format_traceback()}")
-                if hasattr(stream, "task"):
-                    stream.task.stop(StreamError(f"blob_cb threw {type(ex).__name__}: {ex}"))
+        pass
 
     def _read_stream(self, blob_task: BlobTask):
 
-        try:
-            # It's most efficient to read the whole chunk
-            size = self.chunk_size
-            thread_id = threading.get_native_id()
-            buf_size = 0
-            while True:
-                buf = blob_task.stream.read(size)
-                if not buf:
-                    break
-
-                length = len(buf)
-                try:
-                    if blob_task.pre_allocated:
-                        remaining = len(blob_task.buffer) - buf_size
-                        if length > remaining:
-                            log.error(f"{blob_task} Buffer overrun: {thread_id=} {remaining=} {length=} {buf_size=}")
-                            blob_task.future.set_exception(
-                                StreamError(
-                                    f"Buffer overrun: stream produced more data than declared size {blob_task.size}"
-                                )
-                            )
-                            return
-                        else:
-                            blob_task.buffer[buf_size : buf_size + length] = buf
-                    else:
-                        blob_task.buffer.append(buf)
-                except Exception as ex:
-                    log.error(
-                        f"{blob_task} memoryview error: {ex} Debug info: "
-                        f"{thread_id=} {length=} {buf_size=} {type(buf)=}"
-                    )
-                    raise ex
-
-                buf_size += length
-
-            if blob_task.size and blob_task.size != buf_size:
-                blob_task.future.set_exception(
-                    StreamError(f"Size mismatch: declared {blob_task.size} but received {buf_size} bytes")
-                )
-                return
-
-            if blob_task.pre_allocated:
-                result = blob_task.buffer
-            else:
-                result = blob_task.buffer.to_bytes()
-
-            blob_task.future.set_result(result)
-        except Exception as ex:
-            log.error(f"Stream {blob_task} Read error: {ex}")
-            log.error(secure_format_traceback())
-            blob_task.future.set_exception(ex)
+        pass
 
 
 class BlobStreamer:
@@ -182,17 +92,7 @@ class BlobStreamer:
     def send(
         self, channel: str, topic: str, target: str, message: Message, secure: bool, optional: bool
     ) -> StreamFuture:
-        if message.payload is None:
-            message.payload = bytes(0)
-
-        if not isinstance(message.payload, (bytes, bytearray, memoryview, list)):
-            raise StreamError(f"BLOB is invalid type: {type(message.payload)}")
-
-        blob_stream = BlobStream(message.payload, message.headers)
-        return self.byte_streamer.send(
-            channel, topic, target, message.headers, blob_stream, STREAM_TYPE_BLOB, secure, optional
-        )
+        pass
 
     def register_blob_callback(self, channel, topic, blob_cb: Callable, *args, **kwargs):
-        handler = BlobHandler(blob_cb)
-        self.byte_receiver.register_callback(channel, topic, handler.handle_blob_cb, *args, **kwargs)
+        pass

@@ -48,7 +48,7 @@ def get_lr_values(optimizer: Optimizer):
     """
     This function is used to get the learning rates of the optimizer.
     """
-    return [group["lr"] for group in optimizer.state_dict()["param_groups"]]
+    pass
 
 
 class PTScaffoldHelper(object):
@@ -71,56 +71,24 @@ class PTScaffoldHelper(object):
 
     def init(self, model):
         # create models for SCAFFOLD correction terms
-        self.c_global = copy.deepcopy(model)
-        self.c_local = copy.deepcopy(model)
-        # Initialize correction term with zeros
-        c_init_para = model.state_dict()
-        for k in c_init_para.keys():
-            c_init_para[k] = torch.zeros_like(c_init_para[k])
-        self.c_global.load_state_dict(c_init_para)
-        self.c_local.load_state_dict(c_init_para)
-
-        # Set the device of the correction terms to the device of the model
-        self.device = next(model.parameters()).device
-        self.c_global.to(self.device)
-        self.c_local.to(self.device)
+        pass
 
     def get_params(self):
-        self.cnt = 0
-        # Adapted from https://github.com/Xtra-Computing/NIID-Bench/blob/main/experiments.py#L371
-        c_global_para = self.c_global.state_dict()
-        c_local_para = self.c_local.state_dict()
-        return c_global_para, c_local_para
+        pass
 
     def model_update(self, model, curr_lr, c_global_para, c_local_para):
         # Update model using scaffold controls
         # See https://github.com/Xtra-Computing/NIID-Bench/blob/main/experiments.py#L391
-        net_para = model.state_dict()
-        for key in net_para:
-            net_para[key] = net_para[key] - curr_lr * (c_global_para[key] - c_local_para[key])
-        model.load_state_dict(net_para)
-
-        self.cnt += 1
+        pass
 
     def terms_update(self, model, curr_lr, c_global_para, c_local_para, model_global):
         # Update the local scaffold controls
         # See https://github.com/Xtra-Computing/NIID-Bench/blob/main/experiments.py#L403
 
-        c_new_para = self.c_local.state_dict()
-        self.c_delta_para = copy.deepcopy(self.c_local.state_dict())
-        global_model_para = model_global.state_dict()
-        net_para = model.state_dict()
-        for key in net_para:
-            c_new_para[key] = (
-                c_new_para[key] - c_global_para[key] + (global_model_para[key] - net_para[key]) / (self.cnt * curr_lr)
-            )
-            self.c_delta_para[key] = (c_new_para[key] - c_local_para[key]).cpu().numpy()
-        self.c_local.load_state_dict(c_new_para)
+        pass
 
     def load_global_controls(self, weights):
-        self.c_global.load_state_dict(weights)
+        pass
 
     def get_delta_controls(self):
-        if self.c_delta_para is None:
-            raise ValueError("c_delta_para hasn't been computed yet!")
-        return self.c_delta_para
+        pass

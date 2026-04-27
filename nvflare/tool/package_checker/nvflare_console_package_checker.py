@@ -23,7 +23,7 @@ class NVFlareConsolePackageChecker(ClientPackageChecker):
     NVF_ROLE = NVFlareRole.ADMIN
 
     def get_dry_run_command(self) -> str:
-        return os.path.join(self.package_path, "startup", "fl_admin.sh")
+        pass
 
     def get_dry_run_inputs(self):
-        return os.path.basename(os.path.normpath(self.package_path))
+        pass

@@ -46,27 +46,7 @@ class ConvertWeights(DXOFilter):
         self.direction = direction
 
     def _get_base_weights(self, fl_ctx: FLContext):
-        task_data = fl_ctx.get_prop(FLContextKey.TASK_DATA, None)
-        if not isinstance(task_data, Shareable):
-            self.log_error(fl_ctx, f"invalid task data: expect Shareable but got {type(task_data)}")
-            return None
-
-        try:
-            dxo = from_shareable(task_data)
-        except ValueError:
-            self.log_error(fl_ctx, "invalid task data: no DXO")
-            return None
-
-        if dxo.data_kind != DataKind.WEIGHTS:
-            self.log_info(fl_ctx, f"ignored task: expect data to be WEIGHTS but got {dxo.data_kind}")
-            return None
-
-        processed_algo = dxo.get_meta_prop(MetaKey.PROCESSED_ALGORITHM, None)
-        if processed_algo:
-            self.log_info(fl_ctx, f"ignored task since its processed by {processed_algo}")
-            return None
-
-        return dxo.data
+        pass
 
     def process_dxo(self, dxo: DXO, shareable: Shareable, fl_ctx: FLContext) -> Union[None, DXO]:
         """Called by runners to perform weight conversion.
@@ -79,35 +59,4 @@ class ConvertWeights(DXOFilter):
 
         Returns: filtered result
         """
-        base_weights = self._get_base_weights(fl_ctx)
-        if not base_weights:
-            return None
-
-        processed_algo = dxo.get_meta_prop(MetaKey.PROCESSED_ALGORITHM, None)
-        if processed_algo:
-            self.log_info(fl_ctx, f"cannot process task result since its processed by {processed_algo}")
-            return None
-
-        if self.direction == self.WEIGHTS_TO_DIFF:
-            if dxo.data_kind != DataKind.WEIGHTS:
-                self.log_warning(fl_ctx, f"cannot process task result: expect WEIGHTS but got {dxo.data_kind}")
-                return None
-
-            new_weights = dxo.data
-            for k, _ in new_weights.items():
-                if k in base_weights:
-                    new_weights[k] -= base_weights[k]
-            dxo.data_kind = DataKind.WEIGHT_DIFF
-        else:
-            # diff to weights
-            if dxo.data_kind != DataKind.WEIGHT_DIFF:
-                self.log_warning(fl_ctx, f"cannot process task result: expect WEIGHT_DIFF but got {dxo.data_kind}")
-                return None
-
-            new_weights = dxo.data
-            for k, _ in new_weights.items():
-                if k in base_weights:
-                    new_weights[k] += base_weights[k]
-            dxo.data_kind = DataKind.WEIGHTS
-
-        return dxo
+        pass

@@ -61,88 +61,17 @@ class ETEdgeModelExecutor(EdgeModelExecutor):
         self.output_shape = output_shape
 
     def _export_model_weights_to_pte_b64str(self, model_weights) -> str:
-        model_weights = {"net." + k: torch.tensor(v) for k, v in model_weights.items()}
-        self.et_model.load_state_dict(model_weights)
-        # Convert to buffer
-        model_buffer = export_model_to_bytes(self.et_model, self.input_shape, self.output_shape)
-        model_str = base64.b64encode(model_buffer).decode("utf-8")
-        return model_str
+        pass
 
     def _convert_task(self, task_state: BaseState, current_task: TaskInfo, fl_ctx: FLContext) -> dict:
         """Convert task_data to a plain dict"""
-        self.log_info(fl_ctx, f"ETEdgeModelExecutor Converting task for task: {current_task.id}")
-
-        # Add model version to the payload to track the version of the model being processed.
-        model_dxo = task_state.model
-        model_dxo.set_meta_prop(MsgKey.MODEL_VERSION, task_state.model_version)
-        model_dict = model_dxo.to_dict()
-        self.log_info(fl_ctx, f"ETEdgeModelExecutor model_dict data keys are: {model_dict['data'].keys()}")
-        model_dict["data"] = self._export_model_weights_to_pte_b64str(model_dict["data"])
-        model_dict["meta"].update(
-            {
-                ModelExchangeFormat.MODEL_BUFFER_TYPE: ModelBufferType.EXECUTORCH,
-                ModelExchangeFormat.MODEL_BUFFER_NATIVE_FORMAT: ModelNativeFormat.BINARY,
-                ModelExchangeFormat.MODEL_BUFFER_ENCODING: ModelEncoding.BASE64,
-            }
-        )
-        model_dict["kind"] = DataKind.APP_DEFINED
-        self.log_info(fl_ctx, f"ETEdgeModelExecutor model_dict keys are: {model_dict.keys()}")
-        return model_dict
+        pass
 
     def _convert_to_tensor_dxo(self, result_dict: dict, fl_ctx: FLContext):
         """Convert the result_dict to a tensor DXO"""
-        d = {}
-        d["meta"] = result_dict["meta"]
-        d["kind"] = DataKind.WEIGHT_DIFF
-        tensor_dict = {}
-        for key, value in result_dict["data"].items():
-            tensor = torch.Tensor(value["data"]).reshape(value["sizes"]).cpu().numpy()
-            tensor_dict[key] = tensor
-
-        d["data"] = {"dict": tensor_dict}
-        return d
+        pass
 
     def _convert_device_result_to_model_update(
         self, result_report: ResultReport, current_task: TaskInfo, fl_ctx: FLContext
     ) -> Optional[ModelUpdate]:
-        self.log_info(fl_ctx, f"ETEdgeModelExecutor Converting result for task: {current_task.id}")
-
-        device_id = result_report.get_device_id()
-        cookie = result_report.cookie
-        if not cookie:
-            self.log_error(fl_ctx, f"missing cookie in result report from device {device_id}")
-            raise ValueError("missing cookie")
-
-        model_version = cookie.get(CookieKey.MODEL_VERSION)
-        if not model_version:
-            self.log_error(
-                fl_ctx, f"missing '{CookieKey.MODEL_VERSION}' cookie in result report from device {device_id}"
-            )
-            raise ValueError(f"missing '{CookieKey.MODEL_VERSION}' cookie")
-
-        result_dict = result_report.result
-
-        # Convert the result_dict json to a tensor DXO dict
-        self.log_info(fl_ctx, "ETEdgeModelExecutor converting result_dict to tensor DXO")
-        result_dict = self._convert_to_tensor_dxo(result_dict, fl_ctx)
-
-        if not isinstance(result_dict, dict) or "data" not in result_dict or "dict" not in result_dict["data"]:
-            self.log_error(fl_ctx, f"result_report.result is not a valid structure: {result_report.result}")
-            raise ValueError("result_report.result is not a valid structure")
-
-        result_dict["data"]["dict"] = {k.removeprefix("net."): v for k, v in result_dict["data"]["dict"].items()}
-        self.log_info(fl_ctx, f"ETEdgeModelExecutor result_dict data keys are: {result_dict['data'].keys()}")
-
-        try:
-            dxo = from_dict(result_dict)
-        except Exception as e:
-            self.log_error(fl_ctx, f"Failed to convert result_report.result to DXO: {e}")
-            raise ValueError("Failed to convert result_report.result to DXO") from e
-
-        dxo.set_meta_prop(ReservedHeaderKey.TASK_ID, current_task.id)
-
-        return ModelUpdate(
-            model_version=model_version,
-            update=dxo.to_shareable(),
-            devices={result_report.get_device_id(): time.time()},
-        )
+        pass

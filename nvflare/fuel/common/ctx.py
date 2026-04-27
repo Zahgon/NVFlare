@@ -21,20 +21,19 @@ class SimpleContext(object):
         self.props = {}
 
     def set_prop(self, key, value):
-        self.props[key] = value
+        pass
 
     def set_props(self, props: dict):
-        if props:
-            self.props.update(props)
+        pass
 
     def len(self):
-        return len(self.props)
+        pass
 
     def get_prop(self, key, default=None):
-        return self.props.get(key, default)
+        pass
 
     def clear_props(self):
-        self.props = {}
+        pass
 
 
 class BaseContext(SimpleContext):
@@ -46,24 +45,16 @@ class BaseContext(SimpleContext):
         self._update_lock = threading.Lock()
 
     def set_prop(self, key, value):
-        with self._update_lock:
-            SimpleContext.set_prop(self, key, value)
+        pass
 
     def set_props(self, props: dict):
-        if not props:
-            return
-
-        with self._update_lock:
-            SimpleContext.set_props(self, props)
+        pass
 
     def len(self):
-        with self._update_lock:
-            return SimpleContext.len(self)
+        pass
 
     def get_prop(self, key, default=None):
-        with self._update_lock:
-            return SimpleContext.get_prop(self, key, default)
+        pass
 
     def clear_props(self):
-        with self._update_lock:
-            SimpleContext.clear_props(self)
+        pass

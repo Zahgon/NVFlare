@@ -20,28 +20,7 @@ from nvflare.app_opt.flower.mock.echo_servicer import EchoServicer
 
 
 def main():
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--max_workers", "-w", type=int, help="max number of workers", required=False, default=20)
-    parser.add_argument("--addr", "-a", type=str, help="server address", required=True)
-    parser.add_argument("--num_rounds", "-n", type=int, help="number of rounds", required=True)
-    args = parser.parse_args()
-
-    if not args.addr:
-        raise RuntimeError("missing server address '--addr/-a' in command")
-
-    print(f"starting server: {args.addr=} {args.max_workers=} {args.num_rounds=}")
-    servicer = EchoServicer(args.num_rounds)
-    server = GrpcServer(
-        args.addr,
-        max_workers=args.max_workers,
-        grpc_options=None,
-        servicer=servicer,
-    )
-    servicer.set_server(server)
-    server.start()
+    pass
 
 
 if __name__ == "__main__":

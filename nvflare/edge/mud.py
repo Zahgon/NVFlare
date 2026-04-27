@@ -104,7 +104,7 @@ class BaseState:
         Returns: None
 
         """
-        self.converted_models[platform] = model
+        pass
 
     def get_converted_model(self, platform: str):
         """Get the model that is converted for the platform.
@@ -115,7 +115,7 @@ class BaseState:
         Returns: converted model if available; None otherwise.
 
         """
-        return self.converted_models.get(platform)
+        pass
 
     def is_device_selected(self, device_id: str, selection_id: int) -> (bool, int):
         """Determine whether the device should be selected for training.
@@ -127,24 +127,7 @@ class BaseState:
         Returns: tuple of (whether the device is selected, new selection id)
 
         """
-        if not self.device_selection_version:
-            # no device selection available
-            return False, 0
-
-        # get the "selection id" of this device in the current device_selection.
-        sid = self.device_selection.get(device_id)
-        if not sid:
-            # device ID "*" means every device
-            sid = self.device_selection.get("*")
-
-        if not sid or sid == selection_id:
-            # either this device is not in the selection, or its selection id has not changed
-            # we do not allow the device to participate in training!
-            return False, 0
-        else:
-            # the device is in the selection AND its selection ID is changed
-            # we allow the device to train
-            return True, sid
+        pass
 
     def to_shareable(self) -> Shareable:
         """Convert to Shareable for communication.
@@ -152,17 +135,7 @@ class BaseState:
         Returns: a Shareable object
 
         """
-        result = Shareable()
-
-        result.set_header(PropKey.MODEL_VERSION, self.model_version)
-        if self.model_version > 0:
-            result[PropKey.MODEL] = self.model
-
-        result.set_header(PropKey.DEVICE_SELECTION_VERSION, self.device_selection_version)
-        if self.device_selection_version > 0:
-            result[PropKey.DEVICE_SELECTION] = self.device_selection
-
-        return result
+        pass
 
     @staticmethod
     def from_shareable(shareable: Shareable):
@@ -174,31 +147,7 @@ class BaseState:
         Returns: a BaseState object
 
         """
-        model_version = shareable.get_header(PropKey.MODEL_VERSION)
-        if not isinstance(model_version, int):
-            raise ValueError(f"prop {PropKey.MODEL_VERSION} must be int but got {type(model_version)}")
-
-        if model_version > 0:
-            model = shareable.get(PropKey.MODEL)
-            if not isinstance(model, DXO):
-                raise ValueError(f"prop {PropKey.MODEL} must be DXO but got {type(model)}")
-        else:
-            model = None
-
-        dev_selection_version = shareable.get_header(PropKey.DEVICE_SELECTION_VERSION)
-        if not isinstance(dev_selection_version, int):
-            raise ValueError(
-                f"prop {PropKey.DEVICE_SELECTION_VERSION} must be int but got {type(dev_selection_version)}"
-            )
-
-        if dev_selection_version > 0:
-            dev_selection = shareable.get(PropKey.DEVICE_SELECTION)
-            if not isinstance(dev_selection, dict):
-                raise ValueError(f"prop {PropKey.DEVICE_SELECTION} must be dict but got {type(dev_selection)}")
-        else:
-            dev_selection = {}
-
-        return BaseState(model_version, model, dev_selection_version, dev_selection)
+        pass
 
 
 class Device:
@@ -229,12 +178,7 @@ class Device:
         Returns: a dict object
 
         """
-        return {
-            PropKey.DEVICE_ID: self.device_id,
-            PropKey.CLIENT_NAME: self.client_name,
-            PropKey.DEVICE_LAST_ALIVE_TIME: self.last_alive_time,
-            PropKey.DEVICE_PROPS: self.props,
-        }
+        pass
 
     @staticmethod
     def from_dict(d: Dict):
@@ -246,12 +190,7 @@ class Device:
         Returns: a Device object
 
         """
-        return Device(
-            device_id=d.get(PropKey.DEVICE_ID),
-            client_name=d.get(PropKey.CLIENT_NAME),
-            last_alive_time=d.get(PropKey.DEVICE_LAST_ALIVE_TIME),
-            props=d.get(PropKey.DEVICE_PROPS),
-        )
+        pass
 
 
 class ModelUpdate:
@@ -282,11 +221,7 @@ class ModelUpdate:
         Returns: a dict object
 
         """
-        return {
-            PropKey.MODEL_VERSION: self.model_version,
-            PropKey.MODEL: self.update,
-            PropKey.DEVICES: self.devices,
-        }
+        pass
 
     @staticmethod
     def from_dict(d: Dict):
@@ -298,11 +233,7 @@ class ModelUpdate:
         Returns: a ModelUpdate object
 
         """
-        return ModelUpdate(
-            model_version=d.get(PropKey.MODEL_VERSION),
-            update=d.get(PropKey.MODEL),
-            devices=d.get(PropKey.DEVICES),
-        )
+        pass
 
 
 class StateUpdateReport:
@@ -345,45 +276,11 @@ class StateUpdateReport:
         Returns: a Shareable object
 
         """
-        s = Shareable()
-        s.set_header(PropKey.MODEL_VERSION, self.current_model_version)
-        s.set_header(PropKey.DEVICE_SELECTION_VERSION, self.current_device_selection_version)
-
-        if self.model_updates:
-            s[PropKey.MODEL_UPDATES] = {k: v.to_dict() for k, v in self.model_updates.items()}
-
-        if self.available_devices:
-            s[PropKey.DEVICES] = {k: v.to_dict() for k, v in self.available_devices.items()}
-
-        return s
+        pass
 
     @staticmethod
     def from_shareable(s: Shareable):
-        model_version = s.get_header(PropKey.MODEL_VERSION)
-        device_selection_version = s.get_header(PropKey.DEVICE_SELECTION_VERSION)
-
-        mu = s.get(PropKey.MODEL_UPDATES)
-        if mu:
-            if not isinstance(mu, dict):
-                raise ValueError(f"prop {PropKey.MODEL_UPDATES} must be dict but got {type(mu)}")
-            model_updates = {k: ModelUpdate.from_dict(v) for k, v in mu.items()}
-        else:
-            model_updates = None
-
-        devs = s.get(PropKey.DEVICES)
-        if devs:
-            if not isinstance(devs, dict):
-                raise ValueError(f"prop {PropKey.DEVICES} must be dict but got {type(devs)}")
-            available_devices = {k: Device.from_dict(v) for k, v in devs.items()}
-        else:
-            available_devices = {}
-
-        return StateUpdateReport(
-            current_model_version=model_version,
-            current_device_selection_version=device_selection_version,
-            model_updates=model_updates,
-            available_devices=available_devices,
-        )
+        pass
 
 
 class StateUpdateReply:
@@ -424,17 +321,7 @@ class StateUpdateReply:
         Returns: a Shareable object
 
         """
-        result = Shareable()
-
-        result.set_header(PropKey.MODEL_VERSION, self.model_version)
-        if self.model:
-            result[PropKey.MODEL] = self.model
-
-        result.set_header(PropKey.DEVICE_SELECTION_VERSION, self.device_selection_version)
-        if self.device_selection:
-            result[PropKey.DEVICE_SELECTION] = self.device_selection
-
-        return result
+        pass
 
     @staticmethod
     def from_shareable(shareable: Shareable):
@@ -446,8 +333,4 @@ class StateUpdateReply:
         Returns: a StateUpdateReply object
 
         """
-        model_version = shareable.get_header(PropKey.MODEL_VERSION)
-        model = shareable.get(PropKey.MODEL)
-        dev_selection_version = shareable.get_header(PropKey.DEVICE_SELECTION_VERSION)
-        dev_selection = shareable.get(PropKey.DEVICE_SELECTION)
-        return StateUpdateReply(model_version, model, dev_selection_version, dev_selection)
+        pass

@@ -134,41 +134,38 @@ class ClientConfig:
         self.logger = get_obj_logger(self)
 
     def get_config(self) -> Dict:
-        return self.config
+        pass
 
     def get_pipe_channel_name(self, section: str) -> str:
-        return self.config[section][ConfigKey.PIPE_CHANNEL_NAME]
+        pass
 
     def get_pipe_args(self, section: str) -> dict:
-        return self.config[section][ConfigKey.PIPE][ConfigKey.ARG]
+        pass
 
     def get_pipe_class(self, section: str) -> str:
-        return self.config[section][ConfigKey.PIPE][ConfigKey.CLASS_NAME]
+        pass
 
     def get_exchange_format(self) -> str:
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.EXCHANGE_FORMAT, "")
+        pass
 
     def get_server_expected_format(self) -> str:
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.SERVER_EXPECTED_FORMAT, ExchangeFormat.NUMPY)
+        pass
 
     def get_transfer_type(self) -> str:
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.TRANSFER_TYPE, "FULL")
+        pass
 
     def get_train_task(self):
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.TRAIN_TASK_NAME, "")
+        pass
 
     def get_eval_task(self):
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.EVAL_TASK_NAME, "")
+        pass
 
     def get_submit_model_task(self):
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.SUBMIT_MODEL_TASK_NAME, "")
+        pass
 
     def get_heartbeat_timeout(self):
         # TODO decouple task and metric heartbeat timeouts
-        return self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(
-            ConfigKey.HEARTBEAT_TIMEOUT,
-            self.config.get(ConfigKey.METRICS_EXCHANGE, {}).get(ConfigKey.HEARTBEAT_TIMEOUT, 60),
-        )
+        pass
 
     def get_max_resends(self):
         """Return the maximum number of pipe send retries for submitting task results.
@@ -177,14 +174,7 @@ class ClientConfig:
         unbounded ArrayDownloadable accumulation (Root Cause 6).
         Set via recipe.add_client_config({"max_resends": N}).
         """
-        value = self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.MAX_RESENDS, 3)
-        if value is None:
-            return None
-        result = int(value)
-        if result < 0:
-            self.logger.warning(f"max_resends={result} is negative, clamping to 0")
-            return 0
-        return result
+        pass
 
     def get_launch_once(self) -> bool:
         """Return whether the subprocess is launched once for the entire job (True) or per-round (False).
@@ -193,7 +183,7 @@ class ClientConfig:
         False → subprocess handles one round; must os._exit() after download so the deferred-stop
                 poller on the CJ side unblocks (default, preserves original behaviour).
         """
-        return bool(self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.LAUNCH_ONCE, False))
+        pass
 
     def get_download_complete_timeout(self) -> float:
         """Return timeout (seconds) for subprocess to wait for the server to finish downloading its result.
@@ -202,7 +192,7 @@ class ClientConfig:
         DownloadService.  This timeout gates subprocess exit so the process does not disappear before
         the download completes.  Defaults to 1800 s (30 min) for large-model transfers.
         """
-        return float(self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.DOWNLOAD_COMPLETE_TIMEOUT, 1800.0))
+        pass
 
     def get_submit_result_timeout(self) -> float:
         """Return the timeout (seconds) for the subprocess to wait for CJ to ACK a result message.
@@ -215,40 +205,35 @@ class ClientConfig:
         Changing this value via recipe.add_client_config() sets it for a specific job without
         touching any process-level defaults.
         """
-        return float(self.config.get(ConfigKey.TASK_EXCHANGE, {}).get(ConfigKey.SUBMIT_RESULT_TIMEOUT, 300.0))
+        pass
 
     def get_connection_security(self):
-        return self.config.get(ConnPropKey.CONNECTION_SECURITY)
+        pass
 
     def get_root_conn_props(self):
-        return self.config.get(ConnPropKey.ROOT_CONN_PROPS)
+        pass
 
     def get_cp_conn_props(self):
-        return self.config.get(ConnPropKey.CP_CONN_PROPS)
+        pass
 
     def get_relay_conn_props(self):
-        return self.config.get(ConnPropKey.RELAY_CONN_PROPS)
+        pass
 
     def get_site_name(self):
-        return self.config.get(FLMetaKey.SITE_NAME)
+        pass
 
     def get_auth_token(self):
-        return self.config.get(FLMetaKey.AUTH_TOKEN)
+        pass
 
     def get_auth_token_signature(self):
-        return self.config.get(FLMetaKey.AUTH_TOKEN_SIGNATURE)
+        pass
 
     def to_json(self, config_file: str):
-        with open(config_file, "w") as f:
-            json.dump(self.config, f, indent=2)
+        pass
 
 
 def from_file(config_file: str):
-    config = ConfigFactory.load_config(config_file)
-    if config is None:
-        raise RuntimeError(f"Load config file {config_file} failed")
-
-    return ClientConfig(config=config.to_dict())
+    pass
 
 
 def write_config_to_file(config_data: dict, config_file_path: str):
@@ -258,10 +243,4 @@ def write_config_to_file(config_data: dict, config_file_path: str):
         config_data (dict): data to be updated.
         config_file_path (str): filepath to write.
     """
-    if os.path.exists(config_file_path):
-        client_config = from_file(config_file=config_file_path)
-    else:
-        client_config = ClientConfig()
-    configuration = client_config.config
-    configuration.update(config_data)
-    client_config.to_json(config_file_path)
+    pass

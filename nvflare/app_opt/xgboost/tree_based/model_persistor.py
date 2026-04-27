@@ -31,12 +31,7 @@ class XGBModelPersistor(ModelPersistor):
 
     def _initialize(self, fl_ctx: FLContext):
         # get save path from FLContext
-        app_root = fl_ctx.get_prop(FLContextKey.APP_ROOT)
-        self.log_dir = app_root
-        self.save_path = os.path.join(self.log_dir, self.save_name)
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
-        fl_ctx.sync_sticky()
+        pass
 
     def load_model(self, fl_ctx: FLContext) -> ModelLearnable:
         """Initialize and load the Model.
@@ -47,24 +42,10 @@ class XGBModelPersistor(ModelPersistor):
         Returns:
             ModelLearnable object
         """
-
-        model = None
-
-        if os.path.exists(self.save_path):
-            self.logger.info("Loading server model")
-            with open(self.save_path, "r") as json_file:
-                model = json.load(json_file)
-                if not self.load_as_dict:
-                    model = bytearray(json.dumps(model), "utf-8")
-        else:
-            self.logger.info("Initializing server model as None")
-        model_learnable = make_model_learnable(weights=model, meta_props=dict())
-
-        return model_learnable
+        pass
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        if event == EventType.START_RUN:
-            self._initialize(fl_ctx)
+        pass
 
     def save_model(self, model_learnable: ModelLearnable, fl_ctx: FLContext):
         """Persists the Model object.
@@ -73,17 +54,4 @@ class XGBModelPersistor(ModelPersistor):
             model_learnable: ModelLearnable object
             fl_ctx: FLContext
         """
-        if model_learnable:
-            if fl_ctx.get_prop(AppConstants.CURRENT_ROUND) == fl_ctx.get_prop(AppConstants.NUM_ROUNDS) - 1:
-                self.logger.info(f"Saving received model to {os.path.abspath(self.save_path)}")
-                # save 'weights' which is actual model, loadable by xgboost library
-                model = model_learnable[ModelLearnableKey.WEIGHTS]
-                with open(self.save_path, "w") as f:
-                    if isinstance(model, dict):
-                        json.dump(model, f)
-                    elif isinstance(model, bytes) or isinstance(model, bytearray) or isinstance(model, str):
-                        # should already be json, but double check by loading and dumping at some extra cost
-                        json.dump(json.loads(model), f)
-                    else:
-                        self.logger.error("unknown model format")
-                        self.system_panic(reason="No global base model!", fl_ctx=fl_ctx)
+        pass

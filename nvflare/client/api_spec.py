@@ -43,15 +43,7 @@ class APISpec(ABC):
         Cleanup is only performed if _memory_gc_rounds > 0 and the current
         round count is a multiple of _memory_gc_rounds.
         """
-        if self._memory_gc_rounds <= 0:
-            return
-
-        self._round_count += 1
-        if self._round_count % self._memory_gc_rounds == 0:
-            from nvflare.fuel.utils.memory_utils import cleanup_memory
-
-            cleanup_memory(cuda_empty_cache=self._cuda_empty_cache)
-            self._memory_logger.info(f"Memory cleanup performed at round {self._round_count}")
+        pass
 
     @abstractmethod
     def init(self, rank: Optional[str] = None):

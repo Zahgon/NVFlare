@@ -32,11 +32,4 @@ class FLAppValidator(AppValidator):
                 self.validators.append(validator)
 
     def validate(self, app_folder: str) -> Tuple[str, Dict]:
-        final_result = {}
-        for v in self.validators:
-            err, result = v.validate(app_folder)
-            if err:
-                return err, result
-            if result:
-                final_result.update(result)
-        return "", final_result
+        pass

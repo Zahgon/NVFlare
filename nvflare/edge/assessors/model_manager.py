@@ -96,4 +96,4 @@ class ModelManager(FLComponent, ABC):
         Returns:
             The current model
         """
-        return self.current_model
+        pass

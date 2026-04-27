@@ -35,9 +35,7 @@ class _KMeansValidator(BaseModel):
     @field_validator("model_path")
     @classmethod
     def validate_model_path_absolute(cls, v):
-        if v is not None:
-            validate_model_path(v)
-        return v
+        pass
 
 
 class KMeansFedAvgRecipe(FedAvgRecipe):

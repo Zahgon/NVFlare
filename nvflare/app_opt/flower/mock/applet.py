@@ -23,16 +23,7 @@ class MockClientApplet(CLIApplet):
         CLIApplet.__init__(self)
 
     def get_command(self, app_ctx: dict) -> CommandDescriptor:
-        main_module = "nvflare.app_opt.flower.mock.flower_client"
-        addr = app_ctx.get(Constant.APP_CTX_SERVER_ADDR)
-        num_rounds = app_ctx.get(Constant.APP_CTX_NUM_ROUNDS)
-        client_name = app_ctx.get(Constant.APP_CTX_CLIENT_NAME)
-
-        return CommandDescriptor(
-            cmd=f"python -m {main_module} -a {addr} -n {num_rounds} -c {client_name}",
-            log_file_name="flower_client_log.txt",
-            stdout_msg_prefix="FLWR-CA",
-        )
+        pass
 
 
 class MockServerApplet(CLIApplet):
@@ -40,15 +31,7 @@ class MockServerApplet(CLIApplet):
         CLIApplet.__init__(self)
 
     def get_command(self, app_ctx: dict) -> CommandDescriptor:
-        main_module = "nvflare.app_opt.flower.mock.flower_server"
-        addr = app_ctx.get(Constant.APP_CTX_SERVER_ADDR)
-        num_rounds = app_ctx.get(Constant.APP_CTX_NUM_ROUNDS)
-
-        return CommandDescriptor(
-            cmd=f"python -m {main_module} -a {addr} -n {num_rounds}",
-            log_file_name="flower_server_log.txt",
-            stdout_msg_prefix="FLWR-SA",
-        )
+        pass
 
 
 class MockClientPyRunner(PyRunner):
@@ -56,16 +39,13 @@ class MockClientPyRunner(PyRunner):
         self.stopped = False
 
     def start(self, app_ctx: dict):
-        addr = app_ctx.get(Constant.APP_CTX_SERVER_ADDR)
-        client_name = app_ctx.get(Constant.APP_CTX_CLIENT_NAME)
-        train(server_addr=addr, client_name=client_name)
-        self.stopped = True
+        pass
 
     def stop(self, timeout: float):
         pass
 
     def is_stopped(self) -> (bool, int):
-        return self.stopped, 0
+        pass
 
 
 class MockClientPyApplet(PyApplet):
@@ -73,4 +53,4 @@ class MockClientPyApplet(PyApplet):
         PyApplet.__init__(self, in_process)
 
     def get_runner(self, app_ctx: dict) -> PyRunner:
-        return MockClientPyRunner()
+        pass

@@ -68,44 +68,10 @@ class SecurityContentManager(object):
         Returns:
             A tuple of the file data and the LoadResult. File data may be None if the data cannot be loaded.
         """
-        full_path = os.path.join(self.content_folder, file_under_verification)
-        data = None
-        if not os.path.exists(full_path):
-            return data, LoadResult.NO_SUCH_CONTENT
-
-        with open(full_path, "rb") as f:
-            data = f.read()
-        if not data:
-            return data, LoadResult.NO_SUCH_CONTENT
-
-        if self.valid_config and file_under_verification in self.signature:
-            signature = self.signature[file_under_verification]
-            try:
-                self.public_key.verify(
-                    signature=signature,
-                    data=data,
-                    padding=padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
-                    algorithm=hashes.SHA256(),
-                )
-                result = LoadResult.OK
-            except InvalidSignature:
-                result = LoadResult.INVALID_SIGNATURE
-        else:
-            result = LoadResult.NOT_SIGNED
-        return data, result
+        pass
 
     def load_json(self, file_under_verification):
-        json_data = None
-        data_bytes, result = self.load_content(file_under_verification)
-
-        if data_bytes:
-            try:
-                data_text = data_bytes.decode("ascii")
-                json_data = json.loads(data_text)
-            except json.JSONDecodeError:
-                return None, LoadResult.INVALID_CONTENT
-
-        return json_data, result
+        pass
 
 
 class SecurityContentService(object):
@@ -116,23 +82,15 @@ class SecurityContentService(object):
 
     @classmethod
     def initialize(cls, content_folder: str, signature_filename="signature.json", root_cert="rootCA.pem"):
-        if not cls.security_content_manager:
-            cls.content_folder = content_folder
-            cls.security_content_manager = SecurityContentManager(content_folder, signature_filename, root_cert)
+        pass
 
     @classmethod
     def load_content(cls, file_under_verification):
-        if not cls.security_content_manager:
-            return None, LoadResult.NOT_MANAGED
-
-        return cls.security_content_manager.load_content(file_under_verification)
+        pass
 
     @classmethod
     def load_json(cls, file_under_verification):
-        if not cls.security_content_manager:
-            return None, LoadResult.NOT_MANAGED
-
-        return cls.security_content_manager.load_json(file_under_verification)
+        pass
 
     @classmethod
     def check_json_files(cls, patterns: [str]) -> [str]:
@@ -147,18 +105,4 @@ class SecurityContentService(object):
         - The file does not match signature
 
         """
-        bad_files = []
-        if not cls.security_content_manager:
-            return bad_files
-
-        if not patterns:
-            return bad_files
-
-        for p in patterns:
-            files = glob.glob(os.path.join(cls.content_folder, p))
-            if files:
-                for f in files:
-                    _, result = cls.load_json(os.path.basename(f))
-                    if result != LoadResult.OK:
-                        bad_files.append(f)
-        return bad_files
+        pass

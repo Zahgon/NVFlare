@@ -33,7 +33,7 @@ class StreamCell:
 
         Byte stream are broken into chunks of this size before sending over Cellnet
         """
-        return self.byte_streamer.get_chunk_size()
+        pass
 
     def send_stream(
         self, channel: str, topic: str, target: str, message: Message, secure=False, optional=False
@@ -55,13 +55,7 @@ class StreamCell:
             The future result is the number of bytes sent
 
         """
-
-        if not isinstance(message.payload, Stream):
-            raise StreamError(f"Message payload is not a stream: {type(message.payload)}")
-
-        return self.byte_streamer.send(
-            channel, topic, target, message.headers, message.payload, STREAM_TYPE_BYTE, secure, optional
-        )
+        pass
 
     def register_stream_cb(self, channel: str, topic: str, stream_cb: Callable, *args, **kwargs):
         """Registers a callback for reading stream.
@@ -86,7 +80,7 @@ class StreamCell:
             **kwargs: keyword args to be passed to the callbacks
 
         """
-        self.byte_receiver.register_callback(channel, topic, stream_cb, *args, **kwargs)
+        pass
 
     def send_blob(
         self, channel: str, topic: str, target: str, message: Message, secure=False, optional=False
@@ -109,14 +103,7 @@ class StreamCell:
             The future result is the total number of bytes sent
 
         """
-
-        if message.payload is None:
-            message.payload = bytes(0)
-
-        if not isinstance(message.payload, (bytes, bytearray, memoryview, list)):
-            raise StreamError(f"Message payload is not a byte array: {type(message.payload)}")
-
-        return self.blob_streamer.send(channel, topic, target, message, secure, optional)
+        pass
 
     def register_blob_cb(self, channel: str, topic: str, blob_cb, *args, **kwargs):
         """Registers a callback for receiving the blob.
@@ -138,4 +125,4 @@ class StreamCell:
             topic: topic of the request
             blob_cb: The callback to handle the stream
         """
-        self.blob_streamer.register_blob_callback(channel, topic, blob_cb, *args, **kwargs)
+        pass

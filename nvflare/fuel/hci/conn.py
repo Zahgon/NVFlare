@@ -34,56 +34,37 @@ class Connection(BaseContext):
             self.set_props(props)
 
     def append_table(self, headers: List[str], name=None) -> Table:
-        return self.buffer.append_table(headers, name=name)
+        pass
 
     def append_string(self, data: str, meta: dict = None):
-        self.buffer.append_string(data, meta=meta)
+        pass
 
     def append_success(self, data: str, meta: dict = None):
-        self.buffer.append_success(data, meta=meta)
+        pass
 
     def append_dict(self, data: dict, meta: dict = None):
-        self.buffer.append_dict(data, meta=meta)
+        pass
 
     def append_error(self, data: str, meta: dict = None):
-        self.buffer.append_error(data, meta=meta)
+        pass
 
     def append_command(self, cmd: str):
-        self.buffer.append_command(cmd)
+        pass
 
     def append_token(self, token: str):
-        self.buffer.append_token(token)
+        pass
 
     def append_shutdown(self, msg: str):
-        self.buffer.append_shutdown(msg)
+        pass
 
     def append_any(self, data, meta: dict = None):
-        if data is None:
-            return
-
-        if isinstance(data, str):
-            self.append_string(data, meta=meta)
-        elif isinstance(data, dict):
-            self.append_dict(data, meta)
-        else:
-            self.append_error("unsupported data type {}".format(type(data)))
+        pass
 
     def update_meta(self, meta: dict):
-        self.buffer.update_meta(meta)
+        pass
 
     def close(self):
-        line = self.buffer.encode()
-        self.buffer.reset()
-        return line
+        pass
 
     def get_token(self):
-        if not self.request:
-            return None
-        data = self.request.get(ProtoKey.DATA)
-        if not data:
-            return None
-        for item in data:
-            it = item.get(ProtoKey.TYPE)
-            if it == ProtoKey.TOKEN:
-                return item.get(ProtoKey.DATA)
-        return None
+        pass

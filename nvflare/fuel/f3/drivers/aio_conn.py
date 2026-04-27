@@ -45,99 +45,26 @@ class AioConnection(Connection):
         self.conn_props = self._get_aio_properties()
 
     def get_conn_properties(self) -> dict:
-        return self.conn_props
+        pass
 
     def close(self):
-        self.closing = True
-
-        if not self.writer:
-            return
-
-        self.writer.close()
-        self.aio_ctx.run_coro(self.writer.wait_closed())
+        pass
 
     def send_frame(self, frame: BytesAlike):
-        try:
-            self.aio_ctx.run_coro(self._async_send_frame(frame))
-        except Exception as ex:
-            log.error(f"Error calling send coroutine for connection {self}: {secure_format_exception(ex)}")
+        pass
 
     async def read_loop(self):
-        try:
-            while not self.closing:
-                frame = await self._async_read_frame()
-                self.process_frame(frame)
-
-        except IncompleteReadError:
-            if log.isEnabledFor(logging.DEBUG):
-                closer = "locally" if self.closing else "by peer"
-                log.debug(f"Connection {self} is closed {closer}")
-        except CancelledError as error:
-            log.debug(f"Connection {self} is closed by peer: {error}")
-        except Exception as ex:
-            log.error(f"Read error for connection {self}: {secure_format_exception(ex)}")
+        pass
 
     # Internal methods
 
     async def _async_send_frame(self, frame: BytesAlike):
-        try:
-            self.writer.write(frame)
-            await self.writer.drain()
-        except Exception as ex:
-            if not self.closing:
-                log.error(f"Error sending frame for connection {self}: {secure_format_exception(ex)}")
+        pass
 
     async def _async_read_frame(self):
 
-        prefix_buf = await self.reader.readexactly(PREFIX_LEN)
-        prefix = Prefix.from_bytes(prefix_buf)
-
-        # Prefix only message
-        if prefix.length == PREFIX_LEN:
-            return prefix_buf
-
-        if prefix.length > MAX_FRAME_SIZE:
-            raise CommError(CommError.BAD_DATA, f"Frame exceeds limit ({prefix.length} > {MAX_FRAME_SIZE}")
-
-        remaining = await self.reader.readexactly(prefix.length - PREFIX_LEN)
-
-        return prefix_buf + remaining
+        pass
 
     def _get_aio_properties(self) -> dict:
 
-        conn_props = {}
-        if not self.writer:
-            return conn_props
-
-        fileno = 0
-        local_addr = self.writer.get_extra_info("sockname", "")
-        if isinstance(local_addr, tuple):
-            local_addr = f"{local_addr[0]}:{local_addr[1]}"
-        else:
-            sock = self.writer.get_extra_info("socket", None)
-            if sock:
-                fileno = sock.fileno()
-            local_addr = f"{local_addr}:{fileno}"
-
-        peer_addr = self.writer.get_extra_info("peername", "")
-        if isinstance(peer_addr, tuple):
-            peer_addr = f"{peer_addr[0]}:{peer_addr[1]}"
-        else:
-            peer_addr = f"{peer_addr}:{fileno}"
-
-        conn_props[DriverParams.LOCAL_ADDR.value] = local_addr
-        conn_props[DriverParams.PEER_ADDR.value] = peer_addr
-
-        peer_cert = self.writer.get_extra_info("peercert")
-        if peer_cert:
-            cn = get_certificate_common_name(peer_cert)
-        else:
-            if self.secure:
-                cn = "N/A"
-            else:
-                cn = None
-
-        if cn:
-            conn_props[DriverParams.PEER_CN.value] = cn
-
-        return conn_props
+        pass

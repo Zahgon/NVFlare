@@ -49,13 +49,13 @@ class Stream(ABC):
         self.closed = False
 
     def get_size(self) -> int:
-        return self.size
+        pass
 
     def get_pos(self):
-        return self.pos
+        pass
 
     def get_headers(self) -> Optional[dict]:
-        return self.headers
+        pass
 
     @abstractmethod
     def read(self, size: int) -> BytesAlike:
@@ -72,7 +72,7 @@ class Stream(ABC):
 
     def close(self):
         """Close the stream"""
-        self.closed = True
+        pass
 
     def seek(self, offset: int):
         """Change the stream position to the given byte offset.
@@ -82,7 +82,7 @@ class Stream(ABC):
         Exception:
             StreamError: If the stream is not seekable
         """
-        self.pos = offset
+        pass
 
 
 class StreamTaskSpec(ABC):
@@ -114,22 +114,22 @@ class StreamFuture:
         self.task_handle = task_handle
 
     def get_stream_id(self) -> int:
-        return self.stream_id
+        pass
 
     def get_headers(self) -> Optional[dict]:
-        return self.headers
+        pass
 
     def get_size(self) -> int:
-        return self.size
+        pass
 
     def set_size(self, size: int):
-        self.size = size
+        pass
 
     def get_progress(self) -> int:
-        return self.progress
+        pass
 
     def set_progress(self, progress: int):
-        self.progress = progress
+        pass
 
     def cancel(self):
         """Cancel the future if possible.
@@ -137,32 +137,18 @@ class StreamFuture:
         Returns True if the future was cancelled, False otherwise. A future
         cannot be cancelled if it is running or has already completed.
         """
-
-        with self.lock:
-            if self.error or self.waiter.is_set():
-                return False
-
-            self.error = StreamCancelled(f"Stream {self.stream_id} is cancelled")
-            if self.task_handle:
-                self.task_handle.cancel()
-            self.waiter.set()
-
-        self._invoke_callbacks()
-        return True
+        pass
 
     def cancelled(self):
-        with self.lock:
-            return isinstance(self.error, StreamCancelled)
+        pass
 
     def running(self):
         """Return True if the future is currently executing."""
-        with self.lock:
-            return not self.waiter.is_set()
+        pass
 
     def done(self):
         """Return True of the future was cancelled or finished executing."""
-        with self.lock:
-            return bool(self.error or self.waiter.is_set())
+        pass
 
     def add_done_callback(self, done_cb: Callable, *args, **kwargs):
         """Attaches a callable that will be called when the future finishes.
@@ -170,15 +156,7 @@ class StreamFuture:
         Args:
             done_cb: A callable that will be called with this future completes
         """
-        with self.lock:
-            if not (self.error or self.waiter.is_set()):
-                self.done_callbacks.append((done_cb, args, kwargs))
-                return
-        # Future is already done — invoke immediately outside the lock
-        try:
-            done_cb(*args, **kwargs)
-        except Exception as ex:
-            log.error(f"Exception calling callback for {done_cb}: {ex}")
+        pass
 
     def result(self, timeout=None) -> Any:
         """Return the result of the call that the future represents.
@@ -195,14 +173,7 @@ class StreamFuture:
             TimeoutError: If the future didn't finish executing before the given
                 timeout.
         """
-
-        if not self.waiter.wait(timeout):
-            raise TimeoutError(f"Future timed out waiting result after {timeout} seconds")
-
-        if self.error:
-            raise self.error
-
-        return self.value
+        pass
 
     def exception(self, timeout=None):
         """Return the exception raised by the call that the future represents.
@@ -221,11 +192,7 @@ class StreamFuture:
             TimeoutError: If the future didn't finish executing before the given
                 timeout.
         """
-
-        if not self.waiter.wait(timeout):
-            raise TimeoutError(f"Future timed out waiting exception after {timeout} seconds")
-
-        return self.error
+        pass
 
     def set_result(self, value: Any):
         """Sets the return value of work associated with the future.
@@ -234,17 +201,7 @@ class StreamFuture:
         a completing _read_stream). Raises StreamError if called twice with a result,
         as that is always a programming error.
         """
-
-        with self.lock:
-            if self.error:
-                log.debug(f"set_result on already-failed future {self.stream_id}, ignoring")
-                return
-            if self.waiter.is_set():
-                raise StreamError("Invalid state, future is already done")
-            self.value = value
-            self.waiter.set()
-
-        self._invoke_callbacks()
+        pass
 
     def set_exception(self, exception):
         """Sets the result of the future as being the given exception.
@@ -253,24 +210,7 @@ class StreamFuture:
         race conditions can legitimately produce multiple set_exception calls
         (e.g. _read_stream error racing with the outer blob_cb exception handler).
         """
-        if not isinstance(exception, StreamError):
-            wrapped = StreamError(str(exception))
-            wrapped.__cause__ = exception
-            exception = wrapped
-        with self.lock:
-            if self.error or self.waiter.is_set():
-                log.debug(f"set_exception called on already-done future {self.stream_id}: {exception}")
-                return
-            self.error = exception
-            self.waiter.set()
-
-        self._invoke_callbacks()
+        pass
 
     def _invoke_callbacks(self):
-        with self.lock:
-            callbacks, self.done_callbacks = self.done_callbacks, []
-        for callback, args, kwargs in callbacks:
-            try:
-                callback(*args, **kwargs)
-            except Exception as ex:
-                log.error(f"Exception calling callback for {callback}: {ex}")
+        pass

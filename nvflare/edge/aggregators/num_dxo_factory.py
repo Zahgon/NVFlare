@@ -22,4 +22,4 @@ class NumDXOAggrFactory(AggregatorFactory):
         AggregatorFactory.__init__(self)
 
     def get_aggregator(self) -> Aggregator:
-        return NumDXOAggregator()
+        pass

@@ -43,40 +43,18 @@ OPS = ["==", ">=", ">", "<", "<="]
 
 
 def get_module_version(this_pkg):
-    return this_pkg.__version__.split(".")[:2]
+    pass
 
 
 def get_module_version_str(the_module):
-    if the_module:
-        module_version = ".".join(get_module_version(the_module))
-    else:
-        module_version = ""
-
-    return module_version
+    pass
 
 
 def check_version(that_pkg, version: str = "", op: str = "==") -> bool:
     """
     compare module version with provided version
     """
-    if not version or not hasattr(that_pkg, "__version__"):
-        return True  # always valid version
-
-    mod_version = tuple(int(x) for x in get_module_version(that_pkg))
-    required = tuple(int(x) for x in version.split("."))
-    result = True
-    if op == "==":
-        result = mod_version == required
-    elif op == ">=":
-        result = mod_version >= required
-    elif op == ">":
-        result = mod_version > required
-    elif op == "<":
-        result = mod_version < required
-    elif op == "<=":
-        result = mod_version <= required
-
-    return result
+    pass
 
 
 class LazyImportError(ImportError):
@@ -130,65 +108,11 @@ def optional_import(
         >>> conv()  # trying to use a function from the not successfully imported module (due to unmatched version)
         OptionalImportError: from torch.nn.functional import conv1d (requires version>='42').
     """
-    tb = None
-    exception_str = ""
-
-    if name:
-        actual_cmd = f"from {module} import {name}"
-    else:
-        actual_cmd = f"import {module}"
-
-    pkg = None
-    try:
-        if op not in OPS:
-            raise ValueError(f"invalid op {op}, must be one of {OPS}")
-
-        pkg = __import__(module)  # top level module
-        the_module = import_module(module)
-        if not allow_namespace_pkg:
-            is_namespace = getattr(the_module, "__file__", None) is None and hasattr(the_module, "__path__")
-            if is_namespace:
-                raise AssertionError
-        if name:  # user specified to load class/function/... from the module
-            the_module = getattr(the_module, name)
-    except Exception as import_exception:  # any exceptions during import
-        tb = import_exception.__traceback__
-        exception_str = secure_format_exception(import_exception)
-    else:  # found the module
-        if check_version(pkg, version, op):
-            return the_module, True
-
-    # preparing lazy error message
-    msg = descriptor.format(actual_cmd)
-    if version and tb is None:  # a pure version issue
-        msg += f": requires '{module}{op}{version}'"
-        if pkg:
-            module_version = get_module_version_str(pkg)
-            msg += f", current '{module}=={module_version}' "
-    if exception_str:
-        msg += f" ({exception_str})"
-
     class _LazyRaise:
         def __init__(self, attr_name, *_args, **_kwargs):
-            self.attr_name = attr_name
-            _default_msg = f"{msg}."
-            if tb is None:
-                self._exception = LazyImportError(_default_msg)
-            else:
-                self._exception = LazyImportError(_default_msg).with_traceback(tb)
-
+            pass
         def __getattr__(self, attr_name):
-            """
-            Raises:
-                OptionalImportError: When you call this method.
-            """
-            raise self._exception
-
+            pass
         def __call__(self, *_args, **_kwargs):
-            """
-            Raises:
-                OptionalImportError: When you call this method.
-            """
-            raise self._exception
-
-    return _LazyRaise(name), False
+            pass
+    pass

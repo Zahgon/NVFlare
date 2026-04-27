@@ -41,22 +41,7 @@ class TPORunner(SimulationRunner):
         self.register_event_handler(EventType.ABOUT_TO_START_RUN, self._tpo_about_to_start)
 
     def _tpo_about_to_start(self, event_type: str, fl_ctx: FLContext):
-        self.log_info(fl_ctx, f"TPO got event: {event_type}")
-        engine = fl_ctx.get_engine()
-        tpo = engine.get_component(self.task_processor_id)
-        if not isinstance(tpo, DeviceTaskProcessor):
-            raise ValueError(f"component {self.task_processor_id} should be DeviceTaskProcessor but got {type(tpo)}")
-        self.tpo = tpo
+        pass
 
     def create_simulator(self, fl_ctx: FLContext) -> Optional[Simulator]:
-        self.log_info(fl_ctx, "TPO Create Simulator.")
-        job_meta = fl_ctx.get_prop(FLContextKey.JOB_META)
-        job_name = job_meta.get(JobMetaKey.JOB_NAME)
-
-        return Simulator(
-            job_name=job_name,
-            get_job_timeout=self.job_timeout,
-            device_factory=TPODeviceFactory(self.tpo),
-            num_devices=self.num_devices,
-            num_workers=self.num_workers,
-        )
+        pass

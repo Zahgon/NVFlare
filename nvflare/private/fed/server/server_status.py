@@ -30,4 +30,4 @@ class ServerStatus(object):
 
 
 def get_status_message(status):
-    return ServerStatus.status_messages.get(status)
+    pass

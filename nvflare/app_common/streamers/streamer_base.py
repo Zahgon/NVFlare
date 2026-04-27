@@ -46,22 +46,7 @@ class BaseChunkProducer(ObjectProducer):
         self.logger = get_obj_logger(self)
 
     def process_replies(self, replies, stream_ctx, fl_ctx):
-        has_error = False
-        final_result = {}
-        for target, reply in replies.items():
-            rc = reply.get_return_code(ReturnCode.OK)
-            if rc == ReturnCode.OK:
-                final_result[target] = reply
-            else:
-                self.logger.error(f"error from target {target}: {rc}")
-                has_error = True
-
-        if has_error:
-            return False
-        elif self.eof:
-            return final_result
-        else:
-            return None
+        pass
 
 
 class BaseChunkConsumer(ObjectConsumer):
@@ -79,16 +64,7 @@ class BaseChunkConsumer(ObjectConsumer):
 
         Raises ValueError if the sizes disagree.
         """
-        if data is not None:
-            if data_size != len(data):
-                err = f"received data size {len(data)} does not match expected {data_size}"
-                self.logger.error(err)
-                raise ValueError(err)
-        else:
-            if data_size != 0:
-                err = f"no data received but expected size is {data_size}"
-                self.logger.error(err)
-                raise ValueError(err)
+        pass
 
 
 class StreamerBase:
@@ -100,12 +76,12 @@ class StreamerBase:
 
     @staticmethod
     def get_channel(ctx: StreamContext):
-        return ctx.get(StreamContextKey.CHANNEL)
+        pass
 
     @staticmethod
     def get_topic(ctx: StreamContext):
-        return ctx.get(StreamContextKey.TOPIC)
+        pass
 
     @staticmethod
     def get_rc(ctx: StreamContext):
-        return ctx.get(StreamContextKey.RC)
+        pass

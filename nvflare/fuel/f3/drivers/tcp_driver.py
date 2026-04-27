@@ -64,45 +64,21 @@ class TcpDriver(BaseDriver):
 
     @staticmethod
     def supported_transports() -> List[str]:
-        return ["tcp", "stcp"]
+        pass
 
     @staticmethod
     def capabilities() -> Dict[str, Any]:
-        return {DriverCap.SEND_HEARTBEAT.value: True, DriverCap.SUPPORT_SSL.value: True}
+        pass
 
     def listen(self, connector: ConnectorInfo):
-        self.connector = connector
-        self.server = TcpStreamServer(self, connector)
-        self.server.serve_forever()
+        pass
 
     def connect(self, connector: ConnectorInfo):
-        self.connector = connector
-        params = connector.params
-        host = params.get(DriverParams.HOST.value)
-        port = int(params.get(DriverParams.PORT.value))
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        context = get_ssl_context(params, ssl_server=False)
-        if context:
-            sock = context.wrap_socket(sock)
-
-        sock.connect((host, port))
-
-        connection = SocketConnection(sock, connector, bool(context))
-        self.add_connection(connection)
-        connection.read_loop()
-        self.close_connection(connection)
+        pass
 
     def shutdown(self):
-        self.close_all()
-        if self.server:
-            self.server.shutdown()
+        pass
 
     @staticmethod
     def get_urls(scheme: str, resources: dict) -> (str, str):
-        secure = requires_secure_connection(resources)
-        if secure:
-            scheme = "stcp"
-
-        return get_tcp_urls(scheme, resources)
+        pass

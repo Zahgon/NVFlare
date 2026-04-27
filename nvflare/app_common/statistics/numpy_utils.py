@@ -23,68 +23,15 @@ from nvflare.app_common.abstract.statistics_spec import Bin, BinRange, DataType
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NpEncoder, self).default(obj)
+        pass
 
 
 def dtype_to_data_type(dtype) -> DataType:
     # Use pandas type-checking functions so that both numpy dtypes and pandas
     # nullable ExtensionDtypes (Int64Dtype, Float64Dtype, BooleanDtype, StringDtype, …)
     # are classified correctly.
-    if is_float_dtype(dtype):
-        return DataType.FLOAT
-    elif is_bool_dtype(dtype):
-        # is_bool must be checked before is_integer because BooleanDtype satisfies both
-        return DataType.INT
-    elif is_integer_dtype(dtype):
-        return DataType.INT
-    elif is_datetime64_any_dtype(dtype) or (
-        hasattr(dtype, "kind") and dtype.kind == "m"  # np.timedelta64 has kind "m"
-    ):
-        return DataType.DATETIME
-    else:
-        return DataType.STRING
+    pass
 
 
 def get_std_histogram_buckets(nums: np.ndarray, num_bins: int = 10, br: Optional[BinRange] = None):
-    num_posinf = len(nums[np.isposinf(nums)])
-    num_neginf = len(nums[np.isneginf(nums)])
-    if br:
-        counts, buckets = np.histogram(nums, bins=num_bins, range=(br.min_value, br.max_value))
-    else:
-        counts, buckets = np.histogram(nums, bins=num_bins)
-
-    histogram_buckets: List[Bin] = []
-    for bucket_count in range(len(counts)):
-        # Add any negative or positive infinities to the first and last
-        # buckets in the histogram.
-        bucket_low_value = buckets[bucket_count]
-        bucket_high_value = buckets[bucket_count + 1]
-        bucket_sample_count = counts[bucket_count]
-        if bucket_count == 0 and num_neginf > 0:
-            bucket_low_value = float("-inf")
-            bucket_sample_count += num_neginf
-        elif bucket_count == len(counts) - 1 and num_posinf > 0:
-            bucket_high_value = float("inf")
-            bucket_sample_count += num_posinf
-
-        histogram_buckets.append(
-            Bin(low_value=bucket_low_value, high_value=bucket_high_value, sample_count=bucket_sample_count)
-        )
-
-    if buckets is not None and len(buckets) > 0:
-        bucket = None
-        if num_neginf:
-            bucket = Bin(low_value=float("-inf"), high_value=float("-inf"), sample_count=num_neginf)
-        if num_posinf:
-            bucket = Bin(low_value=float("inf"), high_value=float("inf"), sample_count=num_posinf)
-
-        if bucket:
-            histogram_buckets.append(bucket)
-
-    return histogram_buckets
+    pass

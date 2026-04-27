@@ -39,23 +39,4 @@ def parse_compare_criteria(compare_expr: Optional[str] = None) -> Tuple[str, flo
     Returns:
         A Tuple of (key, value, operator)
     """
-    tokens = compare_expr.split(" ")
-    if len(tokens) != 3:
-        raise ValueError(
-            f"Invalid early_stop_condition, expecting form of '<key> <op> <value>' but got '{compare_expr}'"
-        )
-
-    key = tokens[0]
-    op = tokens[1]
-    target = tokens[2]
-    op_fn = operator_mapping.get(op, None)
-    if op_fn is None:
-        raise ValueError("Invalid operator symbol: expecting one of <=, =, >=, <, > ")
-    if not target:
-        raise ValueError("Invalid empty or None target value")
-    try:
-        target_value = float(target)
-    except Exception:
-        raise ValueError(f"expect a number, but get '{target}' in '{compare_expr}'")
-
-    return key, target_value, op_fn
+    pass

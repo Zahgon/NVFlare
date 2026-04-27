@@ -64,9 +64,4 @@ class ClientRequestProcessors:
 
     @staticmethod
     def register_cmd_module(request_processor):
-        from .admin import RequestProcessor
-
-        if not isinstance(request_processor, RequestProcessor):
-            raise TypeError("request_processor must be RequestProcessor, but got {}".format(type(request_processor)))
-
-        ClientRequestProcessors.request_processors.append(request_processor)
+        pass

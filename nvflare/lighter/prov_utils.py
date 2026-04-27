@@ -23,11 +23,7 @@ def instantiate_from_config(obj_config: dict):
     Returns: created object
 
     """
-    path = obj_config.get("path")
-    if not path:
-        raise ValueError("missing 'path' from object config")
-    args = obj_config.get("args")
-    return instantiate_class(path, args)
+    pass
 
 
 def prepare_builders(project_dict: dict):
@@ -39,20 +35,7 @@ def prepare_builders(project_dict: dict):
     Returns: list of builder objects
 
     """
-    if not isinstance(project_dict, dict):
-        raise ValueError(f"project_dict must be dict but got {type(project_dict)}")
-
-    builder_config = project_dict.get("builders")
-    if not builder_config:
-        return []
-
-    if not isinstance(builder_config, list):
-        raise ValueError(f"builder config must be list but got {type(builder_config)}")
-
-    builders = list()
-    for b in builder_config:
-        builders.append(instantiate_from_config(b))
-    return builders
+    pass
 
 
 def prepare_packager(project_dict: dict):
@@ -64,11 +47,4 @@ def prepare_packager(project_dict: dict):
     Returns: a packager object if specified in the project info.
 
     """
-    if not isinstance(project_dict, dict):
-        raise ValueError(f"project_dict must be dict but got {type(project_dict)}")
-
-    packager_config = project_dict.get("packager")
-    if not packager_config:
-        return None
-    else:
-        return instantiate_from_config(packager_config)
+    pass

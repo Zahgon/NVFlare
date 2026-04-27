@@ -34,12 +34,10 @@ class _ConverterContext:
         self._props = {}
 
     def get_prop(self, key: str, default=None):
-        return self._props.get(key, default)
+        pass
 
     def set_prop(self, key: str, value: Any, private: Optional[bool] = None, sticky: Optional[bool] = None):
-        _ = private
-        _ = sticky
-        self._props[key] = value
+        pass
 
 
 class FlareAgentWithFLModel(FlareAgent):
@@ -56,19 +54,7 @@ class FlareAgentWithFLModel(FlareAgent):
         self._converter_ctx = _ConverterContext()
 
     def shareable_to_task_data(self, shareable: Shareable) -> FLModel:
-        if self.from_nvflare_converter is not None:
-            task_name = shareable.get_header(FLContextKey.TASK_NAME, "")
-            # get_task() calls shareable_to_task_data before current_task is assigned.
-            if not task_name and self.current_task:
-                task_name = self.current_task.task_name
-            shareable = self.from_nvflare_converter.process(task_name, shareable, self._converter_ctx)
-        model = FLModelUtils.from_shareable(shareable)
-        return model
+        pass
 
     def task_result_to_shareable(self, result: FLModel, rc) -> Shareable:
-        shareable = FLModelUtils.to_shareable(result)
-        if self.to_nvflare_converter is not None:
-            task_name = self.current_task.task_name if self.current_task else ""
-            shareable = self.to_nvflare_converter.process(task_name, shareable, self._converter_ctx)
-        shareable.set_return_code(rc)
-        return shareable
+        pass

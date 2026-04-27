@@ -205,64 +205,7 @@ class HierarchicalStatisticsController(StatisticsController):
             fl_ctx: The FLContext.
             statistic_task: Statistics task.
         """
-        if self.hierarchy_config:
-            engine = fl_ctx.get_engine()
-            ws = engine.get_workspace()
-            app_conf_dir = ws.get_app_config_dir(fl_ctx.get_job_id())
-            hierarchy_config_file_path = os.path.join(app_conf_dir, self.hierarchy_config)
-            try:
-                with open(hierarchy_config_file_path) as hierarchy_config_file:
-                    hierarchy_config_json = json.load(hierarchy_config_file)
-            except FileNotFoundError:
-                self.system_panic(f"The hierarchy config file {hierarchy_config_file_path} does not exist.", fl_ctx)
-                return False
-            except IOError as e:
-                self.system_panic(
-                    f"An I/O error occurred while loading hierarchy config file {hierarchy_config_file_path}: {e}",
-                    fl_ctx,
-                )
-                return False
-            except json.decoder.JSONDecodeError as e:
-                self.system_panic(
-                    f"Failed to decode hierarchy config JSON from the file {hierarchy_config_file_path}: {e}", fl_ctx
-                )
-                return False
-            except Exception as e:
-                self.system_panic(
-                    f"An unexpected error occurred while loading hierarchy config file {hierarchy_config_file_path}: {e}",
-                    fl_ctx,
-                )
-                return False
-        else:
-            self.system_panic("Error: No hierarchy config file provided.", fl_ctx)
-            return False
-
-        self.log_info(fl_ctx, f"start prepare inputs for task {statistic_task}")
-        inputs = self._prepare_inputs(statistic_task)
-        results_cb_fn = self._get_result_cb(statistic_task)
-
-        self.log_info(fl_ctx, f"task: {self.task_name} statistics_flow for {statistic_task} started.")
-
-        if abort_signal.triggered:
-            return False
-
-        task_props = {StC.STATISTICS_TASK_KEY: statistic_task}
-        task = Task(name=self.task_name, data=inputs, result_received_cb=results_cb_fn, props=task_props)
-
-        self.broadcast_and_wait(
-            task=task,
-            targets=None,
-            min_responses=self.min_clients,
-            fl_ctx=fl_ctx,
-            wait_time_after_min_received=self.wait_time_after_min_received,
-            abort_signal=abort_signal,
-        )
-
-        self.global_statistics = get_global_stats(
-            self.global_statistics, self.client_statistics, statistic_task, hierarchy_config_json
-        )
-
-        self.log_info(fl_ctx, f"task {self.task_name} statistics_flow for {statistic_task} flow end.")
+        pass
 
     def _recursively_round_global_stats(self, global_stats):
         """Apply given precision to the calculated global statistics.
@@ -273,29 +216,7 @@ class HierarchicalStatisticsController(StatisticsController):
         Returns:
             A dict containing global stats with applied precision.
         """
-        if isinstance(global_stats, dict):
-            for key, value in global_stats.items():
-                if key == StC.GLOBAL or key == StC.LOCAL:
-                    for key, metric in value.items():
-                        if key == StC.STATS_HISTOGRAM:
-                            for ds in metric:
-                                for name, val in metric[ds].items():
-                                    hist: Histogram = metric[ds][name]
-                                    buckets = StatisticsController._apply_histogram_precision(hist.bins, self.precision)
-                                    metric[ds][name] = buckets
-                        else:
-                            for ds in metric:
-                                for name, val in metric[ds].items():
-                                    metric[ds][name] = round(metric[ds][name], self.precision)
-                    continue
-                if isinstance(value, list):
-                    for item in value:
-                        self._recursively_round_global_stats(item)
-        elif isinstance(global_stats, list):
-            for item in global_stats:
-                self._recursively_round_global_stats(item)
-
-        return global_stats
+        pass
 
     def _combine_all_statistics(self):
         """Get combined global statistics with precision applied.
@@ -303,8 +224,7 @@ class HierarchicalStatisticsController(StatisticsController):
         Returns:
             A dict containing global statistics with precision applied.
         """
-        result = self.global_statistics
-        return self._recursively_round_global_stats(result)
+        pass
 
     def _prepare_inputs(self, statistic_task: str) -> Shareable:
         """Prepare inputs for the given task.
@@ -315,24 +235,4 @@ class HierarchicalStatisticsController(StatisticsController):
         Returns:
             A dict containing inputs.
         """
-        inputs = Shareable()
-        target_statistics: List[StatisticConfig] = StatisticsController._get_target_statistics(
-            self.statistic_configs, StC.ordered_statistics[statistic_task]
-        )
-        for tm in target_statistics:
-            if tm.name == StC.STATS_HISTOGRAM:
-                if StC.STATS_MIN in self.global_statistics[StC.GLOBAL]:
-                    inputs[StC.STATS_MIN] = self.global_statistics[StC.GLOBAL][StC.STATS_MIN]
-                if StC.STATS_MAX in self.global_statistics[StC.GLOBAL]:
-                    inputs[StC.STATS_MAX] = self.global_statistics[StC.GLOBAL][StC.STATS_MAX]
-            elif tm.name == StC.STATS_VAR:
-                if StC.STATS_COUNT in self.global_statistics[StC.GLOBAL]:
-                    inputs[StC.STATS_GLOBAL_COUNT] = self.global_statistics[StC.GLOBAL][StC.STATS_COUNT]
-                if StC.STATS_MEAN in self.global_statistics[StC.GLOBAL]:
-                    inputs[StC.STATS_GLOBAL_MEAN] = self.global_statistics[StC.GLOBAL][StC.STATS_MEAN]
-
-        inputs[StC.STATISTICS_TASK_KEY] = statistic_task
-
-        inputs[StC.STATS_TARGET_STATISTICS] = fobs.dumps(target_statistics)
-
-        return inputs
+        pass

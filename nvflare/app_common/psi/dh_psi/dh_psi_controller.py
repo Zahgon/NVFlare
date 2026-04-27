@@ -23,6 +23,4 @@ class DhPSIController(PSIController):
         super().__init__("")
 
     def load_psi_workflow(self, fl_ctx: FLContext) -> PSIWorkflow:
-        psi_workflow = DhPSIWorkFlow()
-        psi_workflow.initialize(fl_ctx, controller=self)
-        return psi_workflow
+        pass

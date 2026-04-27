@@ -216,31 +216,4 @@ class CyclicRecipe(Recipe):
         Returns:
             str: The persistor_id to be used by the controller.
         """
-        from nvflare.recipe.utils import extract_persistor_id, prepare_initial_ckpt
-
-        ckpt_path = prepare_initial_ckpt(self.initial_ckpt, job)
-
-        # Model wrapper path (PTModel/TFModel or custom wrapper)
-        if hasattr(self.model, "add_to_fed_job"):
-            if ckpt_path:
-                if not hasattr(self.model, "initial_ckpt"):
-                    raise ValueError(
-                        f"initial_ckpt is provided, but model wrapper {type(self.model).__name__} "
-                        "does not support 'initial_ckpt'."
-                    )
-                existing_ckpt = getattr(self.model, "initial_ckpt", None)
-                if existing_ckpt and existing_ckpt != ckpt_path:
-                    raise ValueError(
-                        f"Conflicting checkpoint values: model wrapper has initial_ckpt={existing_ckpt}, "
-                        f"but recipe initial_ckpt={ckpt_path}."
-                    )
-                setattr(self.model, "initial_ckpt", ckpt_path)
-
-            result = job.to_server(self.model, id="persistor")
-            return extract_persistor_id(result)
-
-        raise ValueError(
-            f"Unsupported framework '{self.framework}' for base CyclicRecipe model persistence. "
-            "Use a framework-specific CyclicRecipe subclass, or pass a framework-specific "
-            "model wrapper with add_to_fed_job()."
-        )
+        pass

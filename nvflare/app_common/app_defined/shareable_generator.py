@@ -60,35 +60,7 @@ class AppDefinedShareableGenerator(ShareableGenerator, ComponentBase, ABC):
         pass
 
     def learnable_to_shareable(self, learnable: Learnable, fl_ctx: FLContext) -> Shareable:
-        self.fl_ctx = fl_ctx
-        self.current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        self.debug(f"{learnable=}")
-        base_model_obj = learnable.get(ModelLearnableKey.WEIGHTS)
-        trainable_weights, trainable_meta = self.model_to_trainable(base_model_obj)
-        self.debug(f"trainable weights: {trainable_weights}")
-        dxo = DXO(
-            data_kind=DataKind.APP_DEFINED,
-            data=trainable_weights,
-            meta=trainable_meta,
-        )
-        self.debug(f"learnable_to_shareable: {dxo.data}")
-        return dxo.to_shareable()
+        pass
 
     def shareable_to_learnable(self, shareable: Shareable, fl_ctx: FLContext) -> Learnable:
-        self.fl_ctx = fl_ctx
-        self.current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        base_model_learnable = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-
-        if not base_model_learnable:
-            self.system_panic(reason="No global base model!", fl_ctx=fl_ctx)
-            return base_model_learnable
-
-        if not isinstance(base_model_learnable, ModelLearnable):
-            raise ValueError(f"expect global model to be ModelLearnable but got {type(base_model_learnable)}")
-        base_model_obj = base_model_learnable.get(ModelLearnableKey.WEIGHTS)
-
-        dxo = from_shareable(shareable)
-        training_result = dxo.data
-        trained_meta = dxo.meta
-        model_obj = self.update_model(model_obj=base_model_obj, training_result=training_result, meta=trained_meta)
-        return make_model_learnable(model_obj, {})
+        pass

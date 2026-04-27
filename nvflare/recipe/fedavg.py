@@ -383,20 +383,7 @@ class FedAvgRecipe(Recipe):
 
     @staticmethod
     def _validate_per_site_config(per_site_config: Optional[Dict[str, Dict]]) -> None:
-        if per_site_config is None:
-            return
-
-        reserved_targets = {SERVER_SITE_NAME, ALL_SITES}
-        for site_name, site_config in per_site_config.items():
-            if not isinstance(site_name, str):
-                raise ValueError(f"per_site_config key must be str, got {type(site_name).__name__}")
-            if site_name in reserved_targets:
-                raise ValueError(
-                    f"'{site_name}' is a reserved target name and cannot be used in per_site_config. "
-                    f"Reserved names: {sorted(reserved_targets)}"
-                )
-            if not isinstance(site_config, dict):
-                raise ValueError(f"per_site_config['{site_name}'] must be a dict, got {type(site_config).__name__}")
+        pass
 
     def _get_model_params(self) -> Optional[Dict]:
         """Convert model to dict of params.
@@ -407,19 +394,7 @@ class FedAvgRecipe(Recipe):
         Returns:
             Optional[Dict]: model parameters as dict, or None
         """
-        if self.model is None:
-            return None
-
-        if isinstance(self.model, dict):
-            return self.model
-
-        # Unknown type - subclasses should override for framework-specific handling
-        raise TypeError(
-            f"model must be a dict or None for the base recipe. "
-            f"Got {type(self.model).__name__}. "
-            f"Use a framework-specific recipe (e.g., nvflare.app_opt.pt.recipes.FedAvgRecipe) "
-            f"for nn.Module or other model types."
-        )
+        pass
 
     def _get_model_aggregator(self):
         """Get the ModelAggregator for the FedAvg controller.
@@ -431,53 +406,11 @@ class FedAvgRecipe(Recipe):
         Returns:
             ModelAggregator or None
         """
-        if self.aggregator is None:
-            return None
-
-        # Import here to avoid circular imports
-        from nvflare.app_common.aggregators.model_aggregator import ModelAggregator
-
-        if isinstance(self.aggregator, ModelAggregator):
-            return self.aggregator
-        else:
-            # It's a Shareable-based Aggregator - can't use directly with FedAvg
-            # Log a warning and fall back to built-in aggregation
-            import logging
-
-            logging.getLogger(__name__).warning(
-                f"Provided aggregator {type(self.aggregator).__name__} is not a ModelAggregator. "
-                "Using built-in weighted averaging instead. For custom aggregation with FedAvg, "
-                "please use a ModelAggregator subclass (e.g., from model_aggregator.py)."
-            )
-            return None
+        pass
 
     def _setup_numpy_model_and_persistor(self, job: BaseFedJob, *, model: Any, initial_ckpt: Optional[str]) -> str:
         """Configure NPModelPersistor for unified NumPy recipe usage."""
-        import numpy as np
-
-        from nvflare.app_common.np.np_model_persistor import NPModelPersistor
-        from nvflare.recipe.utils import extract_persistor_id, resolve_initial_ckpt
-
-        model_list = None
-        if model is not None:
-            if isinstance(model, np.ndarray):
-                model_list = model.tolist()
-            elif isinstance(model, list):
-                model_list = model
-            else:
-                raise TypeError(
-                    f"FrameworkType.NUMPY requires model to be a numpy array or list, got {type(model).__name__}."
-                )
-
-        ckpt_path = resolve_initial_ckpt(initial_ckpt, getattr(self, "_prepared_initial_ckpt", None), job)
-        persistor = NPModelPersistor(
-            model=model_list,
-            source_ckpt_file_full_name=ckpt_path,
-        )
-        persistor_id = extract_persistor_id(job.to_server(persistor, id="persistor"))
-        if persistor_id and hasattr(job, "comp_ids"):
-            job.comp_ids["persistor_id"] = persistor_id
-        return persistor_id
+        pass
 
     def _setup_model_and_persistor(self, job: BaseFedJob) -> str:
         """Setup generic custom persistor only.
@@ -488,15 +421,4 @@ class FedAvgRecipe(Recipe):
         Returns:
             str: The persistor_id to be used by the controller.
         """
-        from nvflare.recipe.utils import setup_custom_persistor
-
-        persistor_id = setup_custom_persistor(job=job, model_persistor=self.model_persistor)
-        if persistor_id:
-            if hasattr(job, "comp_ids"):
-                job.comp_ids.setdefault("persistor_id", persistor_id)
-            return persistor_id
-
-        if self.framework == FrameworkType.NUMPY and (self.model is not None or self.initial_ckpt is not None):
-            return self._setup_numpy_model_and_persistor(job, model=self.model, initial_ckpt=self.initial_ckpt)
-
-        return ""
+        pass

@@ -66,22 +66,13 @@ class Query:
             self.load_lcp_map(lcp_mapping_file)
 
     def _add_lcp(self, name: str, addr: str):
-        self.lcp_list.append((name, addr))
+        pass
 
     def _map(self, device_id: str) -> Tuple[str, str]:
-        uniform_hash = UniformHash(len(self.lcp_list))
-        index = uniform_hash.hash(device_id)
-        return self.lcp_list[index]
+        pass
 
     def load_lcp_map(self, mapping_file: str):
-        with open(mapping_file, "r") as f:
-            mapping = json.load(f)
-
-        for name, config in mapping.items():
-            host = config["host"]
-            port = config["port"]
-            addr = f"{host}:{port}"
-            self._add_lcp(name, addr)
+        pass
 
     def _query(
         self,
@@ -90,24 +81,7 @@ class Query:
         from_grpc_f,
         default_response,
     ):
-        if not self.lcp_list:
-            self.logger.error("No LCP configured")
-            return default_response
-
-        grpc_req = to_grpc_f(request)
-        device_id = request.get_device_id()
-        name, addr = self._map(device_id)
-        self.logger.debug(f"sending request {type(request)} to {name} at {addr}")
-
-        try:
-            grpc_reply = self.client.query(addr, grpc_req)
-            resp = from_grpc_f(grpc_reply)
-            if not resp:
-                resp = default_response
-            return resp
-        except Exception as ex:
-            self.logger.error(f"exception querying grpc service: {secure_format_exception(ex)}")
-            return default_response
+        pass
 
     def __call__(self, request: Union[TaskRequest, JobRequest, SelectionRequest, ResultReport]):
         if isinstance(request, JobRequest):

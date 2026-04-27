@@ -55,12 +55,7 @@ class XGBServerAdaptor(AppAdaptor):
         Returns: None
 
         """
-        ws = config.get(Constant.CONF_KEY_WORLD_SIZE)
-        if not ws:
-            raise RuntimeError("world_size is not configured")
-
-        check_positive_int(Constant.CONF_KEY_WORLD_SIZE, ws)
-        self.world_size = ws
+        pass
 
     @abstractmethod
     def all_gather(self, rank: int, seq: int, send_buf: bytes, fl_ctx: FLContext) -> bytes:
@@ -160,20 +155,7 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         self.tx_timeout = tx_timeout
 
     def _check_rank(self, ranks: dict, site_name: str):
-        if ranks is None or not isinstance(ranks, dict):
-            raise RuntimeError(f"{Constant.CONF_KEY_CLIENT_RANKS} is not configured.")
-
-        ws = len(ranks)
-        if ws == 0:
-            raise RuntimeError(f"{Constant.CONF_KEY_CLIENT_RANKS} length is 0.")
-        self.world_size = ws
-
-        rank = ranks.get(site_name, None)
-        if rank is None:
-            raise RuntimeError(f"rank is not configured ({site_name})")
-
-        check_non_negative_int(f"{Constant.CONF_KEY_CLIENT_RANKS}[{site_name}]", rank)
-        self.rank = rank
+        pass
 
     def configure(self, config: dict, fl_ctx: FLContext):
         """Called by XGB Executor to configure the target.
@@ -187,39 +169,7 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: None
 
         """
-        ranks = config.get(Constant.CONF_KEY_CLIENT_RANKS, None)
-        site_name = fl_ctx.get_identity_name()
-        self._check_rank(ranks, site_name)
-
-        num_rounds = config.get(Constant.CONF_KEY_NUM_ROUNDS)
-        if num_rounds is None or num_rounds <= 0:
-            raise RuntimeError("num_rounds is not configured or invalid value")
-
-        check_positive_int(Constant.CONF_KEY_NUM_ROUNDS, num_rounds)
-        self.num_rounds = num_rounds
-
-        self.data_split_mode = config.get(Constant.CONF_KEY_DATA_SPLIT_MODE)
-        if self.data_split_mode is None:
-            raise RuntimeError("data_split_mode is not configured")
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_DATA_SPLIT_MODE, value=self.data_split_mode, private=True, sticky=True)
-
-        self.secure_training = config.get(Constant.CONF_KEY_SECURE_TRAINING)
-        if self.secure_training is None:
-            raise RuntimeError("secure_training is not configured")
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_SECURE_TRAINING, value=self.secure_training, private=True, sticky=True)
-
-        self.xgb_params = config.get(Constant.CONF_KEY_XGB_PARAMS)
-        if not self.xgb_params:
-            raise RuntimeError("xgb_params is not configured")
-
-        self.xgb_options = config.get(Constant.CONF_KEY_XGB_OPTIONS, {})
-
-        self.disable_version_check = config.get(Constant.CONF_KEY_DISABLE_VERSION_CHECK)
-        if self.disable_version_check is None:
-            raise RuntimeError("disable_version_check is not configured")
-        fl_ctx.set_prop(
-            key=Constant.PARAM_KEY_DISABLE_VERSION_CHECK, value=self.disable_version_check, private=True, sticky=True
-        )
+        pass
 
     def _send_request(self, op: str, req: Shareable) -> Tuple[bytes, Shareable]:
         """Send XGB operation request to the FL server via FLARE message.
@@ -231,38 +181,7 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: operation result
 
         """
-        req.set_header(Constant.MSG_KEY_XGB_OP, op)
-
-        with self.engine.new_context() as fl_ctx:
-            debug_info = {
-                "op": op,
-                "rank": req[Constant.PARAM_KEY_RANK],
-                "seq": req[Constant.PARAM_KEY_SEQ],
-            }
-            fl_ctx.set_prop(key=PROP_KEY_DEBUG_INFO, value=debug_info, private=True, sticky=False)
-            reply = ReliableMessage.send_request(
-                target=FQCN.ROOT_SERVER,
-                topic=Constant.TOPIC_XGB_REQUEST,
-                request=req,
-                per_msg_timeout=self.per_msg_timeout,
-                tx_timeout=self.tx_timeout,
-                abort_signal=self.abort_signal,
-                fl_ctx=fl_ctx,
-            )
-
-        if isinstance(reply, Shareable):
-            rc = reply.get_return_code()
-            if rc != ReturnCode.OK:
-                raise RuntimeError(f"received error return code: {rc}")
-
-            reply_op = reply.get_header(Constant.MSG_KEY_XGB_OP)
-            if reply_op != op:
-                raise RuntimeError(f"received op {reply_op} != expected op {op}")
-
-            rcv_buf = reply.get(Constant.PARAM_KEY_RCV_BUF)
-            return rcv_buf, reply
-        else:
-            raise RuntimeError(f"invalid reply for op {op}: expect Shareable but got {type(reply)}")
+        pass
 
     def _send_all_gather(self, rank: int, seq: int, send_buf: bytes) -> Tuple[bytes, Shareable]:
         """This method is called by a concrete client adaptor to send Allgather operation to the server.
@@ -275,19 +194,10 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: operation result
 
         """
-        req = Shareable()
-        req[Constant.PARAM_KEY_RANK] = rank
-        req[Constant.PARAM_KEY_SEQ] = seq
-        req[Constant.PARAM_KEY_SEND_BUF] = send_buf
-        return self._send_request(Constant.OP_ALL_GATHER, req)
+        pass
 
     def _send_all_gather_v(self, rank: int, seq: int, send_buf: bytes, headers=None) -> Tuple[bytes, Shareable]:
-        req = Shareable()
-        self._add_headers(req, headers)
-        req[Constant.PARAM_KEY_RANK] = rank
-        req[Constant.PARAM_KEY_SEQ] = seq
-        req[Constant.PARAM_KEY_SEND_BUF] = send_buf
-        return self._send_request(Constant.OP_ALL_GATHER_V, req)
+        pass
 
     def _do_all_gather_v(self, rank: int, seq: int, send_buf: bytes) -> Tuple[bytes, Shareable]:
         """This method is called by a concrete client adaptor to send AllgatherV operation to the server.
@@ -300,24 +210,7 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: operation result
 
         """
-        fl_ctx = self.engine.new_context()
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_RANK, value=rank, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_SEQ, value=seq, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_SEND_BUF, value=send_buf, private=True, sticky=False)
-        self.fire_event(Constant.EVENT_BEFORE_ALL_GATHER_V, fl_ctx)
-
-        send_buf = fl_ctx.get_prop(Constant.PARAM_KEY_SEND_BUF)
-        rcv_buf, reply = self._send_all_gather_v(
-            rank=rank,
-            seq=seq,
-            send_buf=send_buf,
-            headers=fl_ctx.get_prop(Constant.PARAM_KEY_HEADERS),
-        )
-
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_RCV_BUF, value=rcv_buf, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_REPLY, value=reply, private=True, sticky=False)
-        self.fire_event(Constant.EVENT_AFTER_ALL_GATHER_V, fl_ctx)
-        return fl_ctx.get_prop(Constant.PARAM_KEY_RCV_BUF)
+        pass
 
     def _send_all_reduce(
         self, rank: int, seq: int, data_type: int, reduce_op: int, send_buf: bytes
@@ -334,22 +227,10 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: operation result
 
         """
-        req = Shareable()
-        req[Constant.PARAM_KEY_RANK] = rank
-        req[Constant.PARAM_KEY_SEQ] = seq
-        req[Constant.PARAM_KEY_DATA_TYPE] = data_type
-        req[Constant.PARAM_KEY_REDUCE_OP] = reduce_op
-        req[Constant.PARAM_KEY_SEND_BUF] = send_buf
-        return self._send_request(Constant.OP_ALL_REDUCE, req)
+        pass
 
     def _send_broadcast(self, rank: int, seq: int, root: int, send_buf: bytes, headers=None) -> Tuple[bytes, Shareable]:
-        req = Shareable()
-        self._add_headers(req, headers)
-        req[Constant.PARAM_KEY_RANK] = rank
-        req[Constant.PARAM_KEY_SEQ] = seq
-        req[Constant.PARAM_KEY_ROOT] = root
-        req[Constant.PARAM_KEY_SEND_BUF] = send_buf
-        return self._send_request(Constant.OP_BROADCAST, req)
+        pass
 
     def _do_broadcast(self, rank: int, seq: int, root: int, send_buf: bytes) -> bytes:
         """This method is called by a concrete client adaptor to send Broadcast operation to the server.
@@ -363,31 +244,8 @@ class XGBClientAdaptor(AppAdaptor, ABC):
         Returns: operation result
 
         """
-        fl_ctx = self.engine.new_context()
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_RANK, value=rank, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_SEQ, value=seq, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_ROOT, value=root, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_SEND_BUF, value=send_buf, private=True, sticky=False)
-        self.fire_event(Constant.EVENT_BEFORE_BROADCAST, fl_ctx)
-
-        send_buf = fl_ctx.get_prop(Constant.PARAM_KEY_SEND_BUF)
-        rcv_buf, reply = self._send_broadcast(
-            rank=rank,
-            seq=seq,
-            root=root,
-            send_buf=send_buf,
-            headers=fl_ctx.get_prop(Constant.PARAM_KEY_HEADERS),
-        )
-
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_RCV_BUF, value=rcv_buf, private=True, sticky=False)
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_REPLY, value=reply, private=True, sticky=False)
-        self.fire_event(Constant.EVENT_AFTER_BROADCAST, fl_ctx)
-        return fl_ctx.get_prop(Constant.PARAM_KEY_RCV_BUF)
+        pass
 
     @staticmethod
     def _add_headers(req: Shareable, headers: dict):
-        if not headers:
-            return
-
-        for k, v in headers.items():
-            req.set_header(k, v)
+        pass

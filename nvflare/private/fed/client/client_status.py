@@ -30,4 +30,4 @@ class ClientStatus(object):
 
 
 def get_status_message(status):
-    return ClientStatus.status_messages.get(status)
+    pass

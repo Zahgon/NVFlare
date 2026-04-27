@@ -54,10 +54,4 @@ class APIContext:
 
     def _create_client_api(self, api_type: ClientAPIType) -> APISpec:
         """Creates a new client_api based on the provided API type."""
-        if api_type == ClientAPIType.IN_PROCESS_API:
-            api = data_bus.get_data(CLIENT_API_KEY)
-            if not isinstance(api, InProcessClientAPI):
-                raise RuntimeError(f"api {api} is not a valid InProcessClientAPI")
-            return api
-        else:
-            return ExProcessClientAPI(config_file=self.config_file)
+        pass

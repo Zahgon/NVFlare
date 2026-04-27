@@ -46,16 +46,13 @@ class ProcessHandle(JobHandleSpec):
             raise ValueError("ProcessHandle requires a process object, a pid, or a ProcessAdapter.")
 
     def terminate(self):
-        self.adapter.terminate()
+        pass
 
     def poll(self):
-        code = self.adapter.poll()
-        if code is None:
-            return JobReturnCode.UNKNOWN
-        return JOB_RETURN_CODE_MAPPING.get(code, JobReturnCode.EXECUTION_ERROR)
+        pass
 
     def wait(self):
-        self.adapter.wait()
+        pass
 
 
 class ProcessJobLauncher(JobLauncherSpec):
@@ -65,24 +62,10 @@ class ProcessJobLauncher(JobLauncherSpec):
 
     def launch_job(self, job_meta: dict, fl_ctx: FLContext) -> JobHandleSpec:
 
-        new_env = os.environ.copy()
-        workspace_obj: Workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-        job_id = job_meta.get(JobConstants.JOB_ID)
-        app_custom_folder = workspace_obj.get_app_custom_dir(job_id)
-        if app_custom_folder != "":
-            add_custom_dir_to_path(app_custom_folder, new_env)
-
-        command = self.get_command(job_meta, fl_ctx)
-        argv = shlex.split(command, True)
-
-        # Use the spawn_process utility which handles the choice between posix_spawn and subprocess
-        process_adapter = spawn_process(argv, new_env)
-
-        return ProcessHandle(process_adapter=process_adapter)
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.BEFORE_JOB_LAUNCH:
-            add_launcher(self, fl_ctx)
+        pass
 
     @abstractmethod
     def get_command(self, job_meta, fl_ctx) -> str:

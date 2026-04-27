@@ -22,4 +22,4 @@ class MockController(FlowerController):
         FlowerController.__init__(self, num_rounds=num_rounds)
 
     def get_applet(self, fl_ctx: FLContext):
-        return MockServerApplet()
+        pass

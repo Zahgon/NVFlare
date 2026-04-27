@@ -140,34 +140,4 @@ def verify_payload(
     Raises:
         ValueError: If the payload structure is invalid or values don't match expected
     """
-    if not isinstance(task_dxo, DXO):
-        raise ValueError("task_dxo must be a DXO")
-
-    # Validate required fields
-    required_fields = [
-        ModelExchangeFormat.MODEL_BUFFER_TYPE,
-        ModelExchangeFormat.MODEL_BUFFER_NATIVE_FORMAT,
-        ModelExchangeFormat.MODEL_BUFFER_ENCODING,
-    ]
-    task_meta = task_dxo.meta
-
-    for field in required_fields:
-        if field not in task_meta:
-            raise ValueError(f"Missing required field: {field}")
-
-    # Validate expected values if provided
-    if expected_type and task_meta[ModelExchangeFormat.MODEL_BUFFER_TYPE] != expected_type:
-        raise ValueError(
-            f"Expected model type {expected_type}, " f"got {task_meta[ModelExchangeFormat.MODEL_BUFFER_TYPE]}"
-        )
-
-    if expected_format and task_meta[ModelExchangeFormat.MODEL_BUFFER_NATIVE_FORMAT] != expected_format:
-        raise ValueError(
-            f"Expected native format {expected_format}, "
-            f"got {task_meta[ModelExchangeFormat.MODEL_BUFFER_NATIVE_FORMAT]}"
-        )
-
-    if expected_encoding and task_meta[ModelExchangeFormat.MODEL_BUFFER_ENCODING] != expected_encoding:
-        raise ValueError(
-            f"Expected encoding {expected_encoding}, " f"got {task_meta[ModelExchangeFormat.MODEL_BUFFER_ENCODING]}"
-        )
+    pass

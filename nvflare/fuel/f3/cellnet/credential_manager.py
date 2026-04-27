@@ -74,73 +74,33 @@ class CredentialManager:
 
     def encrypt(self, target_cert: bytes, payload: bytes) -> bytes:
 
-        if not self.cell_cipher:
-            raise RuntimeError("Secure message not supported, Cell not running in secure mode")
-
-        return self.cell_cipher.encrypt(payload, x509.load_pem_x509_certificate(target_cert))
+        pass
 
     def decrypt(self, origin_cert: bytes, cipher: bytes) -> bytes:
 
-        if not self.cell_cipher:
-            raise RuntimeError("Secure message not supported, Cell not running in secure mode")
-
-        return self.cell_cipher.decrypt(cipher, x509.load_pem_x509_certificate(origin_cert))
+        pass
 
     def get_certificate(self, fqcn: str) -> bytes:
-        if not self.cell_cipher:
-            raise RuntimeError("This cell doesn't support certificate exchange, not running in secure mode")
-        return self.cert_cache.get(fqcn)
+        pass
 
     def create_request(self) -> dict:
-        req = {
-            CERT_CONTENT: self.local_cert,
-            CERT_CA_CONTENT: self.ca_cert,
-        }
-
-        return req
+        pass
 
     def process_request(self, request: Message) -> dict:
-        origin = request.get_header(MessageHeaderKey.ORIGIN)
-        target = request.get_header(MessageHeaderKey.DESTINATION)
-        reply = {}
-        if not self.local_cert:
-            reply[CERT_ERROR] = f"Target {target} is not running in secure mode"
-        else:
-            payload = request.payload
-            cert = payload.get(CERT_CONTENT)
-
-            # Save cert from requester in the cache
-            self.cert_cache[origin] = cert
-
-            reply[CERT_CONTENT] = self.local_cert
-            reply[CERT_CA_CONTENT] = self.ca_cert
-
-        return reply
+        pass
 
     def process_response(self, message: Message) -> bytes:
-        origin = message.get_header(MessageHeaderKey.ORIGIN)
-        reply = message.payload
-        error = reply.get(CERT_ERROR)
-        if error:
-            raise RuntimeError(f"Request to get certificate from {origin} failed: {error}")
-
-        cert = reply.get(CERT_CONTENT)
-        self.cert_cache[origin] = cert
-        return cert
+        pass
 
     def get_local_cert(self) -> Certificate:
-        return x509.load_pem_x509_certificate(self.local_cert)
+        pass
 
     def get_local_key(self) -> RSAPrivateKey:
-        return serialization.load_pem_private_key(self.local_key, password=None)
+        pass
 
     def get_ca_cert(self) -> Certificate:
-        return x509.load_pem_x509_certificate(self.ca_cert)
+        pass
 
     @staticmethod
     def read_file(file_name: str):
-        if not file_name:
-            return None
-
-        with open(file_name, "rb") as f:
-            return f.read()
+        pass

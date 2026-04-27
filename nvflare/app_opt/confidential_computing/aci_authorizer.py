@@ -29,37 +29,10 @@ class ACIAuthorizer(CCAuthorizer):
         self.retry_sleep = retry_sleep
 
     def generate(self):
-        count = 0
-        token = ""
-        while True:
-            count = count + 1
-            try:
-                r = requests.post(
-                    "http://localhost:8284/attest/maa",
-                    data=json.dumps({"maa_endpoint": self.maa_endpoint, "runtime_data": "ewp9"}),
-                    headers={"Content-Type": "application/json"},
-                )
-                if r.status_code == requests.codes.ok:
-                    token = r.json().get("token")
-                break
-            except:
-                if count > self.retry_count:
-                    break
-                time.sleep(self.retry_sleep)
-        return token
+        pass
 
     def verify(self, token):
-        try:
-            header = jwt.get_unverified_header(token)
-            alg = header.get("alg")
-            jwks_client = jwt.PyJWKClient(f"https://{self.maa_endpoint}/certs")
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
-            claims = jwt.decode(token, signing_key.key, algorithms=[alg])
-            if claims:
-                return True
-        except:
-            return False
-        return False
+        pass
 
     def get_namespace(self) -> str:
-        return ACI_NAMESPACE
+        pass

@@ -60,14 +60,7 @@ class GrpcServer:
         Returns: None
 
         """
-        self.logger.info("starting Flower gRPC Server")
-        self.grpc_server.start()
-        if no_blocking:
-            # don't wait for server termination
-            return
-        else:
-            self.grpc_server.wait_for_termination()
-            self.logger.info("Flower gRPC server terminated")
+        pass
 
     def shutdown(self):
         """Shut down the gRPC server gracefully.
@@ -75,8 +68,4 @@ class GrpcServer:
         Returns:
 
         """
-        self.logger.info("shutting down Flower gRPC server")
-        server = self.grpc_server
-        self.grpc_server = None  # in case another thread calls shutdown at the same time
-        if server:
-            server.stop(grace=0.5)
+        pass

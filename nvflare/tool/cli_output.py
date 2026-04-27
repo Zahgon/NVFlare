@@ -59,84 +59,43 @@ def set_output_format(fmt: str) -> None:
              "json" for a single machine-readable JSON envelope on stdout.
              "human" is accepted as a backward-compatible alias for "txt".
     """
-    global _output_format
-    normalized = fmt.lower() if fmt else "txt"
-    _output_format = "txt" if normalized == "human" else normalized
+    pass
 
 
 def set_connect_timeout(value: float) -> None:
     """Set CLI connection timeout (seconds)."""
-    global _connect_timeout
-    try:
-        _connect_timeout = float(value)
-    except (TypeError, ValueError):
-        _connect_timeout = 5.0
+    pass
 
 
 def get_connect_timeout() -> float:
-    return _connect_timeout
+    pass
 
 
 def _is_json_mode() -> bool:
-    return _output_format == "json"
+    pass
 
 
 def is_json_mode() -> bool:
     """Public helper for checking JSON mode without exposing internals."""
-    return _is_json_mode()
+    pass
 
 
 def _human_stream():
-    return sys.stderr if _is_json_mode() else sys.stdout
+    pass
 
 
 def _render_table(data: Any) -> None:
-    if isinstance(data, dict):
-        for k, v in data.items():
-            print(f"{k}: {v}")
-    elif isinstance(data, list):
-        if not data:
-            return
-        if isinstance(data[0], dict):
-            keys = list(data[0].keys())
-            widths = [max(len(k), max(len(str(r.get(k, ""))) for r in data)) for k in keys]
-            header = "  ".join(k.ljust(w) for k, w in zip(keys, widths))
-            print(header)
-            print("-" * len(header))
-            for row in data:
-                print("  ".join(str(row.get(k, "")).ljust(w) for k, w in zip(keys, widths)))
-        else:
-            for item in data:
-                print(item)
-    else:
-        print(str(data))
+    pass
 
 
 def output(data: Any, fmt: Optional[str]) -> None:
     """Legacy output helper used by older cert/package command paths."""
-    if fmt is None and _is_json_mode():
-        fmt = "json"
-    if fmt == "json":
-        print(json.dumps({"schema_version": SCHEMA_VERSION, "status": "ok", "exit_code": 0, "data": data}))
-    elif fmt == "quiet":
-        if isinstance(data, dict):
-            print(next(iter(data.values()), ""))
-        elif isinstance(data, list):
-            print(data[0] if data else "")
-        else:
-            print(str(data))
-    else:
-        _render_table(data)
+    pass
 
 
 def output_ok(data: Any, exit_code: int = 0) -> None:
     """Print command success output."""
-    if _is_json_mode():
-        print(json.dumps({"schema_version": SCHEMA_VERSION, "status": "ok", "exit_code": exit_code, "data": data}))
-    else:
-        _render_table(data)
-    if exit_code != 0:
-        sys.exit(exit_code)
+    pass
 
 
 def output_error(
@@ -148,37 +107,7 @@ def output_error(
     **kwargs,
 ) -> None:
     """Print an error from ERROR_REGISTRY and exit. Never returns."""
-    from nvflare.tool.cli_errors import get_error_entry
-
-    entry = get_error_entry(error_code) or {"message": error_code, "hint": ""}
-    try:
-        message = entry["message"].format_map(kwargs) if kwargs else entry["message"]
-    except KeyError:
-        logger.warning("Missing format key for error %s: %s", error_code, entry["message"])
-        message = entry["message"]
-    if detail:
-        message = f"{message} \u2014 {detail}"
-    resolved_hint = hint if hint is not None else entry["hint"]
-    if _is_json_mode():
-        payload = {
-            "schema_version": SCHEMA_VERSION,
-            "status": "error",
-            "exit_code": exit_code,
-            "error_code": error_code,
-            "message": message,
-            "hint": resolved_hint,
-        }
-        if data is not None:
-            payload["data"] = data
-        print(json.dumps(payload))
-    else:
-        if data is not None:
-            _render_table(data)
-        print(message, file=sys.stderr)
-        if resolved_hint:
-            print(f"Hint: {resolved_hint}", file=sys.stderr)
-        print(f"Code: {error_code} (exit {exit_code})", file=sys.stderr)
-    sys.exit(exit_code)
+    pass
 
 
 def output_error_message(
@@ -190,28 +119,7 @@ def output_error_message(
     detail: str = None,
 ) -> None:
     """Print an explicit error message/hint pair and exit. Never returns."""
-    resolved_hint = hint or ""
-    if detail:
-        message = f"{message} \u2014 {detail}"
-    if fmt == "json" or (fmt is None and _is_json_mode()):
-        print(
-            json.dumps(
-                {
-                    "schema_version": SCHEMA_VERSION,
-                    "status": "error",
-                    "exit_code": exit_code,
-                    "error_code": error_code,
-                    "message": message,
-                    "hint": resolved_hint,
-                }
-            )
-        )
-    else:
-        print(message, file=sys.stderr)
-        if resolved_hint:
-            print(f"Hint: {resolved_hint}", file=sys.stderr)
-        print(f"Code: {error_code} (exit {exit_code})", file=sys.stderr)
-    sys.exit(exit_code)
+    pass
 
 
 def output_usage_error(
@@ -223,10 +131,7 @@ def output_usage_error(
     hint: str = "Run with -h for usage.",
 ) -> None:
     """Print usage/help followed by a structured usage error and exit."""
-    if not _is_json_mode() and parser is not None:
-        parser.print_help(sys.stderr)
-        print(file=sys.stderr)
-    output_error_message(error_code, message, hint, None, exit_code=exit_code, detail=detail)
+    pass
 
 
 def print_human(*args, **kwargs):
@@ -236,8 +141,7 @@ def print_human(*args, **kwargs):
     Keeps stdout clean for the JSON envelope in JSON output mode.
     Usage: print_human("Starting shutdown of NVFLARE")
     """
-    kwargs.setdefault("file", _human_stream())
-    print(*args, **kwargs)
+    pass
 
 
 def prompt_yn(question: str, default_no: bool = True) -> bool:
@@ -256,9 +160,4 @@ def prompt_yn(question: str, default_no: bool = True) -> bool:
                 print_human("Cancelled.")
                 return
     """
-    suffix = " [y/N] " if default_no else " [Y/n] "
-    stream = _human_stream()
-    stream.write(question + suffix)
-    stream.flush()
-    answer = sys.stdin.readline().strip().upper()
-    return answer == "Y"
+    pass

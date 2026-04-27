@@ -22,13 +22,4 @@ class AddUpdateHeader(Filter):
         Filter.__init__(self)
 
     def process(self, shareable: Shareable, fl_ctx: FLContext) -> Shareable:
-        rc = shareable.get_return_code()
-        if rc != ReturnCode.OK:
-            return shareable
-
-        has_update = shareable.get_header(EdgeTaskHeaderKey.HAS_UPDATE_DATA)
-        if has_update is None:
-            # add the header only if it's not present.
-            shareable.set_header(EdgeTaskHeaderKey.HAS_UPDATE_DATA, True)
-            self.log_info(fl_ctx, f"added {EdgeTaskHeaderKey.HAS_UPDATE_DATA} header to result")
-        return shareable
+        pass

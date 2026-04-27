@@ -21,63 +21,18 @@ class BufferList:
 
     def get_size(self):
 
-        if self.buf_list:
-            size = sum(len(buf) for buf in self.buf_list)
-        else:
-            size = 0
-
-        return size
+        pass
 
     def get_list(self):
-        return self.buf_list
+        pass
 
     def append(self, buf: bytes):
-        if not self.buf_list:
-            self.buf_list = []
-
-        self.buf_list.append(buf)
+        pass
 
     def read(self, start: int, end: int):
 
-        buffer = None
-        view_start = 0
-        pos = 0
-        for view in self.buf_list:
-
-            view_end = view_start + len(view)
-
-            if view_start <= start < view_end and end <= view_end:
-                return view[start - view_start : end - view_start]
-
-            buf_start = start + pos
-
-            if buf_start < view_end:
-                if not buffer:
-                    buffer = bytearray(end - start)
-
-                remaining = min(end, view_end) - buf_start
-                view_pos = buf_start - view_start
-                buffer[pos : pos + remaining] = view[view_pos : view_pos + remaining]
-                pos = pos + remaining
-
-                if view_end >= end:
-                    break
-
-            view_start = view_end
-
-        return buffer
+        pass
 
     def flatten(self):
 
-        size = self.get_size()
-        if not size:
-            return None
-
-        result = bytearray(size)
-        start = 0
-        for b in self.buf_list:
-            size = len(b)
-            result[start : start + size] = b
-            start += size
-
-        return result
+        pass

@@ -37,15 +37,7 @@ class Servicer(EdgeApiServicer):
         self.worker_pool = concurrent.futures.thread.ThreadPoolExecutor(max_workers=max_workers)
 
     async def Query(self, request: Request, context) -> Reply:
-        try:
-            loop = self.aio_ctx.get_event_loop()
-            reply = await loop.run_in_executor(self.worker_pool, self.handler.handle_query, request)
-            if not reply:
-                raise RuntimeError("no result from QueryHandler.")
-            return reply
-        except Exception as ex:
-            self.logger.error(f"error processing request: {secure_format_exception(ex)}")
-            return make_reply(EdgeApiStatus.ERROR)
+        pass
 
 
 class EdgeApiServer:
@@ -75,46 +67,13 @@ class EdgeApiServer:
     async def _start(self):
         # Note: the AIO grpc server must be created in this coro, because it has to be created in the thread
         # that runs the event loop!
-        self.logger.info("starting Edge API Server ...")
-        self.grpc_server = grpc.aio.server(options=self.grpc_options)
-        servicer = Servicer(self.handler, self.aio_ctx, self.max_workers)
-        add_EdgeApiServicer_to_server(servicer, self.grpc_server)
-
-        if self.ssl_credentials:
-            # one-way SSL
-            self.logger.info(f"adding secure port at {self.address} for 1-way ssl")
-            self.grpc_server.add_secure_port(self.address, server_credentials=self.ssl_credentials)
-            self.logger.info(f"added secure port at {self.address}")
-        else:
-            self.grpc_server.add_insecure_port(self.address)
-            self.logger.info(f"added insecure port at {self.address}")
-
-        self.logger.info("starting server engine")
-        await self.grpc_server.start()
-        self.logger.info("started server and wait for termination")
-        await self.grpc_server.wait_for_termination()
+        pass
 
     async def _shutdown(self):
-        try:
-            await self.grpc_server.stop(grace=self.grpc_server_stop_grace)
-
-            # Note that self.grpc_server.stop returns immediately. Since we gave 0.5 grace time for RPCs to end,
-            # we wait here until RPCs are done or aborted.
-            # Without this, we may run into "excepthook" error at the end of the program since the GRPC server isn't
-            # properly shutdown.
-            await asyncio.sleep(self.grpc_server_stop_grace)
-            self.grpc_server = None
-            self.logger.debug("Server is stopped!")
-        except Exception as ex:
-            self.logger.debug(f"exception shutdown server: {secure_format_exception(ex)}")
+        pass
 
     def start(self):
-        self.aio_ctx.run_coro(self._start())
-        self.logger.info("waiting for server to finish")
-        self.waiter.wait()
-        self.logger.info("server is done")
+        pass
 
     def shutdown(self):
-        self.aio_ctx.run_coro(self._shutdown())
-        self.waiter.set()
-        self.logger.info("Shutting Down Server")
+        pass

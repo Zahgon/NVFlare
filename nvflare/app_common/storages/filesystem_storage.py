@@ -45,85 +45,28 @@ def _write(path: str, content, mv_file=True):
     Returns:
 
     """
-    tmp_path = path + "_" + str(uuid.uuid4())
-    try:
-        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-        if isinstance(content, bytes):
-            with open(tmp_path, "wb") as f:
-                f.write(content)
-                f.flush()
-                os.fsync(f.fileno())
-        elif isinstance(content, str):
-            # this is the name of the file that contains content
-            if not os.path.exists(content):
-                raise FileNotFoundError(f"file {content} does not exist")
-            if not os.path.isfile(content):
-                raise ValueError(f"{content} is not a valid file")
-            if mv_file:
-                shutil.move(content, tmp_path)
-            else:
-                shutil.copyfile(content, tmp_path)
-        elif isinstance(content, list):
-            _write_multi(tmp_path, content)
-        else:
-            raise RuntimeError(f"content must be bytes or str but got {type(content)}")
-    except Exception as e:
-        if os.path.isfile(tmp_path):
-            os.remove(tmp_path)
-        raise StorageException(f"failed to write content: {secure_format_exception(e)}")
-
-    if os.path.exists(tmp_path):
-        os.rename(tmp_path, path)
+    pass
 
 
 def _write_multi(output_zip_file_name: str, content: List[str]):
-    with tempfile.TemporaryDirectory() as td:
-        for c in content:
-            if os.path.isfile(c):
-                basename = os.path.basename(c)
-                shutil.move(c, os.path.join(td, basename))
-            elif os.path.isdir(c):
-                # move/copy everything from the dir
-                file_names = os.listdir(c)
-                for file_name in file_names:
-                    shutil.move(os.path.join(c, file_name), os.path.join(td, file_name))
-            else:
-                raise ValueError(f"items in content list must be file name or dir name but got {type(c)}")
-
-        # zip everything
-        zip_directory_to_file(td, "", output_zip_file_name)
+    pass
 
 
 def _read(path: str) -> bytes:
-    try:
-        with open(path, "rb") as f:
-            content = f.read()
-    except Exception as e:
-        raise StorageException(f"failed to read content: {secure_format_exception(e)}")
-
-    return content
+    pass
 
 
 def _object_exists(uri: str):
     """Checks whether an object exists at specified directory."""
-    data_exists = os.path.isfile(os.path.join(uri, "data"))
-    meta_exists = os.path.isfile(os.path.join(uri, "meta"))
-    return all((os.path.isabs(uri), os.path.isdir(uri), data_exists, meta_exists))
+    pass
 
 
 def _encode_meta(meta: dict) -> bytes:
-    return json.dumps(meta).encode("utf-8")
+    pass
 
 
 def _decode_meta(data: bytes) -> dict:
-    s = data.decode("utf-8")
-    if s.startswith('"'):
-        # this is in old format
-        result = ast.literal_eval(json.loads(s))
-    else:
-        # this is json string
-        result = json.loads(s)
-    return result
+    pass
 
 
 @validate_class_methods_args
@@ -147,7 +90,7 @@ class FilesystemStorage(StorageSpec):
         self.uri_root = uri_root
 
     def _object_path(self, uri: str):
-        return os.path.join(self.root_dir, uri.lstrip(self.uri_root))
+        pass
 
     def create_object(self, uri: str, data, meta: dict, overwrite_existing: bool = False):
         """Creates an object.
@@ -167,46 +110,10 @@ class FilesystemStorage(StorageSpec):
             IOError: if error writing the object
 
         """
-        full_uri = self._object_path(uri)
-
-        if _object_exists(full_uri) and not overwrite_existing:
-            raise StorageException(f"object {uri} already exists and overwrite_existing is False")
-
-        if not _object_exists(full_uri) and os.path.isdir(full_uri) and os.listdir(full_uri):
-            raise StorageException(f"cannot create object {uri} at nonempty directory")
-
-        data_path = os.path.join(full_uri, DATA)
-        meta_path = os.path.join(full_uri, META)
-        _write(data_path, data)
-        try:
-            _write(meta_path, _encode_meta(meta))
-        except Exception as e:
-            os.remove(data_path)
-            raise e
-        return full_uri
+        pass
 
     def clone_object(self, from_uri: str, to_uri: str, meta: dict, overwrite_existing: bool = False):
-        full_uri = self._object_path(to_uri)
-
-        if _object_exists(full_uri) and not overwrite_existing:
-            raise StorageException(f"object {to_uri} already exists and overwrite_existing is False")
-
-        if not _object_exists(full_uri) and os.path.isdir(full_uri) and os.listdir(full_uri):
-            raise StorageException(f"cannot create object {to_uri} at nonempty directory")
-
-        data_path = os.path.join(full_uri, DATA)
-
-        from_full_uri = self._object_path(from_uri)
-        from_data_path = os.path.join(from_full_uri, DATA)
-        _write(data_path, from_data_path, mv_file=False)
-
-        meta_path = os.path.join(full_uri, META)
-        try:
-            _write(meta_path, _encode_meta(meta))
-        except Exception as e:
-            os.remove(data_path)
-            raise e
-        return full_uri
+        pass
 
     def update_object(self, uri: str, data, component_name: str = DATA):
         """Update the object
@@ -219,16 +126,7 @@ class FilesystemStorage(StorageSpec):
         Raises StorageException when the object does not exit.
 
         """
-        full_dir_path = self._object_path(uri)
-        if not os.path.isdir(full_dir_path):
-            raise StorageException(f"path {full_dir_path} is not a valid directory.")
-
-        if not StorageSpec.is_valid_component(component_name):
-            raise StorageException(f"{component_name} is not a valid component for storage object.")
-
-        component_path = os.path.join(full_dir_path, component_name)
-        _write(component_path, data)
-        return component_path
+        pass
 
     def update_meta(self, uri: str, meta: dict, replace: bool):
         """Updates the meta of the specified object.
@@ -244,17 +142,7 @@ class FilesystemStorage(StorageSpec):
             IOError: if error writing the object
 
         """
-        full_uri = self._object_path(uri)
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        if replace:
-            _write(os.path.join(full_uri, META), _encode_meta(meta))
-        else:
-            prev_meta = self.get_meta(uri)
-            prev_meta.update(meta)
-            _write(os.path.join(full_uri, META), _encode_meta(prev_meta))
+        pass
 
     def list_objects(self, path: str, without_tag=None) -> List[str]:
         """List all objects in the specified path.
@@ -271,23 +159,7 @@ class FilesystemStorage(StorageSpec):
             StorageException: if path does not exist or is not a valid directory.
 
         """
-        full_dir_path = self._object_path(path)
-        if not os.path.isdir(full_dir_path):
-            raise StorageException(f"path {full_dir_path} is not a valid directory.")
-
-        result = []
-
-        # Use scandir instead of listdir.
-        # According to https://peps.python.org/pep-0471/#os-scandir, scandir is more memory-efficient than listdir
-        # when iterating very large directories.
-        gen = os.scandir(full_dir_path)
-        for e in gen:
-            # assert isinstance(e, os.DirEntry)
-            obj_dir = os.path.join(full_dir_path, e.name)
-            if _object_exists(obj_dir):
-                if not without_tag or not os.path.exists(os.path.join(obj_dir, without_tag)):
-                    result.append(os.path.join(path, e.name))
-        return result
+        pass
 
     def get_meta(self, uri: str) -> dict:
         """Gets meta of the specified object.
@@ -303,12 +175,7 @@ class FilesystemStorage(StorageSpec):
             StorageException: if object does not exist
 
         """
-        full_uri = self._object_path(uri)
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        return _decode_meta(_read(os.path.join(full_uri, META)))
+        pass
 
     def list_components_of_object(self, uri: str) -> List[str]:
         """Gets all components of the specified object.
@@ -324,12 +191,7 @@ class FilesystemStorage(StorageSpec):
             StorageException: if object does not exist
 
         """
-        full_uri = self._object_path(uri)
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        return os.listdir(full_uri)
+        pass
 
     def get_data(self, uri: str, component_name: str = DATA) -> bytes:
         """Gets data of the specified object.
@@ -346,32 +208,10 @@ class FilesystemStorage(StorageSpec):
             StorageException: if object does not exist
 
         """
-        full_uri = self._object_path(uri)
-
-        if not StorageSpec.is_valid_component(component_name):
-            raise StorageException(f"{component_name} is not a valid component for storage object.")
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        return _read(os.path.join(full_uri, component_name))
+        pass
 
     def get_data_for_download(self, uri: str, component_name: str = DATA, download_file: str = None):
-        full_uri = self._object_path(uri)
-
-        if not StorageSpec.is_valid_component(component_name):
-            raise StorageException(f"{component_name} is not a valid component for storage object.")
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        if os.path.exists(download_file):
-            os.remove(download_file)
-        src = os.path.join(full_uri, component_name)
-        if os.path.exists(src):
-            os.symlink(src, download_file)
-        else:
-            log.debug(f"{src} does not exist, skipping the creation of the symlink {download_file} for download.")
+        pass
 
     def get_detail(self, uri: str) -> Tuple[dict, bytes]:
         """Gets both data and meta of the specified object.
@@ -387,12 +227,7 @@ class FilesystemStorage(StorageSpec):
             StorageException: if object does not exist
 
         """
-        full_uri = self._object_path(uri)
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        return self.get_meta(uri), self.get_data(uri)
+        pass
 
     def delete_object(self, uri: str):
         """Deletes the specified object.
@@ -405,18 +240,7 @@ class FilesystemStorage(StorageSpec):
             StorageException: if object does not exist
 
         """
-        full_uri = self._object_path(uri)
-
-        if not _object_exists(full_uri):
-            raise StorageException("object {} does not exist".format(uri))
-
-        shutil.rmtree(full_uri)
-
-        return full_uri
+        pass
 
     def tag_object(self, uri: str, tag: str, data=None):
-        full_path = self._object_path(uri)
-        mark_file = os.path.join(full_path, tag)
-        with open(mark_file, "w") as f:
-            if data:
-                f.write(data)
+        pass

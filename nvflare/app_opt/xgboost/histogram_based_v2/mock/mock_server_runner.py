@@ -25,23 +25,10 @@ class MockServerRunner(AppRunner):
         self._server = None
 
     def run(self, ctx: dict):
-        world_size = ctx.get(Constant.RUNNER_CTX_WORLD_SIZE)
-        addr = ctx.get(Constant.RUNNER_CTX_SERVER_ADDR)
-
-        self._server = GrpcServer(
-            addr,
-            max_workers=self.server_max_workers,
-            grpc_options=None,
-            servicer=AggrServicer(num_clients=world_size, aggr_timeout=self.aggr_timeout),
-        )
-        self._server.start(no_blocking=False)
+        pass
 
     def stop(self):
-        s = self._server
-        self._server = None
-        if s:
-            s.shutdown()
-        self._stopped = True
+        pass
 
     def is_stopped(self) -> (bool, int):
-        return self._stopped, 0
+        pass

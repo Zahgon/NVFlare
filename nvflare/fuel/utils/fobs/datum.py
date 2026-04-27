@@ -56,25 +56,22 @@ class Datum:
          Returns: None
 
         """
-        if not callable(func):
-            raise ValueError(f"func must be callable but got {type(func)}")
-        self.restore_func = func
-        self.restore_func_data = func_data
+        pass
 
     @staticmethod
     def blob_datum(blob: Union[bytes, bytearray, memoryview], dot=0):
         """Factory method to create a BLOB datum"""
-        return Datum(DatumType.BLOB, blob, dot)
+        pass
 
     @staticmethod
     def text_datum(text: str, dot=0):
         """Factory method to create a TEXT datum"""
-        return Datum(DatumType.TEXT, text, dot)
+        pass
 
     @staticmethod
     def file_datum(path: str, dot=0):
         """Factory method to crate a file datum"""
-        return Datum(DatumType.FILE, path, dot)
+        pass
 
 
 class DatumRef:
@@ -115,7 +112,7 @@ class DatumManager:
         self.error = None  # save error text
 
     def add_datum(self, d: Datum):
-        self.datums[d.datum_id] = d
+        pass
 
     def get_fobs_context(self):
         """Get the FOBS Context associated with the manager.
@@ -127,7 +124,7 @@ class DatumManager:
         Returns:
 
         """
-        return self.fobs_ctx
+        pass
 
     def register_post_cb(self, cb: Callable[["DatumManager"], None], **cb_kwargs):
         """Register a callback that will be called after the decomposition is done during serialization process.
@@ -145,9 +142,7 @@ class DatumManager:
         Returns:
 
         """
-        if not callable(cb):
-            raise ValueError("cb is not callable")
-        self.post_cbs.append((cb, cb_kwargs))
+        pass
 
     def set_error(self, error: str):
         """Set an error with the manager.
@@ -159,8 +154,7 @@ class DatumManager:
         Returns: None
 
         """
-        if error and not self.error:
-            self.error = error
+        pass
 
     def get_error(self):
         """Get the error set with the manager
@@ -168,7 +162,7 @@ class DatumManager:
         Returns: the error set with the manager
 
         """
-        return self.error
+        pass
 
     def post_process(self):
         """Invoke all post serialization callbacks.
@@ -177,19 +171,7 @@ class DatumManager:
         Returns: None
 
         """
-        # must guarantee that all post_cbs are called!
-        i = 0
-        while True:
-            # we cannot use a simple for-loop here since a cb could register additional CBs during processing!
-            if i >= len(self.post_cbs):
-                return
-
-            cb, cb_kwargs = self.post_cbs[i]
-            i += 1
-            try:
-                cb(self, **cb_kwargs)
-            except Exception as ex:
-                self.set_error(f"exception from post_cb {cb.__name__}: {type(ex)}")
+        pass
 
     def register_copy(self, obj_copy, original_obj):
         """Register the object_copy => original object
@@ -201,7 +183,7 @@ class DatumManager:
         Returns: None
 
         """
-        self.obj_copies[id(obj_copy)] = original_obj
+        pass
 
     def get_original(self, obj_copy) -> Any:
         """Get the registered original object from the object copy.
@@ -212,46 +194,16 @@ class DatumManager:
         Returns: the original object if found; None otherwise.
 
         """
-        return self.obj_copies.get(id(obj_copy))
+        pass
 
     def get_datums(self):
-        return self.datums
+        pass
 
     def get_datum(self, datum_id: str):
-        return self.datums.get(datum_id)
+        pass
 
     def externalize(self, data: Any):
-        if not isinstance(data, (bytes, bytearray, memoryview, Datum, str)):
-            return data
-
-        if isinstance(data, Datum):
-            # this is an app-defined datum. we need to keep it as is when deserialized.
-            # hence unwrap is set to False in the DatumRef.
-            self.add_datum(data)
-            return DatumRef(data.datum_id, False)
-
-        if len(data) >= self.threshold:
-            # turn it to Datum
-            if isinstance(data, str):
-                d = Datum.text_datum(data)
-            else:
-                d = Datum.blob_datum(data)
-            self.add_datum(d)
-            return DatumRef(d.datum_id, True)
-        else:
-            return data
+        pass
 
     def internalize(self, data: Any) -> Any:
-        if not isinstance(data, DatumRef):
-            return data
-
-        d = self.get_datum(data.datum_id)
-        if not d:
-            raise RuntimeError(f"can't find datum for {data.datum_id}")
-
-        if d.datum_type == DatumType.FILE:
-            return d
-        elif data.unwrap:
-            return d.value
-        else:
-            return d
+        pass

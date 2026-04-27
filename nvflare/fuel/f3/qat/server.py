@@ -48,11 +48,8 @@ class Server(CellRunner):
         MainProcessMonitor.add_cleanup_cb(self._clean_up)
 
     def start(self, start_all=True):
-        super().start(start_all)
-        self.admin.start()
+        pass
 
     def _clean_up(self):
         # self.sess_mgr.shutdown()
-        self.logger.debug(f"{self.cell.get_fqcn()}: Closed session manager")
-        self.admin.stop()
-        self.logger.debug(f"{self.cell.get_fqcn()}: Stopped Admin Server")
+        pass

@@ -36,50 +36,17 @@ class SfmEndpoint:
 
     def add_connection(self, sfm_conn: SfmConnection):
 
-        with self.lock:
-            while len(self.connections) >= MAX_CONN_PER_ENDPOINT:
-                first_conn = self.connections[0]
-                first_conn.conn.close()
-                self.connections.pop(0)
-                log.info(
-                    f"Connection {first_conn.get_name()} is evicted for {sfm_conn.get_name()} "
-                    f"from endpoint {self.endpoint.name} for exceeding limit {MAX_CONN_PER_ENDPOINT}"
-                )
-
-            self.connections.append(sfm_conn)
+        pass
 
     def remove_connection(self, sfm_conn: SfmConnection):
 
-        if not self.connections:
-            log.debug(
-                f"Connection {sfm_conn.get_name()} is already removed. "
-                f"No connections for endpoint {self.endpoint.name}"
-            )
-            return
-
-        with self.lock:
-            found_index = next(
-                (index for index, conn in enumerate(self.connections) if conn.get_name() == sfm_conn.get_name()), None
-            )
-
-            if found_index is not None:
-                self.connections.pop(found_index)
-                log.debug(f"Connection {sfm_conn.get_name()} is removed from endpoint {self.endpoint.name}")
-            else:
-                log.debug(f"Connection {sfm_conn.get_name()} is already removed from endpoint {self.endpoint.name}")
+        pass
 
     def get_connection(self, stream_id: int) -> Optional[SfmConnection]:
-        if not self.connections:
-            return None
-
-        index = stream_id % len(self.connections)
-        return self.connections[index]
+        pass
 
     def next_stream_id(self) -> int:
         """Get next stream_id for the endpoint
         stream_id is used to assemble fragmented data
         """
-
-        with self.lock:
-            self.stream_id = (self.stream_id + 1) & 0xFFFF
-            return self.stream_id
+        pass

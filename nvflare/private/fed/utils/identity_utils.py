@@ -44,24 +44,19 @@ class InvalidCNSignature(Exception):
 
 
 def get_cn_from_cert(cert):
-    subject = cert.subject
-    attr = subject.get_attributes_for_oid(NameOID.COMMON_NAME)
-    if not attr:
-        raise MissingCN()
-    return attr[0].value
+    pass
 
 
 def get_org_from_cert(cert) -> str:
-    attr = cert.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)
-    return attr[0].value if attr else ""
+    pass
 
 
 def load_cert_file(path: str):
-    return load_crt(path)
+    pass
 
 
 def load_cert_bytes(data: bytes):
-    return load_crt_bytes(data)
+    pass
 
 
 def get_parent_site_name(fqsn: str) -> Optional[str]:
@@ -73,16 +68,7 @@ def get_parent_site_name(fqsn: str) -> Optional[str]:
     Returns: the parent site's name or None if the FQSN doesn't have a parent
 
     """
-    if not fqsn:
-        return None
-
-    if not isinstance(fqsn, str):
-        raise ValueError(f"expect fqsn to be str but got {type(fqsn)}")
-
-    parts = fqsn.split(".")
-    if len(parts) <= 1:
-        return None
-    return parts[len(parts) - 2]
+    pass
 
 
 class IdentityAsserter:
@@ -96,18 +82,13 @@ class IdentityAsserter:
         self.cn = get_cn_from_cert(self.cert)
 
     def sign_common_name(self, nonce: str) -> str:
-        return sign_content(self.cn + nonce, self.pri_key, return_str=False)
+        pass
 
     def sign(self, content, return_str: bool) -> str:
-        return sign_content(content, self.pri_key, return_str=return_str)
+        pass
 
     def verify_signature(self, content, signature) -> bool:
-        pub_key = self.cert.public_key()
-        try:
-            verify_content(content=content, signature=signature, public_key=pub_key)
-            return True
-        except Exception:
-            return False
+        pass
 
 
 class IdentityVerifier:
@@ -117,27 +98,7 @@ class IdentityVerifier:
 
     def verify_common_name(self, asserted_cn: str, nonce: str, asserter_cert, signature) -> bool:
         # verify asserter_cert
-        try:
-            verify_cert(
-                cert_to_be_verified=asserter_cert,
-                root_ca_public_key=self.root_public_key,
-            )
-        except:
-            raise InvalidAsserterCert()
-
-        # verify signature provided by the asserter
-        asserter_public_key = asserter_cert.public_key()
-        cn = get_cn_from_cert(asserter_cert)
-
-        if cn != asserted_cn:
-            raise CNMismatch()
-
-        assert isinstance(cn, str)
-        try:
-            verify_content(content=cn + nonce, signature=signature, public_key=asserter_public_key)
-        except Exception as ex:
-            raise InvalidCNSignature(f"cannot verify common name signature: {secure_format_exception(ex)}")
-        return True
+        pass
 
 
 class TokenVerifier:
@@ -147,9 +108,4 @@ class TokenVerifier:
         self.logger = get_obj_logger(self)
 
     def verify(self, client_name, token, signature):
-        try:
-            verify_content(content=client_name + token, signature=signature, public_key=self.public_key)
-            return True
-        except Exception as ex:
-            self.logger.error(f"exception verifying token: {client_name=} {token=}: {secure_format_exception(ex)}")
-            return False
+        pass

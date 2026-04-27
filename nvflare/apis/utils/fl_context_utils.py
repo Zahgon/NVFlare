@@ -28,98 +28,19 @@ logger = get_module_logger()
 
 
 def get_serializable_data(fl_ctx: FLContext):
-    new_fl_ctx = FLContext()
-    for k, v in fl_ctx.props.items():
-        if k not in NonSerializableKeys.KEYS:
-            try:
-                fobs.dumps(v)
-                new_fl_ctx.props[k] = v
-            except Exception as e:
-                msg = f"Object in FLContext with key {k} and type {type(v)} is not serializable (discarded): {secure_format_exception(e)}"
-                logger.warning(generate_log_message(fl_ctx, msg))
-
-    return new_fl_ctx
+    pass
 
 
 def gen_new_peer_ctx(fl_ctx: FLContext, need_deep_copy=False):
-    tmp_ctx = FLContext()
-    pub_props = fl_ctx.get_all_public_props()
-    if need_deep_copy:
-        pub_props = copy.deepcopy(pub_props)
-    tmp_ctx.set_public_props(pub_props)
-    new_peer_ctx = get_serializable_data(tmp_ctx)
-    return new_peer_ctx
+    pass
 
 
 def generate_log_message(fl_ctx: FLContext, msg: str):
-    if not fl_ctx:
-        return msg
-
-    _identity_ = "identity"
-    _my_run = "run"
-    _peer_run = "peer_run"
-    _peer_name = "peer"
-    _task_name = "task_name"
-    _task_id = "task_id"
-    _rc = "peer_rc"
-    _wf = "wf"
-
-    all_kvs = {_identity_: fl_ctx.get_identity_name()}
-    my_run = fl_ctx.get_job_id()
-    if not my_run:
-        my_run = "?"
-    all_kvs[_my_run] = my_run
-
-    task_name = fl_ctx.get_prop(FLContextKey.TASK_NAME, None)
-    task_id = fl_ctx.get_prop(FLContextKey.TASK_ID, None)
-
-    if task_name:
-        all_kvs[_task_name] = task_name
-
-    if task_id:
-        all_kvs[_task_id] = task_id
-
-    wf_id = fl_ctx.get_prop(FLContextKey.WORKFLOW, None)
-    if wf_id is not None:
-        all_kvs[_wf] = wf_id
-
-    peer_ctx = fl_ctx.get_peer_context()
-    if peer_ctx:
-        if not isinstance(peer_ctx, FLContext):
-            raise TypeError("peer_ctx must be an instance of FLContext, but got {}".format(type(peer_ctx)))
-        peer_run = peer_ctx.get_job_id()
-        if not peer_run:
-            peer_run = "?"
-        all_kvs[_peer_run] = peer_run
-
-        peer_name = peer_ctx.get_identity_name()
-        if not peer_name:
-            peer_name = "?"
-        all_kvs[_peer_name] = peer_name
-
-    reply = fl_ctx.get_prop(FLContextKey.TASK_RESULT, None)
-    if isinstance(reply, Shareable):
-        rc = reply.get_return_code("OK")
-        all_kvs[_rc] = rc
-
-    item_order = [_identity_, _my_run, _wf, _peer_name, _peer_run, _rc, _task_name, _task_id]
-    ctx_items = []
-    for item in item_order:
-        if item in all_kvs:
-            ctx_items.append(item + "=" + str(all_kvs[item]))
-
-    return "[" + ", ".join(ctx_items) + "]: " + msg
+    pass
 
 
 def add_job_audit_event(fl_ctx: FLContext, ref: str = "", msg: str = "") -> str:
-    return AuditService.add_job_event(
-        job_id=fl_ctx.get_job_id(),
-        scope_name=fl_ctx.get_prop(FLContextKey.EFFECTIVE_JOB_SCOPE_NAME, "?"),
-        task_name=fl_ctx.get_prop(FLContextKey.TASK_NAME, "?"),
-        task_id=fl_ctx.get_prop(FLContextKey.TASK_ID, "?"),
-        ref=ref,
-        msg=msg,
-    )
+    pass
 
 
 def get_client(client_name, fl_ctx: FLContext) -> Optional[Client]:
@@ -132,7 +53,4 @@ def get_client(client_name, fl_ctx: FLContext) -> Optional[Client]:
     Returns: a Client object or None if not found
 
     """
-    engine = fl_ctx.get_engine()
-    if not engine:
-        raise RuntimeError("Bad fl_ctx: no engine")
-    return engine.get_client_from_name(client_name)
+    pass

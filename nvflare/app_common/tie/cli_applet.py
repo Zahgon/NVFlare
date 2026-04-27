@@ -50,16 +50,7 @@ class CLIApplet(Applet, ABC):
         Returns:
 
         """
-        cmd_desc = self.get_command(app_ctx)
-        if not cmd_desc:
-            raise RuntimeError("failed to get cli command from app context")
-
-        fl_ctx = app_ctx.get(Constant.APP_CTX_FL_CONTEXT)
-        try:
-            self._proc_mgr = start_process(cmd_desc, fl_ctx, stop_method=self.stop_method)
-        except Exception as ex:
-            self.logger.error(f"exception starting applet '{cmd_desc.cmd}': {secure_format_exception(ex)}")
-            self._start_error = True
+        pass
 
     def stop(self, timeout=0.0) -> int:
         """Stop the applet
@@ -71,45 +62,7 @@ class CLIApplet(Applet, ABC):
         Returns: exit code
 
         """
-        mgr = self._proc_mgr
-        self._proc_mgr = None
-
-        if not mgr:
-            self.logger.debug("no process manager to stop")
-            return 0
-
-        self.logger.info(f"stopping applet: {timeout=}")
-        if timeout > 0:
-            # wait for the applet to stop by itself
-            start = time.time()
-            while time.time() - start < timeout:
-                rc = mgr.poll()
-                if rc is not None:
-                    # already stopped
-                    self.logger.info(f"applet stopped ({rc=}) after {time.time() - start} seconds")
-                    return rc
-                time.sleep(0.1)
-
-        self.logger.info(f"about to stop process manager: {type(mgr)}")
-        rc = mgr.stop()
-        self.logger.info(f"applet stopped: {rc=}")
-
-        if rc is None:
-            self.logger.warning(f"killed the applet process after waiting {timeout} seconds")
-            return -9
-        else:
-            return rc
+        pass
 
     def is_stopped(self) -> (bool, int):
-        if self._start_error:
-            return True, Constant.EXIT_CODE_CANT_START
-
-        mgr = self._proc_mgr
-        if mgr:
-            return_code = mgr.poll()
-            if return_code is None:
-                return False, 0
-            else:
-                return True, return_code
-        else:
-            return True, 0
+        pass

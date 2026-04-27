@@ -20,46 +20,8 @@ class AWSBuilder(Builder):
         Builder.__init__(self)
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        ctx.load_templates(["master_template.yml", "aws_template.yml"])
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
         # build server
-        server = project.get_server()
-        dest_dir = ctx.get_kit_dir(server)
-        replacement = {
-            "type": "server",
-            "inbound_rule": "aws ec2 authorize-security-group-ingress --region ${REGION} --group-id $sg_id --protocol tcp --port 8002-8003 --cidr 0.0.0.0/0 >> ${LOGFILE}.sec_grp.log",
-            "cln_uid": "",
-            "server_name": server.name,
-            "ORG": server.org,
-        }
-        ctx.build_from_template(
-            dest_dir=dest_dir,
-            file_name=ProvFileName.AWS_START_SH,
-            temp_section=[
-                TemplateSectionKey.CLOUD_SCRIPT_HEADER,
-                TemplateSectionKey.AWS_START_SH,
-            ],
-            replacement=replacement,
-            exe=True,
-        )
-
-        for client in project.get_clients():
-            dest_dir = ctx.get_kit_dir(client)
-            replacement = {
-                "type": "client",
-                "inbound_rule": "",
-                "cln_uid": f"uid={client.name}",
-                "ORG": client.org,
-            }
-
-            ctx.build_from_template(
-                dest_dir=dest_dir,
-                file_name=ProvFileName.AWS_START_SH,
-                temp_section=[
-                    TemplateSectionKey.CLOUD_SCRIPT_HEADER,
-                    TemplateSectionKey.AWS_START_SH,
-                ],
-                replacement=replacement,
-                exe=True,
-            )
+        pass

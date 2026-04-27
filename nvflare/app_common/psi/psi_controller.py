@@ -33,34 +33,13 @@ class PSIController(ErrorHandlingController):
         self.task_name = PSIConst.TASK
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext):
-        self.log_info(fl_ctx, f"{self.task_name} control flow started.")
-        if abort_signal.triggered:
-            return False
-
-        self.log_info(fl_ctx, "start pre workflow")
-        self.psi_workflow.pre_process(abort_signal)
-
-        if abort_signal.triggered:
-            return False
-
-        self.log_info(fl_ctx, "start workflow")
-        self.psi_workflow.run(abort_signal)
-
-        if abort_signal.triggered:
-            return False
-
-        self.log_info(fl_ctx, "start post workflow")
-        self.psi_workflow.post_process(abort_signal)
-
-        self.log_info(fl_ctx, f"task {self.task_name} control flow end.")
+        pass
 
     def start_controller(self, fl_ctx: FLContext):
-        self.fl_ctx = fl_ctx
-        psi_workflow = self.load_psi_workflow(fl_ctx)
-        self.psi_workflow = psi_workflow
+        pass
 
     def stop_controller(self, fl_ctx: FLContext):
-        self.psi_workflow.finalize(fl_ctx)
+        pass
 
     def process_result_of_unknown_task(
         self, client: Client, task_name: str, client_task_id: str, result: Shareable, fl_ctx: FLContext
@@ -68,8 +47,4 @@ class PSIController(ErrorHandlingController):
         pass
 
     def load_psi_workflow(self, fl_ctx: FLContext) -> PSIWorkflow:
-        engine = fl_ctx.get_engine()
-        psi_workflow: PSIWorkflow = engine.get_component(self.psi_workflow_id)
-        psi_workflow.initialize(fl_ctx, controller=self)
-        check_component_type(psi_workflow, PSIWorkflow)
-        return psi_workflow
+        pass

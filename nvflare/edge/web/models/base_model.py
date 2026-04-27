@@ -42,24 +42,14 @@ class BaseModel(dict):
         self[key] = value
 
     def from_query_string(self, qs: str):
-        params = {k: v[0] if len(v) == 1 else v for k, v in parse_qs(qs).items()}
-        self.update(params)
+        pass
 
     def to_query_string(self) -> str:
-        return urlencode(self, doseq=True)
+        pass
 
     def get_device_id(self) -> Optional[str]:
-        device_info = self.get("device_info")
-        if not device_info:
-            return None
-
-        return device_info.get("device_id")
+        pass
 
     @staticmethod
     def check_keys(d: dict, keys: Union[str, List[str]]) -> str:
-        if isinstance(keys, str):
-            keys = [keys]
-        for key in keys:
-            if key not in d:
-                return f"missing {key}"
-        return ""
+        pass

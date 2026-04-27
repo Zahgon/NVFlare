@@ -65,57 +65,24 @@ class CellMessageInterface(FLComponent, ABC):
         self.cell.add_incoming_reply_filter(channel="*", topic="*", cb=self._filter_incoming_message)
 
     def new_cmi_message(self, fl_ctx: FLContext, headers=None, payload=None):
-        msg = Message(headers, payload)
-        msg.set_prop(self.PROP_KEY_FL_CTX, fl_ctx)
-        return msg
+        pass
 
     def _filter_incoming_message(self, message: Message):
-        public_props = message.get_header(self.HEADER_KEY_PEER_PROPS)
-        if public_props:
-            peer_ctx = self._make_peer_ctx(public_props)
-            message.set_prop(self.PROP_KEY_PEER_CTX, peer_ctx)
-        shareable = message.payload
-        if isinstance(shareable, Shareable):
-            if public_props:
-                shareable.set_peer_props(public_props)
+        pass
 
     def _filter_incoming_request(self, message: Message):
-        self._filter_incoming_message(message)
-        fl_ctx = self.engine.new_context()
-        peer_ctx = message.get_prop(self.PROP_KEY_PEER_CTX)
-        assert isinstance(fl_ctx, FLContext)
-        if peer_ctx:
-            fl_ctx.set_peer_context(peer_ctx)
-        message.set_prop(self.PROP_KEY_FL_CTX, fl_ctx)
+        pass
 
     def _filter_outgoing_message(self, message: Message):
-        fl_ctx = message.get_prop(self.PROP_KEY_FL_CTX)
-        if fl_ctx:
-            assert isinstance(fl_ctx, FLContext)
-            public_props = fl_ctx.get_all_public_props()
-            message.set_header(self.HEADER_KEY_PEER_PROPS, public_props)
-            ssid = fl_ctx.get_prop(CellMessageHeaderKeys.SSID)
-            if ssid:
-                message.set_header(self.HEADER_SSID, ssid)
-            project_name = fl_ctx.get_prop(CellMessageHeaderKeys.PROJECT_NAME)
-            if project_name:
-                message.set_header(self.HEADER_PROJECT_NAME, project_name)
-            client_name = fl_ctx.get_prop(FLContextKey.CLIENT_NAME)
-            if client_name:
-                message.set_header(self.HEADER_CLIENT_NAME, client_name)
-            client_token = fl_ctx.get_prop(CellMessageHeaderKeys.TOKEN)
-            if client_token:
-                message.set_header(self.HEADER_CLIENT_TOKEN, client_token)
+        pass
 
     @staticmethod
     def _make_peer_ctx(props: dict) -> FLContext:
-        ctx = FLContext()
-        ctx.set_public_props(props)
-        return ctx
+        pass
 
     @staticmethod
     def _convert_return_code(rc: CellReturnCode):
-        return CellMessageInterface.RC_TABLE.get(rc, ReturnCode.ERROR)
+        pass
 
     @abstractmethod
     def send_to_cell(
@@ -143,12 +110,10 @@ class JobCellMessenger(CellMessageInterface):
         self.cell.add_outgoing_reply_filter(channel="*", topic="*", cb=self._filter_outgoing)
 
     def _filter_incoming(self, message: Message):
-        job_id = message.get_header(self.HEADER_JOB_ID)
-        if job_id and job_id != self.job_id:
-            self.logger.error(f"received job id {job_id} != my job id {self.job_id}")
+        pass
 
     def _filter_outgoing(self, message: Message):
-        message.set_header(self.HEADER_JOB_ID, self.job_id)
+        pass
 
     def send_to_cell(
         self,
@@ -174,73 +139,4 @@ class JobCellMessenger(CellMessageInterface):
         Returns:
             A dict of Shareables
         """
-        if not isinstance(request, Shareable):
-            raise ValueError(f"invalid request type: expect Shareable but got {type(request)}")
-
-        if not targets:
-            raise ValueError("targets must be specified")
-
-        if targets is not None and not isinstance(targets, list):
-            raise TypeError(f"targets must be a list of str, but got {type(targets)}")
-
-        if not isinstance(topic, str):
-            raise TypeError(f"invalid topic '{topic}': expects str but got {type(topic)}")
-
-        if not topic:
-            raise ValueError("invalid topic: must not be empty")
-
-        if not isinstance(timeout, float):
-            raise TypeError(f"invalid timeout: expects float but got {type(timeout)}")
-
-        if timeout < 0:
-            raise ValueError(f"invalid timeout value {timeout}: must >= 0.0")
-
-        if not isinstance(fl_ctx, FLContext):
-            raise TypeError(f"invalid fl_ctx: expects FLContext but got {type(fl_ctx)}")
-
-        request.set_header(ReservedHeaderKey.TOPIC, topic)
-        job_id = fl_ctx.get_job_id()
-        cell = self.engine.get_cell()
-        assert isinstance(cell, CoreCell)
-
-        target_names = []
-        for t in targets:
-            if not isinstance(t, str):
-                raise ValueError(f"invalid target name {t}: expect str but got {type(t)}")
-            if t not in target_names:
-                target_names.append(t)
-
-        target_fqcns = []
-        for name in target_names:
-            target_fqcns.append(FQCN.join([name, job_id]))
-
-        cell_msg = self.new_cmi_message(fl_ctx, payload=request)
-        if timeout > 0:
-            cell_replies = cell.broadcast_request(
-                channel=channel, topic=topic, request=cell_msg, targets=target_fqcns, timeout=timeout, optional=optional
-            )
-
-            replies = {}
-            if cell_replies:
-                for k, v in cell_replies.items():
-                    assert isinstance(v, Message)
-                    rc = v.get_header(MessageHeaderKey.RETURN_CODE, ReturnCode.OK)
-                    client_name = FQCN.get_root(k)
-                    if rc == CellReturnCode.OK:
-                        result = v.payload
-                        if not isinstance(result, Shareable):
-                            self.logger.error(f"reply of {channel}:{topic} must be dict but got {type(result)}")
-                            result = make_reply(ReturnCode.ERROR)
-                        replies[client_name] = result
-                    else:
-                        src = self._convert_return_code(rc)
-                        replies[client_name] = make_reply(src)
-            return replies
-        else:
-            if bulk_send:
-                cell.queue_message(channel=channel, topic=topic, message=cell_msg, targets=target_fqcns)
-            else:
-                cell.fire_and_forget(
-                    channel=channel, topic=topic, message=cell_msg, targets=target_fqcns, optional=optional
-                )
-            return {}
+        pass

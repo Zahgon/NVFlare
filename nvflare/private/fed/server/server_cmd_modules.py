@@ -33,4 +33,4 @@ class ServerCommandModules:
 
     @staticmethod
     def register_cmd_module(cmd_module: CommandModule):
-        ServerCommandModules.cmd_modules.append(cmd_module)
+        pass

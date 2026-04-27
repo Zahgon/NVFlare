@@ -46,29 +46,11 @@ class ExternalConfigurator(Widget):
         self._config_file_name = config_file_name
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABOUT_TO_START_RUN:
-            components_data = self._export_all_components(fl_ctx)
-            update_export_props(components_data, fl_ctx)
-            config_file_path = self._get_external_config_file_path(fl_ctx)
-            write_config_to_file(config_data=components_data, config_file_path=config_file_path)
+        pass
 
     def _get_external_config_file_path(self, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        app_config_directory = workspace.get_app_config_dir(fl_ctx.get_job_id())
-        config_file_path = os.path.join(app_config_directory, self._config_file_name)
-        return config_file_path
+        pass
 
     def _export_all_components(self, fl_ctx: FLContext) -> dict:
         """Exports all components."""
-        engine = fl_ctx.get_engine()
-        all_components = engine.get_all_components()
-        components = {i: all_components.get(i) for i in self._component_ids}
-        reserved_keys = [
-            FLMetaKey.SITE_NAME,
-            FLMetaKey.JOB_ID,
-            ConnPropKey.CP_CONN_PROPS,
-            ConnPropKey.ROOT_CONN_PROPS,
-            ConnPropKey.RELAY_CONN_PROPS,
-        ]
-        return export_components(components=components, reserved_keys=reserved_keys, export_mode=ExportMode.PEER)
+        pass

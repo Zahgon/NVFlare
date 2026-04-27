@@ -22,27 +22,7 @@ from nvflare.widgets.widget import WidgetID
 
 class ComponentCallerProcessor(RequestProcessor):
     def get_topics(self) -> [str]:
-        return [ComponentCallerTopic.CALL_COMPONENT]
+        pass
 
     def process(self, req: Message, app_ctx) -> Message:
-        engine = app_ctx
-        if not isinstance(engine, ClientEngineInternalSpec):
-            raise TypeError("engine must be ClientEngineInternalSpec, but got {}".format(type(engine)))
-
-        caller = engine.get_widget(WidgetID.COMPONENT_CALLER)
-        if not isinstance(caller, ComponentCaller):
-            raise TypeError("caller must be ComponentCaller, but got {}".format(type(caller)))
-
-        run_info = engine.get_current_run_info()
-        if not run_info or run_info.job_id < 0:
-            result = {"error": "app not running"}
-        else:
-            comp_target = req.get_header(RequestHeader.COMPONENT_TARGET)
-            call_name = req.get_header(RequestHeader.CALL_NAME)
-            call_params = req.body
-            result = caller.call_components(target=comp_target, call_name=call_name, params=call_params)
-
-        if not isinstance(result, dict):
-            result = {}
-
-        return Message(topic=req.topic, body=result)
+        pass

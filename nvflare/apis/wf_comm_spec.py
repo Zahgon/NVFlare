@@ -70,7 +70,7 @@ class WFCommSpec(ABC):
             logged instead of raising RuntimeError.
 
         """
-        raise NotImplementedError
+        pass
 
     def broadcast_and_wait(
         self,
@@ -97,7 +97,7 @@ class WFCommSpec(ABC):
             abort_signal: the abort signal. If triggered, this method stops waiting and returns to the caller.
 
         """
-        raise NotImplementedError
+        pass
 
     def broadcast_forever(
         self,
@@ -118,7 +118,7 @@ class WFCommSpec(ABC):
             targets: list of destination clients. None means all clients are determined dynamically.
 
         """
-        raise NotImplementedError
+        pass
 
     def send(
         self,
@@ -150,7 +150,7 @@ class WFCommSpec(ABC):
             task_assignment_timeout: in SEQUENTIAL order, this is the wait time for trying a target client, before trying next target.
 
         """
-        raise NotImplementedError
+        pass
 
     def send_and_wait(
         self,
@@ -176,7 +176,7 @@ class WFCommSpec(ABC):
             abort_signal: the abort signal. If triggered, this method stops waiting and returns to the caller.
 
         """
-        raise NotImplementedError
+        pass
 
     def relay(
         self,
@@ -202,7 +202,7 @@ class WFCommSpec(ABC):
             expanded dynamically when a new client joins.
 
         """
-        raise NotImplementedError
+        pass
 
     def relay_and_wait(
         self,
@@ -216,7 +216,7 @@ class WFCommSpec(ABC):
         abort_signal: Signal = None,
     ):
         """This is the blocking version of 'relay'."""
-        raise NotImplementedError
+        pass
 
     def get_num_standing_tasks(self) -> int:
         """Gets tasks that are currently standing.
@@ -224,7 +224,7 @@ class WFCommSpec(ABC):
         Returns: length of the list of standing tasks
 
         """
-        raise NotImplementedError
+        pass
 
     def cancel_task(
         self,
@@ -245,7 +245,7 @@ class WFCommSpec(ABC):
             fl_ctx: the FL context
 
         """
-        raise NotImplementedError
+        pass
 
     def cancel_all_tasks(self, completion_status=TaskCompletionStatus.CANCELLED, fl_ctx: Optional[FLContext] = None):
         """Cancels all standing tasks.
@@ -254,11 +254,11 @@ class WFCommSpec(ABC):
             completion_status: the TaskCompletionStatus of the task
             fl_ctx: the FL context
         """
-        raise NotImplementedError
+        pass
 
     def check_tasks(self):
         """Checks if tasks should be exited."""
-        raise NotImplementedError
+        pass
 
     def process_task_request(self, client: Client, fl_ctx: FLContext) -> Tuple[str, str, Shareable]:
         """Called by the Engine when a task request is received from a client.
@@ -270,11 +270,11 @@ class WFCommSpec(ABC):
         Returns: task name, task id, and task data
 
         """
-        raise NotImplementedError
+        pass
 
     def handle_exception(self, task_id: str, fl_ctx: FLContext):
         """Called after process_task_request returns, but exception occurs before task is sent out."""
-        raise NotImplementedError
+        pass
 
     def process_submission(self, client: Client, task_name: str, task_id: str, result: Shareable, fl_ctx: FLContext):
         """Called by the Engine to process the submitted result from a client.
@@ -287,7 +287,7 @@ class WFCommSpec(ABC):
             fl_ctx: the FLContext
 
         """
-        raise NotImplementedError
+        pass
 
     def get_client_disconnect_time(self, client_name):
         """Get the time that the client is deemed disconnected.
@@ -298,7 +298,7 @@ class WFCommSpec(ABC):
         Returns: time at which the client was deemed disconnected; or None if the client is not disconnected.
 
         """
-        raise NotImplementedError
+        pass
 
     def process_dead_client_report(self, client_name: str, fl_ctx: FLContext):
         """Called by the Engine to process dead client report.
@@ -308,7 +308,7 @@ class WFCommSpec(ABC):
             fl_ctx: the FLContext
 
         """
-        raise NotImplementedError
+        pass
 
     def client_is_active(self, client_name: str, reason: str, fl_ctx: FLContext):
         """Called by the Engine to notify us that the client is active .
@@ -318,7 +318,7 @@ class WFCommSpec(ABC):
             reason: why client is considered active
             fl_ctx: the FLContext
         """
-        raise NotImplementedError
+        pass
 
     def process_task_check(self, task_id: str, fl_ctx: FLContext):
         """Called by the Engine to check whether a specified task still exists.
@@ -327,7 +327,7 @@ class WFCommSpec(ABC):
             fl_ctx: the FLContext
         Returns: the ClientTask object if exists; None otherwise
         """
-        raise NotImplementedError
+        pass
 
     def initialize_run(self, fl_ctx: FLContext):
         """Called when a new RUN is about to start.
@@ -336,7 +336,7 @@ class WFCommSpec(ABC):
             fl_ctx: FL context. It must contain 'job_id' that is to be initialized
 
         """
-        raise NotImplementedError
+        pass
 
     def finalize_run(self, fl_ctx: FLContext):
         """Called when a new RUN is finished.
@@ -345,4 +345,4 @@ class WFCommSpec(ABC):
             fl_ctx: the FL context
 
         """
-        raise NotImplementedError
+        pass

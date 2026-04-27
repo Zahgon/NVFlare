@@ -22,53 +22,32 @@ class FQN:
 
     @staticmethod
     def normalize(fqn: str) -> str:
-        return fqn.strip()
+        pass
 
     @staticmethod
     def split(fqn: str) -> List[str]:
-        return fqn.split(FQN.SEPARATOR)
+        pass
 
     @staticmethod
     def join(path: List[str]) -> str:
-        return FQN.SEPARATOR.join(path)
+        pass
 
     @staticmethod
     def validate(fqn) -> str:
-        if not isinstance(fqn, str):
-            return f"must be str but got {type(fqn)}"
-        fqn = FQN.normalize(fqn)
-        if not fqn:
-            return "empty"
-        pattern = "^[A-Za-z0-9_.-]*$"
-        valid = bool(re.match(pattern, fqn))
-        if not valid:
-            return "invalid char"
-        parts = FQN.split(fqn)
-        info = {}
-        for p in parts:
-            if not p:
-                return "empty part"
-            if info.get(p):
-                return f"dup '{p}'"
-            info[p] = True
-        return ""
+        pass
 
     @staticmethod
     def get_root(fqn: str) -> str:
-        parts = FQN.split(fqn)
-        return parts[0]
+        pass
 
     @staticmethod
     def get_parent(fqn: str) -> str:
-        parts = FQN.split(fqn)
-        if len(parts) == 1:
-            return ""
-        return FQN.join(parts[0:-1])
+        pass
 
     @staticmethod
     def is_parent(fqn1: str, fqn2: str) -> bool:
-        return fqn1 == FQN.get_parent(fqn2)
+        pass
 
     @staticmethod
     def is_ancestor(fqn1: str, fqn2: str) -> bool:
-        return fqn2.startswith(fqn1 + FQN.SEPARATOR)
+        pass

@@ -39,12 +39,10 @@ class TensorDownloadable(CacheableObject):
         super().__init__(tensors, max_chunk_size)
 
     def get_item_count(self) -> int:
-        return self.size
+        pass
 
     def produce_item(self, index: int) -> bytes:
-        key = self.keys[index]
-        tensor_to_send = {key: self.base_obj[key]}
-        return save_tensors(tensor_to_send)
+        pass
 
 
 class TensorConsumer(ItemConsumer):
@@ -57,25 +55,7 @@ class TensorConsumer(ItemConsumer):
             raise ValueError("tensors_received_cb must be callable")
 
     def consume_items(self, items: List[Any], result: Any) -> Any:
-        if not isinstance(items, list):
-            raise TypeError(f"items must be list but got {type(items)}")
-        if result is None:
-            result = {}
-
-        tensors = {}
-        for item in items:
-            td = load_tensors(item)
-            if not isinstance(td, dict):
-                raise ValueError("cannot load received bytes to tensors")
-            tensors.update(td)
-
-        if self.tensors_received_cb:
-            cb_result = self.tensors_received_cb(tensors, **self.cb_kwargs)
-            if isinstance(cb_result, dict):
-                result.update(cb_result)
-        else:
-            result.update(tensors)
-        return result
+        pass
 
 
 def add_tensors(
@@ -93,8 +73,7 @@ def add_tensors(
     Returns: reference id for the state dict.
 
     """
-    obj = TensorDownloadable(tensors, max_chunk_size)
-    return downloader.add_object(obj)
+    pass
 
 
 def download_tensors(
@@ -123,42 +102,12 @@ def download_tensors(
     Returns: tuple of (error message if any, downloaded state dict).
 
     """
-    consumer = TensorConsumer(tensors_received_cb, cb_kwargs)
-    download_object(
-        from_fqcn=from_fqcn,
-        ref_id=ref_id,
-        consumer=consumer,
-        per_request_timeout=per_request_timeout,
-        cell=cell,
-        secure=secure,
-        optional=optional,
-        abort_signal=abort_signal,
-    )
-    return consumer.error, consumer.result
+    pass
 
 
 def _extract_safetensors_keys(data: bytes) -> list[str]:
     """Extract tensor key names from safetensors header without deserializing tensors."""
-    if len(data) < 8:
-        raise ValueError("Invalid safetensors data: too short")
-
-    header_size = struct.unpack("<Q", data[:8])[0]
-    if header_size == 0:
-        raise ValueError("Invalid safetensors data: empty header")
-
-    header_end = 8 + header_size
-    if header_end > len(data):
-        raise ValueError("Invalid safetensors data: header size exceeds payload length")
-
-    try:
-        header = json.loads(data[8:header_end])
-    except Exception as e:
-        raise ValueError("Invalid safetensors data: invalid JSON header") from e
-
-    if not isinstance(header, dict):
-        raise ValueError("Invalid safetensors data: header must be JSON object")
-
-    return [k for k in header.keys() if k != "__metadata__"]
+    pass
 
 
 class DiskTensorConsumer(ItemConsumer):
@@ -170,33 +119,10 @@ class DiskTensorConsumer(ItemConsumer):
         self._file_counter = 0
 
     def consume_items(self, items: List[Any], result: Any) -> Any:
-        if not isinstance(items, list):
-            raise TypeError(f"items must be list but got {type(items)}")
-        if result is None:
-            result = {}
-
-        for item in items:
-            keys = _extract_safetensors_keys(item)
-            file_path = os.path.join(self._temp_dir, f"chunk_{self._file_counter}.safetensors")
-            self._file_counter += 1
-            with open(file_path, "wb") as f:
-                f.write(item)
-            for key in keys:
-                if key in result:
-                    raise ValueError(
-                        f"Duplicate tensor key '{key}' seen in multiple safetensors chunks; "
-                        "streaming data may be malformed."
-                    )
-                result[key] = (file_path, key)
-
-        return result
+        pass
 
     def download_failed(self, ref_id, reason: str):
-        super().download_failed(ref_id, reason)
-        # Eager cleanup on download callback error; the outer caller may also
-        # attempt cleanup via consumer.error path. Double cleanup is intentional
-        # and safe because _cleanup_temp_dir handles already-removed paths.
-        _cleanup_temp_dir(self._temp_dir)
+        pass
 
 
 def download_tensors_to_disk(
@@ -212,27 +138,4 @@ def download_tensors_to_disk(
 
     Returns: tuple of (error message if any, LazyTensorDict for lazy access).
     """
-    temp_dir = tempfile.mkdtemp(prefix="nvflare_tensors_")
-
-    consumer = DiskTensorConsumer(temp_dir)
-    try:
-        download_object(
-            from_fqcn=from_fqcn,
-            ref_id=ref_id,
-            consumer=consumer,
-            per_request_timeout=per_request_timeout,
-            cell=cell,
-            secure=secure,
-            optional=optional,
-            abort_signal=abort_signal,
-        )
-    except Exception:
-        _cleanup_temp_dir(temp_dir)
-        raise
-
-    if consumer.error:
-        _cleanup_temp_dir(temp_dir)
-        return consumer.error, None
-
-    key_to_file = consumer.result if consumer.result is not None else {}
-    return None, LazyTensorDict(key_to_file=key_to_file, temp_dir=temp_dir)
+    pass

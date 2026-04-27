@@ -53,25 +53,7 @@ class DXOFilter(Filter, ABC):
         self.data_kinds = data_kinds_to_filter
 
     def process(self, shareable: Shareable, fl_ctx: FLContext):
-        rc = shareable.get_return_code()
-        if rc != ReturnCode.OK:
-            # don't process if RC not OK
-            return shareable
-
-        try:
-            dxo = from_shareable(shareable)
-        except:
-            # not a DXO based shareable - pass
-            return shareable
-
-        if dxo.data is None:
-            self.log_debug(fl_ctx, "DXO has no data to filter")
-            return shareable
-
-        start = [dxo]
-        self._filter_dxos(start, shareable, fl_ctx)
-        result_dxo = start[0]
-        return result_dxo.update_shareable(shareable)
+        pass
 
     @abstractmethod
     def process_dxo(self, dxo: DXO, shareable: Shareable, fl_ctx: FLContext) -> Union[None, DXO]:
@@ -90,47 +72,7 @@ class DXOFilter(Filter, ABC):
         pass
 
     def _apply_filter(self, dxo: DXO, shareable, fl_ctx: FLContext) -> DXO:
-        if not dxo.data:
-            self.log_debug(fl_ctx, "DXO has no data to filter")
-            return dxo
-
-        filter_name = self.__class__.__name__
-        result = self.process_dxo(dxo, shareable, fl_ctx)
-        if not result:
-            # not filtered
-            result = dxo
-        elif not isinstance(result, DXO):
-            raise RuntimeError(f"Result from {filter_name} is {type(result)} - must be DXO")
-        else:
-            if result != dxo:
-                # result is a new DXO - copy filter history from original dxo
-                result.add_filter_history(dxo.get_filter_history())
-            result.add_filter_history(filter_name)
-
-            chain_type = self.get_prop(FilterContextKey.CHAIN_TYPE, "?")
-            source = self.get_prop(FilterContextKey.SOURCE, "?")
-
-            add_job_audit_event(fl_ctx=fl_ctx, msg=f"applied filter: {filter_name}@{source} on {chain_type}")
-
-        return result
+        pass
 
     def _filter_dxos(self, dxo_collection: Union[List[DXO], Dict[str, DXO]], shareable, fl_ctx):
-        if isinstance(dxo_collection, list):
-            for i in range(len(dxo_collection)):
-                v = dxo_collection[i]
-                if not isinstance(v, DXO):
-                    continue
-                if v.data_kind == DataKind.COLLECTION:
-                    self._filter_dxos(v.data, shareable, fl_ctx)
-                elif not self.data_kinds or v.data_kind in self.data_kinds:
-                    dxo_collection[i] = self._apply_filter(v, shareable, fl_ctx)
-
-        elif isinstance(dxo_collection, dict):
-            for k, v in dxo_collection.items():
-                assert isinstance(v, DXO)
-                if v.data_kind == DataKind.COLLECTION:
-                    self._filter_dxos(v.data, shareable, fl_ctx)
-                elif not self.data_kinds or v.data_kind in self.data_kinds:
-                    dxo_collection[k] = self._apply_filter(v, shareable, fl_ctx)
-        else:
-            raise ValueError(f"DXO COLLECTION must be a dict or list but got {type(dxo_collection)}")
+        pass

@@ -38,14 +38,4 @@ class DeviceInfo(BaseModel):
 
     @staticmethod
     def extract_from_dict(d: dict):
-        device_info_dict = d.pop(EdgeProtoKey.DEVICE_INFO, None)
-        if not device_info_dict:
-            return "missing device_info", None
-
-        device_id = device_info_dict.pop(EdgeProtoKey.DEVICE_ID, None)
-        if not device_id:
-            return "missing device_id", None
-
-        device_info = DeviceInfo(device_id)
-        device_info.update(device_info_dict)
-        return "", device_info
+        pass

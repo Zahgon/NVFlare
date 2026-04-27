@@ -27,11 +27,4 @@ class TPRunner(SimulationRunner):
         self.config_file = config_file
 
     def create_simulator(self, fl_ctx: FLContext) -> Optional[Simulator]:
-        parser = ConfigParser(self.config_file)
-        return Simulator(
-            job_name=parser.get_job_name(),
-            get_job_timeout=parser.get_job_timeout,
-            device_factory=TPDeviceFactory(parser),
-            num_devices=parser.get_num_devices(),
-            num_workers=parser.get_num_workers(),
-        )
+        pass

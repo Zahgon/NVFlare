@@ -49,44 +49,7 @@ class BcastTaskManager(TaskManager):
             first entry in the tuple means whether to exit the task or not.  If it's True, the task should exit.
             second entry in the tuple indicates the TaskCompletionStatus.
         """
-        if len(task.client_tasks) == 0:
-            # nothing has been sent - continue to wait
-            return False, TaskCompletionStatus.IGNORED
-
-        clients_responded = 0
-        clients_not_responded = 0
-        for s in task.client_tasks:
-            if s.result_received_time is None:
-                clients_not_responded += 1
-            else:
-                clients_responded += 1
-
-        if clients_responded >= len(task.targets):
-            # all clients have responded!
-            return True, TaskCompletionStatus.OK
-
-        # if min_responses is 0, need to have all client tasks responded
-        if task.props[_KEY_MIN_RESPS] == 0 and clients_responded < len(task.targets):
-            return False, TaskCompletionStatus.IGNORED
-
-        # check if minimum responses are received
-        if clients_responded == 0 or clients_responded < task.props[_KEY_MIN_RESPS]:
-            # continue to wait
-            return False, TaskCompletionStatus.IGNORED
-
-        # minimum responses received
-        min_resps_received_time = task.props[_KEY_MIN_RESPS_RCV_TIME]
-        if min_resps_received_time is None:
-            min_resps_received_time = time.time()
-            task.props[_KEY_MIN_RESPS_RCV_TIME] = min_resps_received_time
-
-        # see whether we have waited for long enough
-        if time.time() - min_resps_received_time >= task.props[_KEY_WAIT_TIME_AFTER_MIN_RESPS]:
-            # yes - exit the task
-            return True, TaskCompletionStatus.OK
-        else:
-            # no - continue to wait
-            return False, TaskCompletionStatus.IGNORED
+        pass
 
 
 class BcastForeverTaskManager(TaskManager):
@@ -105,12 +68,7 @@ class BcastForeverTaskManager(TaskManager):
         Returns:
             TaskCheckStatus: NO_BLOCK for not sending the task, SEND for OK to send
         """
-        # Note: even if the client may have done the task, we may still send it!
-        client_name = client_task.client.name
-        if client_task.task.targets is None or client_name in client_task.task.targets:
-            return TaskCheckStatus.SEND
-        else:
-            return TaskCheckStatus.NO_BLOCK
+        pass
 
     def check_task_exit(self, task: Task) -> Tuple[bool, TaskCompletionStatus]:
         """Determine whether the task should exit.
@@ -122,5 +80,4 @@ class BcastForeverTaskManager(TaskManager):
             first entry in the tuple means whether to exit the task or not.  If it's True, the task should exit.
             second entry in the tuple indicates the TaskCompletionStatus.
         """
-        # never exit
-        return False, TaskCompletionStatus.IGNORED
+        pass

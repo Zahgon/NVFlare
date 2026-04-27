@@ -79,4 +79,4 @@ class EmptyAuthorizer(Authorizer):
         Authorizer.__init__(self, "dummy")
 
     def authorize(self, ctx: AuthzContext) -> Tuple[bool, str]:
-        return True, ""
+        pass

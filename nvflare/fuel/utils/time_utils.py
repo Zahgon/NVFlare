@@ -24,7 +24,4 @@ def time_to_string(t) -> str:
     Returns:
         formatted time string
     """
-    if t is None:
-        return "N/A"
-
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(t))
+    pass

@@ -77,4 +77,4 @@ class LRModelPersistor(NPModelPersistor):
 
     def _get_initial_model_as_numpy(self) -> np.ndarray:
         """Fallback initializer used by NPModelPersistor when no saved model exists."""
-        return self.model.copy()
+        pass

@@ -39,58 +39,18 @@ class CommandAgent(object):
         self.logger = get_obj_logger(self)
 
     def start(self, fl_ctx: FLContext):
-        self.engine = fl_ctx.get_engine()
-        self.register_cell_cb()
+        pass
 
     def register_cell_cb(self):
-        self.federated_client.cell.register_request_cb(
-            channel=CellChannel.CLIENT_COMMAND,
-            topic="*",
-            cb=self.execute_command,
-        )
-        self.federated_client.cell.register_request_cb(
-            channel=CellChannel.AUX_COMMUNICATION,
-            topic="*",
-            cb=self.aux_communication,
-        )
+        pass
 
     def execute_command(self, request: CellMessage) -> CellMessage:
 
-        assert isinstance(request, CellMessage), "request must be CellMessage but got {}".format(type(request))
-
-        command_name = request.get_header(MessageHeaderKey.TOPIC)
-        data = request.payload
-
-        command = AdminCommands.get_command(command_name)
-        if command:
-            with self.engine.new_context() as new_fl_ctx:
-                reply = command.process(data=data, fl_ctx=new_fl_ctx)
-                if reply is not None:
-                    return_message = new_cell_message({}, reply)
-                    return_message.set_header(MessageHeaderKey.RETURN_CODE, ReturnCode.OK)
-                else:
-                    return_message = new_cell_message({}, None)
-                return return_message
-        return make_cellnet_reply(ReturnCode.INVALID_REQUEST, "", None)
+        pass
 
     def aux_communication(self, request: CellMessage) -> CellMessage:
 
-        assert isinstance(request, CellMessage), "request must be CellMessage but got {}".format(type(request))
-        shareable = request.payload
-
-        with self.engine.new_context() as fl_ctx:
-            topic = request.get_header(MessageHeaderKey.TOPIC)
-            reply = self.engine.dispatch(topic=topic, request=shareable, fl_ctx=fl_ctx)
-            assert isinstance(reply, Shareable)
-            shared_fl_ctx = gen_new_peer_ctx(fl_ctx)
-            reply.set_peer_context(shared_fl_ctx)
-
-            if reply is not None:
-                return_message = new_cell_message({}, reply)
-                return_message.set_header(MessageHeaderKey.RETURN_CODE, ReturnCode.OK)
-            else:
-                return_message = new_cell_message({}, None)
-            return return_message
+        pass
 
     def shutdown(self):
-        self.asked_to_stop = True
+        pass

@@ -50,7 +50,7 @@ class Driver(ABC):
         """Return the name of the driver, used for logging
         By default, it returns class name
         """
-        return self.__class__.__name__
+        pass
 
     @staticmethod
     @abstractmethod
@@ -118,4 +118,4 @@ class Driver(ABC):
 
     def register_conn_monitor(self, monitor: ConnMonitor):
         """Register a monitor for connection state change, including new connections"""
-        self.conn_monitor = monitor
+        pass

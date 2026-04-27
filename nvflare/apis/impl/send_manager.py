@@ -49,46 +49,7 @@ class SendTaskManager(TaskManager):
         Returns:
             TaskCheckStatus: NO_BLOCK for not sending the task, BLOCK for waiting, SEND for OK to send
         """
-        task = client_task.task
-        if len(task.client_tasks) > 0:  # already sent to one client
-            if client_task.task_sent_time is not None:  # the task was sent to this client!
-                if client_task.result_received_time is not None:
-                    # the task result was already received
-                    # this task is actually done - waiting to end by the monitor
-                    return TaskCheckStatus.NO_BLOCK
-                else:
-                    return TaskCheckStatus.SEND
-            else:  # the task was sent to someone else
-                return TaskCheckStatus.NO_BLOCK
-
-        # in SEQUENTIAL mode - targets must be explicitly specified
-        # is this client eligible?
-        try:
-            client_idx = task.targets.index(client_task.client.name)
-        except ValueError:
-            client_idx = -1
-
-        if client_idx < 0:
-            # this client is not a target
-            return TaskCheckStatus.NO_BLOCK
-
-        if task.props[_KEY_ORDER] == SendOrder.ANY:
-            return TaskCheckStatus.SEND
-
-        task_assignment_timeout = task.props[_KEY_TASK_ASSIGN_TIMEOUT]
-        if task_assignment_timeout == 0:
-            # no client timeout - can only send to the first target
-            eligible_client_idx = 0
-        else:
-            elapsed = time.time() - task.create_time
-            eligible_client_idx = int(elapsed / task_assignment_timeout)
-
-        if client_idx <= eligible_client_idx:
-            return TaskCheckStatus.SEND
-        else:
-            # this client is currently not eligible but could be later
-            # since this client is involved in the task, we need to wait until this task is resolved!
-            return TaskCheckStatus.BLOCK
+        pass
 
     def check_task_exit(self, task: Task) -> Tuple[bool, TaskCompletionStatus]:
         """Determine whether the task should exit.
@@ -100,13 +61,4 @@ class SendTaskManager(TaskManager):
             first entry in the tuple means whether to exit the task or not.  If it's True, the task should exit.
             second entry in the tuple indicates the TaskCompletionStatus.
         """
-        if len(task.client_tasks) > 0:
-            # there should be only a single item in the task's client status list
-            # because only a single client is sent the task!
-            for s in task.client_tasks:
-                if s.result_received_time is not None:
-                    # this task is done!
-                    return True, TaskCompletionStatus.OK
-
-        # no one is working on this task yet or the task is not done
-        return False, TaskCompletionStatus.IGNORED
+        pass

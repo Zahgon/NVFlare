@@ -72,15 +72,7 @@ class FLAdminClientStarterConfigurator(JsonConfigurator):
             config_ctx: config context
             node: element node
         """
-        element = node.element
-        path = node.path()
-
-        if re.search(r"^handlers\.#[0-9]+$", path):
-            c = self.build_component(element)
-            if not isinstance(c, EventHandler):
-                raise ConfigError(f"component must be EventHandler but got {type(c)}")
-            self.handlers.append(c)
-            return
+        pass
 
     def _update_property_path_in_startup(self, admin_config: dict, prop_key: str):
         """The property value in the admin config is the base name.
@@ -93,9 +85,7 @@ class FLAdminClientStarterConfigurator(JsonConfigurator):
         Returns:
 
         """
-        prop_value = admin_config.get(prop_key)
-        if prop_value:
-            admin_config[prop_key] = self.workspace.get_file_path_in_startup(prop_value)
+        pass
 
     def _update_property_path_in_root(self, admin_config: dict, prop_key: str):
         """The property value in the admin config is the base name.
@@ -108,9 +98,7 @@ class FLAdminClientStarterConfigurator(JsonConfigurator):
         Returns:
 
         """
-        prop_value = admin_config.get(prop_key)
-        if prop_value:
-            admin_config[prop_key] = self.workspace.get_file_path_in_root(prop_value)
+        pass
 
     def start_config(self, config_ctx: ConfigContext):
         """Start the config process.
@@ -118,38 +106,11 @@ class FLAdminClientStarterConfigurator(JsonConfigurator):
         Args:
             config_ctx: config context
         """
-        super().start_config(config_ctx)
-
-        try:
-            admin = self.get_admin_config()
-            if isinstance(admin, dict):
-                for key in [AdminConfigKey.CLIENT_KEY, AdminConfigKey.CLIENT_CERT, AdminConfigKey.CA_CERT]:
-                    self._update_property_path_in_startup(admin, key)
-
-                for key in [AdminConfigKey.UPLOAD_DIR, AdminConfigKey.DOWNLOAD_DIR]:
-                    self._update_property_path_in_root(admin, key)
-        except Exception:
-            raise ValueError(f"Client config error: '{self.admin_config_file_path}'")
+        pass
 
     def get_admin_config(self):
-        if not isinstance(self.config_data, dict):
-            return None
-        return self.config_data.get(AdminConfigKey.ADMIN)
+        pass
 
 
 def secure_load_admin_config(workspace: Workspace):
-    mgr = SecurityContentManager(content_folder=workspace.get_startup_kit_dir())
-
-    # Tamper check: only meaningful when signature.json is present (CC or HE mode).
-    # When valid_config=False (no signature.json — standard non-CC, non-HE, or Manual
-    # Workflow), fed_admin.json returns NOT_SIGNED; that is correct and not an error.
-    _, result = mgr.load_json(WorkspaceConstants.ADMIN_STARTUP_CONFIG)
-    if mgr.valid_config and result != LoadResult.OK:
-        # signature.json is present (CC or HE mode) — enforce tamper check strictly
-        raise ConfigError(f"invalid {WorkspaceConstants.ADMIN_STARTUP_CONFIG}: tampered ({result})")
-    # if valid_config=False (no signature.json): skip tamper check
-    # mTLS is the trust anchor; no centrally-signed kit exists to verify against
-
-    conf = FLAdminClientStarterConfigurator(workspace=workspace)
-    conf.configure()
-    return conf
+    pass

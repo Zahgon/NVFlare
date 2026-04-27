@@ -67,103 +67,38 @@ class SfmConnection:
         self.send_started_at = 0.0
 
     def get_name(self) -> str:
-        return self.conn.name
+        pass
 
     def next_sequence(self) -> int:
         """Get next sequence number for the connection.
 
         Sequence is used to detect lost frames.
         """
-
-        with self.lock:
-            self.sequence = (self.sequence + 1) & 0xFFFF
-            return self.sequence
+        pass
 
     def send_handshake(self, frame_type: int):
         """Send HELLO/READY frame"""
-
-        data = {HandshakeKeys.ENDPOINT_NAME: self.local_endpoint.name, HandshakeKeys.TIMESTAMP: time.time()}
-
-        if self.local_endpoint.properties:
-            data.update(self.local_endpoint.properties)
-
-        self.send_dict(frame_type, 1, data)
+        pass
 
     def send_heartbeat(self, frame_type: int, data: Optional[dict] = None):
         """Send Ping or Pong"""
-
-        if frame_type not in (Types.PING, Types.PONG):
-            log.error(f"Heartbeat type must be PING or PONG, not {frame_type}")
-            return
-
-        if not self.sfm_endpoint:
-            log.debug("Trying to send heartbeat before SFM Endpoint is established")
-            return
-
-        stream_id = self.sfm_endpoint.next_stream_id()
-        self.send_dict(frame_type, stream_id, data)
+        pass
 
     def send_data(self, app_id: int, stream_id: int, headers: Optional[dict], payload: BytesAlike):
         """Send user data"""
-
-        prefix = Prefix(0, 0, Types.DATA, 0, 0, app_id, stream_id, 0)
-        self.send_frame(prefix, headers, payload)
+        pass
 
     def send_dict(self, frame_type: int, stream_id: int, data: dict):
         """Send a dict as payload"""
-
-        prefix = Prefix(0, 0, frame_type, 0, 0, 0, stream_id, 0)
-
-        payload = msgpack.packb(data)
-        self.send_frame(prefix, None, payload)
+        pass
 
     def send_frame(self, prefix: Prefix, headers: Optional[dict], payload: Optional[BytesAlike]):
 
-        headers_bytes = self.headers_to_bytes(headers)
-        header_len = len(headers_bytes) if headers_bytes else 0
-
-        length = PREFIX_LEN + header_len
-
-        if payload:
-            length += len(payload)
-
-        prefix.length = length
-        prefix.header_len = header_len
-        prefix.sequence = self.next_sequence()
-
-        buffer: bytearray = bytearray(length)
-
-        offset = 0
-        prefix.to_buffer(buffer, offset)
-        offset += PREFIX_LEN
-
-        if headers_bytes:
-            buffer[offset:] = headers_bytes
-            offset += header_len
-
-        if payload:
-            buffer[offset:] = payload
-
-        log.debug(f"Sending frame: {prefix} on {self.conn}")
-        # Only one thread can send data on a connection. Otherwise, the frames may interleave.
-        with self.lock:
-            with self.send_state_lock:
-                self.send_started_at = time.monotonic()
-            try:
-                self.conn.send_frame(buffer)
-            finally:
-                with self.send_state_lock:
-                    self.send_started_at = 0.0
+        pass
 
     def get_send_stall_seconds(self) -> float:
-        with self.send_state_lock:
-            if self.send_started_at <= 0.0:
-                return 0.0
-            return time.monotonic() - self.send_started_at
+        pass
 
     @staticmethod
     def headers_to_bytes(headers: Optional[dict]) -> Optional[bytes]:
-        if headers:
-            return msgpack.packb(headers)
-        else:
-            return None
+        pass

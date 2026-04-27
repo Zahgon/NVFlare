@@ -63,32 +63,7 @@ class SyncAlgorithmExecutor(BaseDistOptExecutor):
         Raises:
             SystemExit: If the values from all neighbors are not received within the timeout.
         """
-        engine = fl_ctx.get_engine()
-
-        # Clear the event before starting the exchange
-        self.sync_waiter.clear()
-
-        _ = engine.send_aux_request(
-            targets=[neighbor.id for neighbor in self.neighbors],
-            topic="send_value",
-            request=DXO(
-                data_kind=DataKind.WEIGHTS,
-                data={
-                    "value": self._to_message(value),
-                    "iteration": iteration,
-                },
-            ).to_shareable(),
-            timeout=10,
-            fl_ctx=fl_ctx,
-        )
-
-        # check if neighbors already sent their values
-        if len(self.neighbors_values[iteration]) < len(self.neighbors):
-            # wait for all neighbors to send their values for the current iteration
-            # if not received after timeout, abort the job
-            if not self.sync_waiter.wait(timeout=self.sync_timeout):
-                self.system_panic("failed to receive values from all neighbors", fl_ctx)
-                return
+        pass
 
     def _handle_neighbor_value(self, topic: str, request: Shareable, fl_ctx: FLContext) -> Shareable:
         """Handles incoming values from neighbors.
@@ -104,22 +79,7 @@ class SyncAlgorithmExecutor(BaseDistOptExecutor):
         Returns:
             Shareable: A reply message indicating successful reception.
         """
-        sender = request.get_peer_prop(key=ReservedKey.IDENTITY_NAME, default=None)
-        data = from_shareable(request).data
-        iteration = data["iteration"]
-
-        with self.lock:
-            # Store the received value in the neighbors_values dictionary
-            self.neighbors_values[iteration][sender] = self._from_message(data["value"])
-            # Check if all neighbor values have been received for the iteration
-            if len(self.neighbors_values[iteration]) >= len(self.neighbors):
-                self.sync_waiter.set()  # Signal that we have all neighbor values
-        return make_reply(ReturnCode.OK)
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        super().handle_event(event_type, fl_ctx)
-        if event_type == EventType.START_RUN:
-            engine = fl_ctx.get_engine()
-
-            # Register the message handler for receiving neighbor values
-            engine.register_aux_message_handler(topic="send_value", message_handle_func=self._handle_neighbor_value)
+        pass

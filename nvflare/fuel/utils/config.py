@@ -25,25 +25,11 @@ class ConfigFormat(Enum):
 
     @classmethod
     def config_ext_formats(cls):
-        return OrderedDict(
-            {
-                ".json": ConfigFormat.JSON,
-                ".conf": ConfigFormat.PYHOCON,
-                ".yml": ConfigFormat.OMEGACONF,
-                ".yaml": ConfigFormat.OMEGACONF,
-                ".json.default": ConfigFormat.JSON,
-                ".conf.default": ConfigFormat.PYHOCON,
-                ".yml.default": ConfigFormat.OMEGACONF,
-                ".yaml.default": ConfigFormat.OMEGACONF,
-            }
-        )
+        pass
 
     @classmethod
     def extensions(cls, target_fmt=None) -> List[str]:
-        if target_fmt is None:
-            return [ext for ext, fmt in cls.config_ext_formats().items()]
-        else:
-            return [ext for ext, fmt in cls.config_ext_formats().items() if fmt == target_fmt]
+        pass
 
 
 class Config(ABC):
@@ -58,10 +44,10 @@ class Config(ABC):
         Returns:
             return ConfigFormat
         """
-        return self.format
+        pass
 
     def get_exts(self) -> List[str]:
-        return ConfigFormat.extensions(self.format)
+        pass
 
     def get_native_conf(self):
         """Returns the original underline config object representation if you prefer to use it directly.
@@ -72,8 +58,7 @@ class Config(ABC):
         Returns:
             A native config object
         """
-
-        return self.conf
+        pass
 
     def get_location(self) -> Optional[str]:
         """Returns the file path where this configuration is loaded from.
@@ -82,7 +67,7 @@ class Config(ABC):
             None if the config is not from file; else return file path
 
         """
-        return self.file_path
+        pass
 
     @abstractmethod
     def to_dict(self, resolve: Optional[bool] = True) -> Dict:
@@ -127,7 +112,7 @@ class ConfigLoader(ABC):
             A ConfigFormat
 
         """
-        return self.format
+        pass
 
     @abstractmethod
     def load_config(self, file_path: str) -> Config:
@@ -153,7 +138,7 @@ class ConfigLoader(ABC):
             A Config
 
         """
-        raise NotImplementedError
+        pass
 
     def load_config_from_dict(self, config_dict: dict) -> Config:
         """Load Configuration based on a given config dict.
@@ -165,4 +150,4 @@ class ConfigLoader(ABC):
             A Config
 
         """
-        raise NotImplementedError
+        pass

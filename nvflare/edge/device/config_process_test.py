@@ -66,12 +66,7 @@ class StatsKeeper(Filter, EventHandler):
         pass
 
     def handle_event(self, event_type: str, event_data, ctx: Context, abort_signal: Signal):
-        if event_type == EventType.BEFORE_TRAIN:
-            ctx["train_start_time"] = event_data
-        elif event_type == EventType.AFTER_TRAIN:
-            ctx["train_end_time"] = event_data[0]
-        elif event_type == EventType.LOSS_GENERATED:
-            ctx["train_loss"] = event_data
+        pass
 
 
 class BCELossResolver(ComponentResolver):
@@ -80,7 +75,7 @@ class BCELossResolver(ComponentResolver):
         super().__init__(t, name, args)
 
     def resolve(self):
-        return bce_loss
+        pass
 
 
 CONFIG_DATA = """

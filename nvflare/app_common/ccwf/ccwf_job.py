@@ -239,61 +239,7 @@ class CCWFJob(FedJob):
         client_config: SwarmClientConfig,
         cse_config: CrossSiteEvalConfig = None,
     ):
-        controller = SwarmServerController(
-            num_rounds=server_config.num_rounds,
-            start_round=server_config.start_round,
-            start_task_timeout=server_config.start_task_timeout,
-            configure_task_timeout=server_config.configure_task_timeout,
-            participating_clients=server_config.participating_clients,
-            result_clients=server_config.result_clients,
-            starting_client=server_config.starting_client,
-            max_status_report_interval=server_config.max_status_report_interval,
-            progress_timeout=server_config.progress_timeout,
-            private_p2p=server_config.private_p2p,
-            aggr_clients=server_config.aggr_clients,
-            train_clients=server_config.train_clients,
-            min_clients=server_config.min_clients,
-        )
-        self.to_server(controller)
-
-        metric_comparator_id = None
-        if client_config.metric_comparator:
-            metric_comparator_id = self.to_clients(client_config.metric_comparator, id="metric_comparator")
-
-        persistor_id = self.to_clients(client_config.persistor, id="persistor")
-        shareable_generator_id = self.to_clients(client_config.shareable_generator, id="shareable_generator")
-        aggregator_id = self.to_clients(client_config.aggregator, id="aggregator")
-
-        client_controller = SwarmClientController(
-            aggregator_id=aggregator_id,
-            persistor_id=persistor_id,
-            shareable_generator_id=shareable_generator_id,
-            metric_comparator_id=metric_comparator_id,
-            learn_task_check_interval=client_config.learn_task_check_interval,
-            learn_task_abort_timeout=client_config.learn_task_abort_timeout,
-            learn_task_ack_timeout=client_config.learn_task_ack_timeout,
-            learn_task_timeout=client_config.learn_task_timeout,
-            final_result_ack_timeout=client_config.final_result_ack_timeout,
-            min_responses_required=client_config.min_responses_required,
-            wait_time_after_min_resps_received=client_config.wait_time_after_min_resps_received,
-            request_to_submit_result_msg_timeout=client_config.request_to_submit_result_msg_timeout,
-            request_to_submit_result_max_wait=client_config.request_to_submit_result_max_wait,
-            request_to_submit_result_interval=client_config.request_to_submit_result_interval,
-            max_concurrent_submissions=client_config.max_concurrent_submissions,
-            memory_gc_rounds=client_config.memory_gc_rounds,
-            cuda_empty_cache=client_config.cuda_empty_cache,
-        )
-        self.to_clients(client_controller, tasks=["swarm_*"])
-        if not self.executor:
-            # We add the executor only if it's not added yet.
-            self.to_clients(client_config.executor, tasks=self.executor_tasks)
-            self.executor = client_config.executor
-
-        if client_config.model_selector:
-            self.to_clients(client_config.model_selector, id="model_selector")
-
-        if cse_config:
-            self.add_cross_site_eval(cse_config, persistor_id)
+        pass
 
     def add_cyclic(
         self,
@@ -301,61 +247,11 @@ class CCWFJob(FedJob):
         client_config: CyclicClientConfig,
         cse_config: CrossSiteEvalConfig = None,
     ):
-        controller = CyclicServerController(
-            num_rounds=server_config.num_rounds,
-            start_task_timeout=server_config.start_task_timeout,
-            configure_task_timeout=server_config.configure_task_timeout,
-            participating_clients=server_config.participating_clients,
-            result_clients=server_config.result_clients,
-            starting_client=server_config.starting_client,
-            max_status_report_interval=server_config.max_status_report_interval,
-            progress_timeout=server_config.progress_timeout,
-            private_p2p=server_config.private_p2p,
-            cyclic_order=server_config.cyclic_order,
-        )
-        self.to_server(controller)
-
-        persistor_id = self.to_clients(client_config.persistor, id="persistor")
-        shareable_generator_id = self.to_clients(client_config.shareable_generator, id="shareable_generator")
-        client_controller = CyclicClientController(
-            persistor_id=persistor_id,
-            shareable_generator_id=shareable_generator_id,
-            learn_task_abort_timeout=client_config.learn_task_abort_timeout,
-            learn_task_ack_timeout=client_config.learn_task_ack_timeout,
-            final_result_ack_timeout=client_config.final_result_ack_timeout,
-        )
-        self.to_clients(client_controller, tasks=["cyclic_*"])
-
-        if not self.executor:
-            # We add the executor only if it's not added yet.
-            self.to_clients(client_config.executor, tasks=self.executor_tasks)
-            self.executor = client_config.executor
-
-        if cse_config:
-            self.add_cross_site_eval(cse_config, persistor_id)
+        pass
 
     def add_cross_site_eval(
         self,
         cse_config: CrossSiteEvalConfig,
         persistor_id: str,
     ):
-        controller = CrossSiteEvalServerController(
-            start_task_timeout=cse_config.start_task_timeout,
-            configure_task_timeout=cse_config.configure_task_timeout,
-            eval_task_timeout=cse_config.eval_task_timeout,
-            progress_timeout=cse_config.progress_timeout,
-            private_p2p=cse_config.private_p2p,
-            participating_clients=cse_config.participating_clients,
-            evaluators=cse_config.evaluators,
-            evaluatees=cse_config.evaluatees,
-            global_model_client=cse_config.global_model_client,
-            max_status_report_interval=cse_config.max_status_report_interval,
-            eval_result_dir=cse_config.eval_result_dir,
-        )
-        self.to_server(controller)
-
-        client_controller = CrossSiteEvalClientController(
-            persistor_id=persistor_id,
-            get_model_timeout=cse_config.get_model_timeout,
-        )
-        self.to_clients(client_controller, tasks=["cse_*"])
+        pass

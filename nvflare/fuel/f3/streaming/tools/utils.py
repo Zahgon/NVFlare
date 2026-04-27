@@ -31,31 +31,8 @@ def make_buffer(size: int) -> BytesAlike:
     :param size:
     :return:
     """
-
-    buf = wrap_view(bytearray(size))
-    buf_len = 0
-    n = 0
-    while True:
-        temp = n.to_bytes(8, "big", signed=False)
-        temp_len = len(temp)
-        if (buf_len + temp_len) > size:
-            temp_len = size - buf_len
-        buf[buf_len : buf_len + temp_len] = temp[0:temp_len]
-        buf_len += temp_len
-        n += 1
-        if buf_len >= size:
-            break
-
-    return buf
+    pass
 
 
 def setup_log(level):
-    logging.basicConfig(level=level)
-    formatter = logging.Formatter(
-        fmt="%(relativeCreated)6d [%(threadName)-12s] [%(levelname)-5s] %(name)s: %(message)s"
-    )
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    root_log = logging.getLogger()
-    root_log.handlers.clear()
-    root_log.addHandler(handler)
+    pass

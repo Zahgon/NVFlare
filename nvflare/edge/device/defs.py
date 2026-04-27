@@ -21,10 +21,7 @@ from nvflare.apis.signal import Signal
 class Context(dict):
 
     def fire_event(self, event_type: str, data: Any, abort_signal: Signal):
-        handlers = self.get(ContextKey.EVENT_HANDLERS)
-        if handlers:
-            for h in handlers:
-                h.handle_event(event_type, data, self, abort_signal)
+        pass
 
 
 class ContextKey:

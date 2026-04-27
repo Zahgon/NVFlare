@@ -57,7 +57,7 @@ class CheckStatusCommand(CommandProcessor):
         Returns: AdminCommandNames.CHECK_STATUSv
 
         """
-        return AdminCommandNames.CHECK_STATUS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the check_status command.
@@ -69,9 +69,7 @@ class CheckStatusCommand(CommandProcessor):
         Returns: status message
 
         """
-        engine = fl_ctx.get_engine()
-        federated_client = engine.client
-        return get_status_message(federated_client.status)
+        pass
 
 
 class AbortCommand(CommandProcessor):
@@ -83,7 +81,7 @@ class AbortCommand(CommandProcessor):
         Returns: AdminCommandNames.ABORT
 
         """
-        return AdminCommandNames.ABORT
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -95,8 +93,7 @@ class AbortCommand(CommandProcessor):
         Returns: abort command message
 
         """
-        client_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        return client_runner.abort(msg="Received command to abort job")
+        pass
 
 
 class AbortTaskCommand(CommandProcessor):
@@ -108,7 +105,7 @@ class AbortTaskCommand(CommandProcessor):
         Returns: AdminCommandNames.ABORT_TASK
 
         """
-        return AdminCommandNames.ABORT_TASK
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort_task command.
@@ -120,10 +117,7 @@ class AbortTaskCommand(CommandProcessor):
         Returns: abort_task command message
 
         """
-        client_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        if client_runner:
-            client_runner.abort_task()
-        return None
+        pass
 
 
 class ShowStatsCommand(CommandProcessor):
@@ -135,7 +129,7 @@ class ShowStatsCommand(CommandProcessor):
         Returns: AdminCommandNames.SHOW_STATS
 
         """
-        return AdminCommandNames.SHOW_STATS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort_task command.
@@ -147,19 +141,7 @@ class ShowStatsCommand(CommandProcessor):
         Returns: show_stats command message
 
         """
-        engine = fl_ctx.get_engine()
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        if not collector:
-            result = {"error": "no info collector"}
-        else:
-            if not isinstance(collector, InfoCollector):
-                raise TypeError("collector must be an instance of InfoCollector, but got {}".format(type(collector)))
-
-            result = collector.get_run_stats()
-
-        if not result:
-            result = "No stats info"
-        return result
+        pass
 
 
 class ShowErrorsCommand(CommandProcessor):
@@ -171,7 +153,7 @@ class ShowErrorsCommand(CommandProcessor):
         Returns: AdminCommandNames.SHOW_ERRORS
 
         """
-        return AdminCommandNames.SHOW_ERRORS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the show_errors command.
@@ -183,20 +165,7 @@ class ShowErrorsCommand(CommandProcessor):
         Returns: show_errors command message
 
         """
-        engine = fl_ctx.get_engine()
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        if not collector:
-            result = {"error": "no info collector"}
-        else:
-            if not isinstance(collector, InfoCollector):
-                raise TypeError("collector must be an instance of InfoCollector, but got {}".format(type(collector)))
-
-            result = collector.get_errors()
-
-        # CommandAgent is expecting data, could not be None
-        if result is None:
-            result = "No Errors"
-        return result
+        pass
 
 
 class ResetErrorsCommand(CommandProcessor):
@@ -208,7 +177,7 @@ class ResetErrorsCommand(CommandProcessor):
         Returns: AdminCommandNames.RESET_ERRORS
 
         """
-        return AdminCommandNames.RESET_ERRORS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the reset_errors command.
@@ -220,8 +189,7 @@ class ResetErrorsCommand(CommandProcessor):
         Returns: reset_errors command message
 
         """
-        engine = fl_ctx.get_engine()
-        engine.reset_errors()
+        pass
 
 
 class ByeCommand(CommandProcessor):
@@ -233,7 +201,7 @@ class ByeCommand(CommandProcessor):
         Returns: AdminCommandNames.SHUTDOWN
 
         """
-        return AdminCommandNames.SHUTDOWN
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the Shutdown command.
@@ -245,7 +213,7 @@ class ByeCommand(CommandProcessor):
         Returns: Shutdown command message
 
         """
-        return None
+        pass
 
 
 class ConfigureJobLogCommand(CommandProcessor):
@@ -257,7 +225,7 @@ class ConfigureJobLogCommand(CommandProcessor):
         Returns: AdminCommandNames.CONFIGURE_JOB_LOG
 
         """
-        return AdminCommandNames.CONFIGURE_JOB_LOG
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the configure_job_log command.
@@ -269,16 +237,7 @@ class ConfigureJobLogCommand(CommandProcessor):
         Returns: configure_job_log command message
 
         """
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        try:
-            dynamic_log_config(
-                config=data,
-                dir_path=workspace.get_run_dir(fl_ctx.get_job_id()),
-                reload_path=workspace.get_log_config_file_path(),
-            )
-        except Exception as e:
-            return secure_format_exception(e)
+        pass
 
 
 class AdminCommands(object):
@@ -305,10 +264,7 @@ class AdminCommands(object):
         Returns: AdminCommand object
 
         """
-        for command in AdminCommands.commands:
-            if command_name == command.get_command_name():
-                return command
-        return None
+        pass
 
     @staticmethod
     def register_command(command_processor: CommandProcessor):
@@ -318,9 +274,4 @@ class AdminCommands(object):
             command_processor: AdminCommand processor
 
         """
-        if not isinstance(command_processor, CommandProcessor):
-            raise TypeError(
-                "command_processor must be an instance of CommandProcessor, but got {}".format(type(command_processor))
-            )
-
-        AdminCommands.commands.append(command_processor)
+        pass

@@ -25,4 +25,4 @@ class EnvVar:
 
 
 def get_web_root():
-    return os.environ.get(EnvVar.WEB_ROOT, "/var/tmp/nvflare/dashboard")
+    pass

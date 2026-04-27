@@ -51,9 +51,7 @@ class JobReturnCode(ProcessExitCode):
 
 
 def add_launcher(launcher, fl_ctx: FLContext):
-    job_launcher: list = fl_ctx.get_prop(FLContextKey.JOB_LAUNCHER, [])
-    job_launcher.append(launcher)
-    fl_ctx.set_prop(FLContextKey.JOB_LAUNCHER, job_launcher, private=True, sticky=False)
+    pass
 
 
 class JobHandleSpec(ABC):
@@ -64,7 +62,7 @@ class JobHandleSpec(ABC):
         Returns: None
 
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def poll(self):
@@ -73,7 +71,7 @@ class JobHandleSpec(ABC):
         Returns: return_code
 
         """
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def wait(self):
@@ -82,7 +80,7 @@ class JobHandleSpec(ABC):
         Returns: returns until the job run complete.
 
         """
-        raise NotImplementedError()
+        pass
 
 
 class JobLauncherSpec(FLComponent, ABC):
@@ -97,4 +95,4 @@ class JobLauncherSpec(FLComponent, ABC):
         Returns: a JobHandle instance.
 
         """
-        raise NotImplementedError()
+        pass

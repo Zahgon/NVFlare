@@ -126,53 +126,16 @@ class FederatedClientBase:
                 )
 
     def start_overseer_agent(self):
-        if self.overseer_agent:
-            self.overseer_agent.start(self.overseer_callback)
+        pass
 
     def _init_agent(self, args=None):
-        kv_list = parse_vars(args.set)
-        sp = kv_list.get("sp")
-
-        if sp:
-            fl_ctx = FLContext()
-            fl_ctx.set_prop(FLContextKey.SP_END_POINT, sp)
-            self.overseer_agent.initialize(fl_ctx)
-
-        return self.overseer_agent
+        pass
 
     def overseer_callback(self, overseer_agent):
-        if overseer_agent.is_shutdown():
-            self.engine.shutdown()
-            return
-
-        sp = overseer_agent.get_primary_sp()
-        self.set_primary_sp(sp)
+        pass
 
     def set_sp(self, project_name, sp: SP):
-        if sp and sp.primary is True:
-            server = self.servers[project_name].get("target")
-            location = sp.name + ":" + sp.fl_port
-            if server != location:
-                # The SP name is the server host name that we will connect to.
-                # Save this name for this client so that it can be checked by others
-                set_scope_property(scope_name=self.client_name, value=sp.name, key=FLContextKey.SERVER_HOST_NAME)
-
-                self.servers[project_name]["target"] = location
-                self.sp_established = True
-
-                scheme = self.servers[project_name].get("scheme", "grpc")
-                scheme_location = scheme + "://" + location
-                if self.cell:
-                    self.cell.change_server_root(scheme_location)
-                else:
-                    self._create_cell(location, scheme)
-
-                self.logger.info(f"Got the new primary SP: {scheme_location}")
-
-            if self.ssid and self.ssid != sp.service_session_id:
-                self.ssid = sp.service_session_id
-                thread = threading.Thread(target=self._switch_ssid)
-                thread.start()
+        pass
 
     def _create_cell(self, location, scheme):
         """Create my cell.
@@ -187,99 +150,10 @@ class FederatedClientBase:
         The client's FQCN is different, depending on how the connection is made.
 
         """
-        # Determine the CP's fqcn
-        root_url = scheme + "://" + location
-        root_conn_security = self.client_args.get(ConnPropKey.CONNECTION_SECURITY)
-
-        relay_conn_props = get_scope_property(self.client_name, ConnPropKey.RELAY_CONN_PROPS, {})
-        self.logger.debug(f"got {ConnPropKey.RELAY_CONN_PROPS}: {relay_conn_props}")
-
-        relay_fqcn = relay_conn_props.get(ConnPropKey.FQCN)
-        if relay_fqcn:
-            root_url = None  # do not connect to server if relay is used
-
-        cp_conn_props = get_scope_property(self.client_name, ConnPropKey.CP_CONN_PROPS)
-        cp_fqcn = cp_conn_props.get(ConnPropKey.FQCN)
-        parent_resources = None
-        if self.args.job_id:
-            # I am CJ
-            me = "CJ"
-            my_fqcn = FQCN.join([cp_fqcn, self.args.job_id])
-            parent_url = cp_conn_props.get(ConnPropKey.URL)
-            parent_conn_sec = cp_conn_props.get(ConnPropKey.CONNECTION_SECURITY)
-            create_internal_listener = False
-            if parent_conn_sec:
-                parent_resources = {DriverParams.CONNECTION_SECURITY.value: parent_conn_sec}
-        else:
-            # I am CP
-            me = "CP"
-            my_fqcn = cp_fqcn
-            parent_url = relay_conn_props.get(ConnPropKey.URL)
-            create_internal_listener = True
-            relay_conn_security = relay_conn_props.get(ConnPropKey.CONNECTION_SECURITY)
-            if relay_conn_security:
-                parent_resources = {DriverParams.CONNECTION_SECURITY.value: relay_conn_security}
-
-        if self.secure_train:
-            root_cert = self.client_args[SecureTrainConst.SSL_ROOT_CERT]
-            ssl_cert = self.client_args[SecureTrainConst.SSL_CERT]
-            private_key = self.client_args[SecureTrainConst.PRIVATE_KEY]
-
-            credentials = {
-                DriverParams.CA_CERT.value: root_cert,
-                DriverParams.CLIENT_CERT.value: ssl_cert,
-                DriverParams.CLIENT_KEY.value: private_key,
-            }
-        else:
-            credentials = {}
-
-        if root_conn_security:
-            # this is the default conn sec
-            credentials[DriverParams.CONNECTION_SECURITY.value] = root_conn_security
-
-        self.logger.debug(f"{me=}: {my_fqcn=} {root_url=} {parent_url=}")
-        self.cell = Cell(
-            fqcn=my_fqcn,
-            root_url=root_url,
-            secure=self.secure_train,
-            credentials=credentials,
-            create_internal_listener=create_internal_listener,
-            parent_url=parent_url,
-            parent_resources=parent_resources,
-        )
-        self.cell.start()
-        self.communicator.set_cell(self.cell)
-        self.net_agent = NetAgent(self.cell)
-        mpm.add_cleanup_cb(self.net_agent.close)
-        mpm.add_cleanup_cb(self.cell.stop)
-
-        if self.args.job_id:
-            start = time.time()
-            self.logger.info("Wait for client_runner to be created.")
-            while not self.client_runner:
-                if time.time() - start > self.engine_create_timeout:
-                    raise RuntimeError(f"Failed get client_runner after {self.engine_create_timeout} seconds")
-                time.sleep(self.cell_check_frequency)
-            self.logger.info(f"Got client_runner after {time.time() - start} seconds")
-            self.client_runner.engine.cell = self.cell
-            self.client_runner.set_cell(self.cell)
-        else:
-            start = time.time()
-            self.logger.info("Wait for engine to be created.")
-            while not self.engine:
-                if time.time() - start > self.engine_create_timeout:
-                    raise RuntimeError(f"Failed to get engine after {time.time() - start} seconds")
-                time.sleep(self.cell_check_frequency)
-            self.logger.info(f"Got engine after {time.time() - start} seconds")
-            self.engine.cell = self.cell
-            self.engine.admin_agent.register_cell_cb()
+        pass
 
     def _switch_ssid(self):
-        if self.engine:
-            for job_id in self.engine.get_all_job_ids():
-                self.engine.abort_task(job_id)
-        # self.register()
-        self.logger.info(f"Primary SP switched to new SSID: {self.ssid}")
+        pass
 
     def client_register(self, project_name, fl_ctx: FLContext):
         """Register the client to the FL server.
@@ -289,22 +163,7 @@ class FederatedClientBase:
             fl_ctx: FLContext
 
         """
-        if not self.token:
-            try:
-                self.token, self.token_signature, self.ssid = self.communicator.client_registration(
-                    self.client_name, project_name, fl_ctx
-                )
-
-                if self.token is not None:
-                    self.fl_ctx.set_prop(FLContextKey.CLIENT_NAME, self.client_name, private=False)
-                    self.logger.info(
-                        "Successfully registered client:{} for project {}. Token:{} SSID:{}".format(
-                            self.client_name, project_name, self.token, self.ssid
-                        )
-                    )
-
-            except FLCommunicationError:
-                self.communicator.heartbeat_done = True
+        pass
 
     def fetch_execute_task(self, project_name, fl_ctx: FLContext, timeout=None):
         """Fetch a task from the server.
@@ -317,13 +176,7 @@ class FederatedClientBase:
         Returns:
             A CurrentTask message from server
         """
-        try:
-            self.logger.debug("Starting to fetch execute task.")
-            task = self.communicator.pull_task(project_name, self.token, self.ssid, fl_ctx, timeout=timeout)
-
-            return task
-        except FLCommunicationError as e:
-            self.logger.info(secure_format_exception(e))
+        pass
 
     def push_execute_result(self, project_name, shareable: Shareable, fl_ctx: FLContext, timeout=None):
         """Submit execution results of a task to server.
@@ -337,40 +190,10 @@ class FederatedClientBase:
         Returns:
             A FederatedSummary message from the server.
         """
-        try:
-            self.logger.info("Starting to push execute result.")
-            execute_task_name = shareable.get_header(ReservedHeaderKey.TASK_NAME)
-            if not execute_task_name:
-                execute_task_name = fl_ctx.get_prop(FLContextKey.TASK_NAME)
-
-            return_code = self.communicator.submit_update(
-                project_name,
-                self.token,
-                self.ssid,
-                fl_ctx,
-                self.client_name,
-                shareable,
-                execute_task_name,
-                timeout=timeout,
-            )
-
-            return return_code
-        except FLCommunicationError as e:
-            self.logger.info(secure_format_exception(e))
+        pass
 
     def send_heartbeat(self, project_name, interval):
-        try:
-            if self.token:
-                start = time.time()
-                while not self.engine:
-                    time.sleep(1.0)
-                    if time.time() - start > 60.0:
-                        raise RuntimeError("No engine created. Failed to start the heartbeat process.")
-                self.communicator.send_heartbeat(
-                    self.servers, project_name, self.token, self.ssid, self.client_name, self.engine, interval
-                )
-        except FLCommunicationError:
-            self.communicator.heartbeat_done = True
+        pass
 
     def quit_remote(self, project_name, fl_ctx: FLContext):
         """Sending the last message to the server before leaving.
@@ -381,7 +204,7 @@ class FederatedClientBase:
         Returns: N/A
 
         """
-        return self.communicator.quit_remote(self.servers, project_name, self.token, self.ssid, fl_ctx)
+        pass
 
     def _get_project_name(self):
         """Get name of the project that the site is part of.
@@ -389,44 +212,33 @@ class FederatedClientBase:
         Returns:
 
         """
-        s = tuple(self.servers)  # self.servers is a dict of project_name => server config
-        return s[0]
+        pass
 
     def heartbeat(self, interval):
         """Sends a heartbeat from the client to the server."""
-        return self.send_heartbeat(self._get_project_name(), interval)
+        pass
 
     def pull_task(self, fl_ctx: FLContext, timeout=None):
         """Fetch remote models and update the local client's session."""
-        result = self.fetch_execute_task(self._get_project_name(), fl_ctx, timeout)
-        if result:
-            shareable = result.payload
-            return True, shareable.get_header(ServerCommandKey.TASK_NAME), shareable
-        else:
-            return False, None, None
+        pass
 
     def push_results(self, shareable: Shareable, fl_ctx: FLContext, timeout=None):
         """Push the local model to multiple servers."""
-        return self.push_execute_result(self._get_project_name(), shareable, fl_ctx, timeout)
+        pass
 
     def register(self, fl_ctx: FLContext):
         """Register the client with the server."""
-        return self.client_register(self._get_project_name(), fl_ctx)
+        pass
 
     def set_primary_sp(self, sp):
-        return self.set_sp(self._get_project_name(), sp)
+        pass
 
     def run_heartbeat(self, interval):
         """Periodically runs the heartbeat."""
-        try:
-            self.heartbeat(interval)
-        except:
-            self.logger.error("Failed to start run_heartbeat.")
+        pass
 
     def start_heartbeat(self, interval=30):
-        heartbeat_thread = threading.Thread(target=self.run_heartbeat, args=[interval])
-        heartbeat_thread.daemon = True
-        heartbeat_thread.start()
+        pass
 
     def logout_client(self, fl_ctx: FLContext):
         """Logout the client from the server.
@@ -437,34 +249,22 @@ class FederatedClientBase:
         Returns: N/A
 
         """
-        return self.quit_remote(self._get_project_name(), fl_ctx)
+        pass
 
     def set_client_engine(self, engine):
-        self.engine = engine
+        pass
 
     def set_client_runner(self, client_runner):
-        self.client_runner = client_runner
+        pass
 
     def stop_cell(self):
         """Stop the cell communication"""
-        if self.communicator.cell:
-            self.communicator.cell.stop()
+        pass
 
     def close(self):
         """Quit the remote federated server, close the local session."""
-        self.terminate()
-
-        if self.engine:
-            fl_ctx = self.engine.new_context()
-        else:
-            fl_ctx = FLContext()
-        self.logout_client(fl_ctx)
-        self.logger.info(f"Logout client: {self.client_name} from server.")
-
-        return 0
+        pass
 
     def terminate(self):
         """Terminating the local client session."""
-        self.logger.info(f"Shutting down client run: {self.client_name}")
-        if self.overseer_agent:
-            self.overseer_agent.end()
+        pass

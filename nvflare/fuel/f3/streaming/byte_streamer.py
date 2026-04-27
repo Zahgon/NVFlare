@@ -101,162 +101,25 @@ class TxTask(StreamTaskSpec):
 
     def send_loop(self):
         """Read/send loop to transmit the whole stream with flow control"""
-
-        while not self.stopped:
-            buf = self.stream.read(self.chunk_size)
-            if not buf:
-                # End of Stream
-                self.send_pending_buffer(final=True)
-                self.stop()
-                return
-
-            # Flow control
-            window = self.offset - self.offset_ack
-            # It may take several ACKs to clear up the window
-            while window > self.window_size:
-                log.debug(f"{self} window size {window} exceeds limit: {self.window_size}")
-                wait_start = time.monotonic()
-
-                while window > self.window_size:
-                    now = time.monotonic()
-                    if now - self.last_ack_progress_ts >= self.ack_progress_timeout:
-                        self.stop(StreamError(f"{self} ACK made no progress for {self.ack_progress_timeout} seconds"))
-                        return
-
-                    elapsed = now - wait_start
-                    if elapsed >= self.ack_wait:
-                        self.stop(StreamError(f"{self} ACK timeouts after {self.ack_wait} seconds"))
-                        return
-
-                    self.ack_waiter.clear()
-                    wait_timeout = min(self.ack_progress_check_interval, self.ack_wait - elapsed)
-                    self.ack_waiter.wait(timeout=wait_timeout)
-                    window = self.offset - self.offset_ack
-
-            size = len(buf)
-            if size > self.chunk_size:
-                raise StreamError(f"{self} Stream returns invalid size: {size}")
-
-            # Don't push out chunk when it's equal, wait till next round to detect EOS
-            # For example, if the stream size is chunk size (1M), this avoids sending two chunks.
-            if size + self.buffer_size > self.chunk_size:
-                self.send_pending_buffer()
-
-            if size == self.chunk_size:
-                self.direct_buf = buf
-            else:
-                self.buffer[self.buffer_size : self.buffer_size + size] = buf
-            self.buffer_size += size
+        pass
 
     def send_pending_buffer(self, final=False):
 
-        if self.buffer_size == 0:
-            payload = bytes(0)
-        elif self.buffer_size == self.chunk_size:
-            if self.direct_buf:
-                payload = self.direct_buf
-            else:
-                payload = self.buffer
-        else:
-            payload = self.buffer[0 : self.buffer_size]
-
-        message = Message(None, payload)
-
-        if self.headers:
-            message.add_headers(self.headers)
-
-        message.add_headers(
-            {
-                StreamHeaderKey.CHANNEL: self.channel,
-                StreamHeaderKey.TOPIC: self.topic,
-                StreamHeaderKey.SIZE: self.stream.get_size(),
-                StreamHeaderKey.STREAM_ID: self.sid,
-                StreamHeaderKey.DATA_TYPE: StreamDataType.FINAL if final else StreamDataType.CHUNK,
-                StreamHeaderKey.SEQUENCE: self.seq,
-                StreamHeaderKey.OFFSET: self.offset,
-                StreamHeaderKey.OPTIONAL: self.optional,
-            }
-        )
-
-        errors = self.cell.fire_and_forget(
-            STREAM_CHANNEL, STREAM_DATA_TOPIC, self.target, message, secure=self.secure, optional=self.optional
-        )
-        error = errors.get(self.target)
-        if error:
-            msg = f"{self} Message sending error to target {self.target}: {error}"
-            self.stop(StreamError(msg))
-            return
-
-        # Update state
-        self.seq += 1
-        self.offset += self.buffer_size
-        self.buffer_size = 0
-        self.direct_buf = None
-
-        # Update future
-        self.stream_future.set_progress(self.offset)
+        pass
 
     def stop(self, error: Optional[StreamError] = None, notify=True):
 
-        if self.stopped:
-            return
-
-        self.stopped = True
-
-        if self.task_future:
-            self.task_future.cancel()
-
-        if not error:
-            # Result is the number of bytes streamed
-            if self.stream_future:
-                self.stream_future.set_result(self.offset)
-            return
-
-        # Error handling
-        log.debug(f"{self} Stream error: {error}")
-        if self.stream_future:
-            self.stream_future.set_exception(error)
-
-        if notify:
-            message = Message(None, None)
-
-            if self.headers:
-                message.add_headers(self.headers)
-
-            message.add_headers(
-                {
-                    StreamHeaderKey.STREAM_ID: self.sid,
-                    StreamHeaderKey.DATA_TYPE: StreamDataType.ERROR,
-                    StreamHeaderKey.OFFSET: self.offset,
-                    StreamHeaderKey.ERROR_MSG: str(error),
-                }
-            )
-            self.cell.fire_and_forget(
-                STREAM_CHANNEL, STREAM_DATA_TOPIC, self.target, message, secure=self.secure, optional=True
-            )
+        pass
 
     def handle_ack(self, message: Message):
 
-        origin = message.get_header(MessageHeaderKey.ORIGIN)
-        offset = message.get_header(StreamHeaderKey.OFFSET, None)
-        error = message.get_header(StreamHeaderKey.ERROR_MSG, None)
-
-        if error:
-            self.stop(StreamError(f"{self} Received error from {origin}: {error}"), notify=False)
-            return
-
-        if offset > self.offset_ack:
-            self.offset_ack = offset
-            self.last_ack_progress_ts = time.monotonic()
-
-        if not self.ack_waiter.is_set():
-            self.ack_waiter.set()
+        pass
 
     def start_task_thread(self, task_handler: Callable):
-        self.task_future = stream_thread_pool.submit(task_handler, self)
+        pass
 
     def cancel(self):
-        self.stop(error=StreamError("cancelled"))
+        pass
 
 
 class ByteStreamer:
@@ -278,7 +141,7 @@ class ByteStreamer:
         self.chunk_size = CommConfigurator().get_streaming_chunk_size(STREAM_CHUNK_SIZE)
 
     def get_chunk_size(self):
-        return self.chunk_size
+        pass
 
     def send(
         self,
@@ -291,53 +154,14 @@ class ByteStreamer:
         secure=False,
         optional=False,
     ) -> StreamFuture:
-        tx_task = TxTask(self.cell, self.chunk_size, channel, topic, target, headers, stream, secure, optional)
-        with ByteStreamer.map_lock:
-            ByteStreamer.tx_task_map[tx_task.sid] = tx_task
-
-        tx_task.start_task_thread(self._transmit_task)
-
-        fqcn = self.cell.my_info.fqcn
-        ByteStreamer.sent_stream_counter_pool.increment(
-            category=stream_stats_category(fqcn, channel, topic, stream_type), counter_name=COUNTER_NAME_SENT
-        )
-
-        ByteStreamer.sent_stream_size_pool.record_value(
-            category=stream_stats_category(fqcn, channel, topic, stream_type), value=stream.get_size() / ONE_MB
-        )
-
-        return tx_task.stream_future
+        pass
 
     @staticmethod
     def _transmit_task(task: TxTask):
 
-        try:
-            task.send_loop()
-        except Exception as ex:
-            msg = f"{task} Error while sending: {ex}"
-            if task.optional:
-                log.debug(msg)
-            else:
-                log.error(msg)
-            task.stop(StreamError(msg), True)
-        finally:
-            # Delete task after it's sent
-            with ByteStreamer.map_lock:
-                ByteStreamer.tx_task_map.pop(task.sid, None)
-                log.debug(f"{task} is removed")
+        pass
 
     @staticmethod
     def _ack_handler(message: Message):
 
-        sid = message.get_header(StreamHeaderKey.STREAM_ID)
-        with ByteStreamer.map_lock:
-            tx_task = ByteStreamer.tx_task_map.get(sid, None)
-
-        if not tx_task:
-            origin = message.get_header(MessageHeaderKey.ORIGIN)
-            offset = message.get_header(StreamHeaderKey.OFFSET, None)
-            # Last few ACKs always arrive late so this is normal
-            log.debug(f"ACK for stream {sid} received late from {origin} with offset {offset}")
-            return
-
-        tx_task.handle_ack(message)
+        pass

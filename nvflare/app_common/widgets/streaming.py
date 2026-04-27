@@ -43,11 +43,10 @@ class AnalyticsSender(Widget):
         self.writer = writer_name
 
     def get_writer_name(self) -> LogWriterName:
-        return self.writer
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABOUT_TO_START_RUN:
-            self.engine = fl_ctx.get_engine()
+        pass
 
     def add(self, tag: str, value, data_type: AnalyticsDataType, global_step: Optional[int] = None, **kwargs):
         """Create and send a DXO by firing an event.
@@ -61,19 +60,11 @@ class AnalyticsSender(Widget):
         Raises:
             TypeError: global_step must be an int
         """
-        kwargs = kwargs if kwargs else {}
-        if global_step is not None:
-            if not isinstance(global_step, int):
-                raise TypeError(f"Expect global step to be an instance of int, but got {type(global_step)}")
-            kwargs[TrackConst.GLOBAL_STEP_KEY] = global_step
-        dxo = create_analytic_dxo(tag=tag, value=value, data_type=data_type, writer=self.get_writer_name(), **kwargs)
-        with self.engine.new_context() as fl_ctx:
-            send_analytic_dxo(self, dxo=dxo, fl_ctx=fl_ctx, event_type=self.event_type)
+        pass
 
     def close(self):
         """Close resources."""
-        if self.engine:
-            self.engine = None
+        pass
 
 
 class AnalyticsReceiver(Widget, ABC):
@@ -127,60 +118,16 @@ class AnalyticsReceiver(Widget, ABC):
         pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._handle_start_run_event(fl_ctx)
-        elif event_type in self.events:
-            self._handle_data_event(event_type, fl_ctx)
-        elif event_type == EventType.END_RUN:
-            self._handle_end_run_event(fl_ctx)
+        pass
 
     def _handle_start_run_event(self, fl_ctx: FLContext):
-        try:
-            self.initialize(fl_ctx)
-        except Exception as e:
-            # catch the exception so the job can continue
-            self.log_error(fl_ctx, f"Receiver initialize failed with {e}.", fire_event=False)
-            return
-        self._initialized = True
+        pass
 
     def _handle_data_event(self, event_type: str, fl_ctx: FLContext):
-        if self._initialized:
-            if self._end:
-                self.log_debug(fl_ctx, f"Already received end run event, drop event {event_type}.", fire_event=False)
-                return
-            data = fl_ctx.get_prop(FLContextKey.EVENT_DATA, None)
-            if data is None:
-                self.log_error(fl_ctx, "Missing event data.", fire_event=False)
-                return
-            if not isinstance(data, Shareable):
-                self.log_error(
-                    fl_ctx, f"Expect data to be an instance of Shareable but got {type(data)}", fire_event=False
-                )
-                return
-
-            record_origin = self._get_record_origin(fl_ctx, data)
-            if record_origin is None:
-                self.log_error(fl_ctx, "record_origin can't be None.", fire_event=False)
-                return
-
-            try:
-                with self._save_lock:
-                    self.save(shareable=data, fl_ctx=fl_ctx, record_origin=record_origin)
-            except Exception as e:
-                self.log_error(fl_ctx, f"Receiver save method failed with {e}.", fire_event=False)
+        pass
 
     def _handle_end_run_event(self, fl_ctx: FLContext):
-        if self._initialized:
-            self._end = True
-            try:
-                with self._save_lock:
-                    self.finalize(fl_ctx)
-            except Exception as e:
-                # catch the exception so the job can continue
-                self.log_error(fl_ctx, f"Receiver finalize failed with {e}.", fire_event=False)
+        pass
 
     def _get_record_origin(self, fl_ctx: FLContext, data: Shareable) -> Optional[str]:
-        if fl_ctx.get_prop(FLContextKey.EVENT_SCOPE) == EventScope.FEDERATION:
-            return data.get_peer_prop(ReservedKey.IDENTITY_NAME, None)
-        else:
-            return fl_ctx.get_identity_name()
+        pass

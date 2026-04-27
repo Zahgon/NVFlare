@@ -69,12 +69,7 @@ class ObjectDownloader:
         Returns: the ref ID for the object.
 
         """
-        rid = DownloadService.add_object(
-            transaction_id=self.tx_id,
-            obj=obj,
-            ref_id=ref_id,
-        )
-        return rid
+        pass
 
     def delete_transaction(self):
         """Delete the download transaction forcefully.
@@ -83,4 +78,4 @@ class ObjectDownloader:
         Returns: None.
 
         """
-        DownloadService.delete_transaction(self.tx_id)
+        pass

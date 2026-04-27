@@ -73,125 +73,33 @@ class LazyAggregator(Aggregator):
         self.register_event_handler(EventType.END_RUN, self._lazy_aggr_end_run)
 
     def _clear_contributions(self):
-        with self._q_lock:
-            q = self.contributions
-            while True:
-                try:
-                    q.get(block=False)  # Attempt to get an item without blocking
-                    q.task_done()  # Mark the task as done (important for JoinableQueue)
-                except queue.Empty:
-                    break  # Break the loop when the queue is empty
+        pass
 
     def _add_contribution(self, contrib: Shareable, fl_ctx: FLContext):
-        self.log_debug(fl_ctx, "adding contribution to queue")
-        with self._q_lock:
-            self.contributions.put(_Contribution(contrib, fl_ctx))
-        self.log_debug(fl_ctx, "done adding contribution to queue")
+        pass
 
     def _lazy_aggr_start_run(self, event_type: str, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        aggr = engine.get_component(self.aggregator_id)
-        if not isinstance(aggr, Aggregator):
-            self.system_panic(f"component {self.aggregator_id} must be Aggregator but got {type(aggr)}", fl_ctx)
-            return
-
-        if isinstance(aggr, LazyAggregator):
-            self.system_panic(f"component {self.aggregator_id} must not be LazyAggregator", fl_ctx)
-            return
-
-        self.aggregator = aggr
-        accept_thread = threading.Thread(target=self._do_accept, daemon=True)
-        accept_thread.start()
+        pass
 
     def _lazy_aggr_end_run(self, event_type: str, fl_ctx: FLContext):
-        self.run_ended = True
+        pass
 
     def accept(self, shareable: Shareable, fl_ctx: FLContext) -> bool:
-        if not self.aggregating:
-            self._add_contribution(shareable, fl_ctx)
-            return True
-        else:
-            # when the aggregation is started, we no longer accept new contributions
-            self.log_warning(fl_ctx, "dropped contribution while aggregating")
-            return False
+        pass
 
     def _do_accept(self):
         # This thread monitors the contribution queue.
         # It takes contributions from the queue and processes them one by one.
-        self.logger.debug("Started accept thread")
-        while True:
-            if self.run_ended:
-                # the job is already done or aborted
-                self.logger.debug("run ended - exit")
-                break
-
-            try:
-                # we wait very shortly when trying to get a contribution, so we can check other conditions
-                contrib = self.contributions.get(timeout=_SHORT_WAIT)
-            except queue.Empty:
-                contrib = None
-
-            if contrib:
-                assert isinstance(contrib, _Contribution)
-                self.log_debug(contrib.fl_ctx, "Accepting contribution")
-                try:
-                    accepted = self.aggregator.accept(contrib.data, contrib.fl_ctx)
-                    self.log_debug(contrib.fl_ctx, f"{type(self.aggregator)} processed contribution: {accepted=}")
-                except Exception as ex:
-                    self.log_exception(
-                        contrib.fl_ctx,
-                        f"exception from {type(self.aggregator)} when accept: {secure_format_exception(ex)}",
-                    )
-
-            if self.aggregating and self.contributions.empty() and not self.accept_done.is_set():
-                # When self.aggregating is set, the "aggregate" process is started and waiting for all contributions
-                # to be accepted.
-                # We set "accept_done" when all pending contributions are done.
-                self.logger.debug("Finished accept for one round")
-                self.accept_done.set()
-
-        self.logger.debug("Finished accept thread")
+        pass
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
-        self.log_debug(fl_ctx, "starting to aggregate")
-        # set self.aggregating to notify the "accept" thread that we are starting aggregation.
-        self.aggregating = True
-
-        # we wait until the "accept" thread is done with pending contributions
-        rc = conditional_wait(
-            waiter=self.accept_done,
-            timeout=self.accept_timeout,
-            abort_signal=fl_ctx.get_run_abort_signal(),
-            condition_cb=self._check_end_run,
-        )
-
-        if rc in [_AcceptWaitRC.ABORTED, _AcceptWaitRC.END_RUN]:
-            self.log_info(fl_ctx, "skipped aggregation since job is aborted")
-            return Shareable()
-
-        if rc != _AcceptWaitRC.IS_SET:
-            self.log_warning(fl_ctx, f"abnormal result {rc} waiting for accept thread")
-
-        # we then call the aggregator to perform actual aggregation
-        result = self.aggregator.aggregate(fl_ctx)
-
-        # reset state - some controllers may not call the aggregator's reset method for historical reason
-        # we call it here to make sure the aggregator state is reset.
-        self._reset(fl_ctx)
-        self.log_debug(fl_ctx, "Finished aggregate for one round")
-        return result
+        pass
 
     def _reset(self, fl_ctx: FLContext):
-        self.aggregating = False
-        self.accept_done.clear()
-        self._clear_contributions()
-        self.aggregator.reset(fl_ctx)
+        pass
 
     def _check_end_run(self):
-        if self.run_ended:
-            return _AcceptWaitRC.END_RUN
-        else:
-            return _AcceptWaitRC.OK
+        pass
 
     def reset(self, fl_ctx: FLContext):
-        self._reset(fl_ctx)
+        pass

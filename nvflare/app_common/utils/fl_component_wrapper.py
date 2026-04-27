@@ -44,7 +44,7 @@ class FLComponentWrapper(FLComponent):
         Returns: whether the task has been asked to abort by the framework
 
         """
-        return self.abort_signal and self.abort_signal.triggered
+        pass
 
     def get_shareable_header(self, key: str, default=None):
         """Convenience method for getting specified header from the shareable.
@@ -56,9 +56,7 @@ class FLComponentWrapper(FLComponent):
         Returns: value of the header if it exists in the shareable; or the specified default if it doesn't.
 
         """
-        if not self.shareable:
-            return default
-        return self.shareable.get_header(key, default)
+        pass
 
     def get_context_prop(self, key: str, default=None):
         """Convenience method for getting specified property from the FL Context.
@@ -70,10 +68,7 @@ class FLComponentWrapper(FLComponent):
         Returns: value of the prop if it exists in the context; or the specified default if it doesn't.
 
         """
-        if not self.fl_ctx:
-            return default
-        assert isinstance(self.fl_ctx, FLContext)
-        return self.fl_ctx.get_prop(key, default)
+        pass
 
     def get_component(self, component_id: str) -> Any:
         """Get the specified component from the context
@@ -84,10 +79,7 @@ class FLComponentWrapper(FLComponent):
         Returns: the specified component if it is defined; or None if not.
 
         """
-        if self.engine:
-            return self.engine.get_component(component_id)
-        else:
-            return None
+        pass
 
     def debug(self, msg: str):
         """Convenience method for logging a DEBUG message with contextual info
@@ -98,7 +90,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_debug(self.fl_ctx, msg)
+        pass
 
     def info(self, msg: str):
         """Convenience method for logging an INFO message with contextual info
@@ -109,7 +101,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_info(self.fl_ctx, msg)
+        pass
 
     def error(self, msg: str):
         """Convenience method for logging an ERROR message with contextual info
@@ -120,7 +112,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_error(self.fl_ctx, msg)
+        pass
 
     def warning(self, msg: str):
         """Convenience method for logging a WARNING message with contextual info
@@ -131,7 +123,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_warning(self.fl_ctx, msg)
+        pass
 
     def exception(self, msg: str):
         """Convenience method for logging an EXCEPTION message with contextual info
@@ -142,7 +134,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_exception(self.fl_ctx, msg)
+        pass
 
     def critical(self, msg: str):
         """Convenience method for logging a CRITICAL message with contextual info
@@ -153,7 +145,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_critical(self.fl_ctx, msg)
+        pass
 
     def stop_task(self, reason: str):
         """Stop the current task.
@@ -166,8 +158,7 @@ class FLComponentWrapper(FLComponent):
         Returns:
 
         """
-        self.log_error(self.fl_ctx, f"Task stopped: {reason}")
-        raise TaskExecutionError(reason)
+        pass
 
     def initialize(self):
         """Called by the framework to initialize the Learner object.
@@ -203,7 +194,7 @@ class FLComponentWrapper(FLComponent):
         Args:
             event_type (str): The type of event.
         """
-        self.fire_event(event_type, self.fl_ctx)
+        pass
 
     def panic(self, reason: str):
         """Signals a fatal condition that could cause the RUN to end.
@@ -211,4 +202,4 @@ class FLComponentWrapper(FLComponent):
         Args:
             reason (str): The reason for panic.
         """
-        self.system_panic(reason, self.fl_ctx)
+        pass

@@ -168,29 +168,13 @@ class FlareAgent:
         Returns: None
 
         """
-        if self.pipe:
-            self.pipe.open(self.task_channel_name)
-            self.pipe_handler.set_status_cb(
-                self._status_cb, pipe_handler=self.pipe_handler, channel=self.task_channel_name
-            )
-            self.pipe_handler.start()
-
-        if self.metric_pipe:
-            self.metric_pipe.open(self.metric_channel_name)
-            self.metric_pipe_handler.set_status_cb(
-                self._metrics_status_cb, pipe_handler=self.metric_pipe_handler, channel=self.metric_channel_name
-            )
-            self.metric_pipe_handler.start()
+        pass
 
     def _status_cb(self, msg: Message, pipe_handler: PipeHandler, channel):
-        self.logger.info(f"{channel} pipe status changed to {msg.topic}: {msg.data}")
-        self.asked_to_stop = True
-        pipe_handler.stop(self._close_pipe)
+        pass
 
     def _metrics_status_cb(self, msg: Message, pipe_handler: PipeHandler, channel):
-        self.logger.info(f"{channel} pipe status changed to {msg.topic}: {msg.data}")
-        self.asked_to_stop = True
-        pipe_handler.stop(self._close_metric_pipe)
+        pass
 
     def stop(self):
         """Stop the agent.
@@ -200,11 +184,7 @@ class FlareAgent:
         Returns: None
 
         """
-        self.asked_to_stop = True
-        if self.pipe_handler:
-            self.pipe_handler.stop(self._close_pipe)
-        if self.metric_pipe_handler:
-            self.metric_pipe_handler.stop(self._close_metric_pipe)
+        pass
 
     def shareable_to_task_data(self, shareable: Shareable) -> Any:
         """Convert the Shareable object received from the TaskExchanger to an app-friendly format.
@@ -218,20 +198,7 @@ class FlareAgent:
         Returns:
             task data.
         """
-        try:
-            dxo = from_shareable(shareable)
-
-            # add training-related headers carried in the Shareable header to the DXO meta.
-            total_rounds = shareable.get_header(AppConstants.NUM_ROUNDS)
-            if total_rounds is not None:
-                dxo.set_meta_prop(MetaKey.TOTAL_ROUNDS, total_rounds)
-            current_round = shareable.get_header(AppConstants.CURRENT_ROUND)
-            if current_round is not None:
-                dxo.set_meta_prop(MetaKey.CURRENT_ROUND, current_round)
-            return dxo
-        except Exception as ex:
-            self.logger.error(f"failed to extract DXO from shareable object: {ex}")
-            raise ex
+        pass
 
     def get_task(self, timeout: Optional[float] = None) -> Optional[Task]:
         """Get a task from FLARE. This is a blocking call.
@@ -254,39 +221,7 @@ class FlareAgent:
         has been submitted.
 
         """
-        if not self.pipe_handler:
-            raise RuntimeError("task pipe is not available")
-        start_time = time.time()
-        while True:
-            if self.asked_to_stop:
-                raise AgentClosed("agent closed")
-
-            if self.current_task:
-                raise CallStateError("application called get_task while the current task is not processed")
-
-            if timeout is not None and time.time() - start_time >= timeout:
-                self.logger.debug("get request timeout")
-                return None
-
-            req: Optional[Message] = self.pipe_handler.get_next()
-            if req is not None:
-                if not isinstance(req.data, Shareable):
-                    self.logger.error(f"bad task: expect request data to be Shareable but got {type(req.data)}")
-                    raise RuntimeError("bad request data")
-
-                shareable = req.data
-                task_data = self.shareable_to_task_data(shareable)
-                task_id = shareable.get_header(FLContextKey.TASK_ID)
-                task_name = shareable.get_header(FLContextKey.TASK_NAME)
-
-                tc = _TaskContext(
-                    task_id=task_id,
-                    task_name=task_name,
-                    msg_id=req.msg_id,
-                )
-                self.current_task = tc
-                return Task(task_name=tc.task_name, task_id=tc.task_id, data=task_data)
-            time.sleep(0.5)
+        pass
 
     def submit_result(self, result, rc=RC.OK) -> bool:
         """Submit the result of the current task.
@@ -308,25 +243,7 @@ class FlareAgent:
         made a single time regardless whether the submission is successful.
 
         """
-        if not self.pipe_handler:
-            raise RuntimeError("task pipe is not available")
-        with self.task_lock:
-            current_task = self.current_task
-            if not current_task:
-                self.logger.error("submit_result is called but there is no current task!")
-                return False
-
-        try:
-            result = self._do_submit_result(current_task, result, rc)
-        except Exception as ex:
-            self.logger.error(f"exception submitting result to {current_task.sender}: {ex}")
-            traceback.print_exc()
-            result = False
-
-        with self.task_lock:
-            self.current_task = None
-
-        return result
+        pass
 
     def task_result_to_shareable(self, result: Any, rc) -> Shareable:
         """Convert the result object to Shareable object before sending back to the TaskExchanger.
@@ -342,110 +259,12 @@ class FlareAgent:
         Returns:
             A Shareable object
         """
-        if result is not None:
-            if not isinstance(result, DXO):
-                self.logger.error(f"expect result to be DXO but got {type(result)}")
-                raise RuntimeError("bad result data")
-            result = result.to_shareable()
-        else:
-            result = Shareable()
-        result.set_return_code(rc)
-        return result
+        pass
 
     def _do_submit_result(self, current_task: _TaskContext, result, rc):
-        result_shareable = self.task_result_to_shareable(result, rc)
-        reply = Message.new_reply(topic=current_task.task_name, req_msg_id=current_task.msg_id, data=result_shareable)
-
-        # Gate subprocess exit on download completion for the reverse PASS_THROUGH path
-        # (subprocess → CJ → server).  CJ ACKs send_to_peer() immediately after creating
-        # LazyDownloadRef objects; the server then downloads tensors asynchronously from
-        # this subprocess's DownloadService.  Registering DOWNLOAD_COMPLETE_CB before
-        # serialisation ensures _create_downloader() wires it as the transaction_done_cb,
-        # so the event is set exactly when the last receiver finishes downloading.
-        #
-        # For validate results (metrics only, no tensors), _finalize_download_tx() creates
-        # no download transaction and never fires DOWNLOAD_COMPLETE_CB.  We detect this via
-        # was_download_initiated() (thread-local set by _finalize_download_tx()) and return
-        # immediately without waiting — fixing the 1800s hang on CSE round 2+ (RC12 Bug 3).
-        if isinstance(self.pipe, CellPipe) and self.pipe.pass_through_on_send:
-            download_done = threading.Event()
-            download_status = [None]
-
-            def _on_download_done(tid, status, objs):
-                download_status[0] = status
-                download_done.set()
-
-            self.pipe.cell.update_fobs_context({FOBSContextKey.DOWNLOAD_COMPLETE_CB: _on_download_done})
-            # Tell cell_pipe.py to use download_complete_timeout as MSG_ROOT_TTL so the
-            # subprocess's DownloadService transaction stays alive long enough for the server
-            # to finish pulling tensors.  submit_result_timeout is the CJ-ACK timeout and is
-            # unrelated to transfer duration — using it here would kill the transaction too early.
-            reply._dl_ttl = self._download_complete_timeout
-            # Reset thread-local so a stale True from a previous training round does not
-            # carry over to the current validate round (no tensors → False expected).
-            clear_download_initiated()
-            try:
-                send_start = time.time()
-                sent = self.pipe_handler.send_to_peer(reply, self.submit_result_timeout)
-                if not sent:
-                    self.logger.warning(
-                        f"[subprocess] send_to_peer failed: task_ph.asked_to_stop={self.pipe_handler.asked_to_stop}"
-                    )
-                    return False
-                send_elapsed = time.time() - send_start
-
-                # _finalize_download_tx() runs synchronously inside send_to_peer().
-                # was_download_initiated() is True iff it created a download transaction
-                # (i.e. the result contained large tensors requiring via-downloader transfer).
-                # False means validate result (metrics only) — skip the download wait and
-                # fall through to the launch_once shutdown block below.
-                if was_download_initiated():
-                    self.logger.info(
-                        f"[subprocess] result ACK'd by CJ in {send_elapsed:.2f}s; "
-                        f"waiting up to {self._download_complete_timeout}s for server tensor download"
-                    )
-                    wait_start = time.time()
-                    if download_done.wait(timeout=self._download_complete_timeout):
-                        download_elapsed = time.time() - wait_start
-                        ds = download_status[0]
-                        if ds == TransactionDoneStatus.FINISHED:
-                            self.logger.info(f"[subprocess] server download complete: elapsed={download_elapsed:.2f}s")
-                        else:
-                            self.logger.warning(
-                                f"[subprocess] download transaction ended with status={ds} "
-                                f"after {download_elapsed:.2f}s"
-                            )
-                    else:
-                        self.logger.warning(
-                            f"[subprocess] download not signalled within {self._download_complete_timeout}s; "
-                            "proceeding (server may still be downloading from this process)"
-                        )
-                else:
-                    self.logger.info(
-                        f"[subprocess] result ACK'd by CJ in {send_elapsed:.2f}s; "
-                        "no tensors in result — proceeding immediately"
-                    )
-            finally:
-                # Always clear the callback so stale refs do not accumulate across rounds.
-                self.pipe.cell.update_fobs_context({FOBSContextKey.DOWNLOAD_COMPLETE_CB: None})
-            if self._launch_once:
-                # launch_once=True: subprocess handles multiple rounds; do NOT exit here.
-                # Register atexit once so os._exit(0) is called when main() finally returns,
-                # bypassing Python's thread-join wait on non-daemon CoreCell threads.
-                if not getattr(self, "_atexit_registered", False):
-                    atexit.register(os._exit, 0)
-                    self._atexit_registered = True
-                return True
-            else:
-                # launch_once=False: subprocess handles exactly one round; exit now so the
-                # deferred-stop poller on the CJ side unblocks immediately.
-                self.logger.info("[subprocess] exiting after server download")
-                sys.stdout.flush()
-                sys.stderr.flush()
-                os._exit(0)
-                return True
-
-        return self.pipe_handler.send_to_peer(reply, self.submit_result_timeout)
+        def _on_download_done(tid, status, objs):
+            pass
+        pass
 
     def log(self, record: DXO) -> bool:
         """Logs a metric record.
@@ -456,11 +275,7 @@ class FlareAgent:
         Returns:
             whether the metric record is submitted successfully
         """
-        if not self.metric_pipe_handler:
-            raise RuntimeError("metric pipe is not available")
-
-        msg = Message.new_request(topic="metric", data=record)
-        return self.metric_pipe_handler.send_to_peer(msg, self.submit_result_timeout)
+        pass
 
 
 class FlareAgentWithCellPipe(FlareAgent):

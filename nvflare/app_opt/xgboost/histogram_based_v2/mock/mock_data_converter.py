@@ -33,7 +33,7 @@ RANK_FEATURES = [(0, 10), (10, 20), (20, 30)]
 
 
 def decode_msg(msg: bytes) -> dict:
-    return json.loads(str(msg, "utf-8"))
+    pass
 
 
 class TupleAggregator(Aggregator):
@@ -41,25 +41,15 @@ class TupleAggregator(Aggregator):
         Aggregator.__init__(self, initial_value=(0, 0))
 
     def add(self, a, b):
-        return a[0] + b[0], a[1] + b[1]
+        pass
 
 
 class MockDataConverter(DataConverter):
     def _gen_feature(self, num_bins, fid):
-        mask = [0] * SAMPLE_SIZE
-        for i in range(SAMPLE_SIZE):
-            mask[i] = (i + fid) % num_bins
-        return FeatureContext(fid, mask, num_bins)
+        pass
 
     def _setup(self):
-        self.features = {}
-        for fid in range(NUM_FEATURES):
-            self.features[fid] = self._gen_feature(256, fid)
-
-        for rank, fid_range in enumerate(RANK_FEATURES):
-            if fid_range is not None:
-                f, t = fid_range
-                self.rank_features[rank] = [self.features[fid] for fid in range(f, t)]
+        pass
 
     def __init__(self):
         self._features_done = False
@@ -98,23 +88,7 @@ class MockDataConverter(DataConverter):
             otherwise, return None
 
         """
-        rank = fl_ctx.get_prop(Constant.PARAM_KEY_RANK)
-        if rank != 0:
-            # non-label client
-            return None
-
-        msg = decode_msg(buffer)
-        op = msg["op"]
-        if op != "gh":
-            return None
-
-        min_value = -999999
-        max_value = 999999
-        result = []
-        for i in range(SAMPLE_SIZE):
-            result.append((random.randint(min_value, max_value), random.randint(min_value, max_value)))
-        self.gh_pairs = result
-        return result
+        pass
 
     def decode_aggregation_context(self, buffer: bytes, fl_ctx: FLContext) -> AggregationContext:
         """Decode the buffer to extract aggregation context info
@@ -127,18 +101,10 @@ class MockDataConverter(DataConverter):
             otherwise, return None
 
         """
-        rank = fl_ctx.get_prop(Constant.PARAM_KEY_RANK)
-        features = None
-        if not self._features_done:
-            self._features_done = True
-            features = self.rank_features.get(rank)
-        else:
-            self.groups = {1: [1, 3, 4, 101], 4: [2, 7, 9, 23, 50]}
-        return AggregationContext(features, self.groups)
+        pass
 
     def _aggregate_feature(self, ctx: FeatureContext, sample_ids):
-        aggr = TupleAggregator()
-        return aggr.aggregate(self.gh_pairs, ctx.sample_bin_assignment, ctx.num_bins, sample_ids)
+        pass
 
     def encode_aggregation_result(
         self, aggr_results: Dict[int, List[FeatureAggregationResult]], fl_ctx: FLContext
@@ -153,17 +119,4 @@ class MockDataConverter(DataConverter):
         Returns: a buffer of bytes
 
         """
-        # verify result
-        for gid, fars in aggr_results.items():
-            for far in fars:
-                ctx = self.features[far.feature_id]
-                sample_ids = self.groups.get(gid)
-                expected = self._aggregate_feature(ctx, sample_ids)
-                if expected != far.aggregated_hist:
-                    print(f"group {gid}: feature {far.feature_id}: expected aggr != received")
-                    print(f"{expected=}")
-                    print(f"{far.aggregated_hist=}")
-                else:
-                    print(f"group {gid}: feature {far.feature_id}: Result OK!")
-
-        return os.urandom(4)
+        pass

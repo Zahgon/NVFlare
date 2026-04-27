@@ -58,16 +58,7 @@ class TaskManager(object):
         Returns:
             TaskCheckStatus: NO_BLOCK for not sending the task, BLOCK for waiting, SEND for OK to send
         """
-        if client_task.result_received_time:
-            # the task was already sent to the client AND result was already received
-            # do not send again
-            return TaskCheckStatus.NO_BLOCK
-
-        client_name = client_task.client.name
-        if client_task.task.targets is None or client_name in client_task.task.targets:
-            return TaskCheckStatus.SEND
-        else:
-            return TaskCheckStatus.NO_BLOCK
+        pass
 
     def check_task_exit(self, task: Task) -> Tuple[bool, TaskCompletionStatus]:
         """Determine whether the task should exit.

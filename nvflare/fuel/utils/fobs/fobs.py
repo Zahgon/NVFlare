@@ -77,41 +77,7 @@ def register(decomposer: Union[Decomposer, Type[Decomposer]]) -> None:
     Args:
         decomposer: The decomposer type or instance
     """
-
-    global _decomposers
-    global _dot_handlers
-
-    if inspect.isclass(decomposer):
-        instance = decomposer()
-    else:
-        instance = decomposer
-
-    name = get_class_name(instance.supported_type())
-    if name in _decomposers:
-        return
-
-    if not isinstance(instance, Decomposer):
-        log.error(f"Class {instance.__class__} is not a decomposer")
-        return
-
-    _decomposers[name] = instance
-    supported_dots = instance.supported_dots()
-    if supported_dots:
-        for d in supported_dots:
-            if not isinstance(d, int):
-                log.error(f"Bad DOT {d} - it must be a positive int but got {type(d)}")
-                continue
-
-            if d <= 0:
-                log.error(f"Bad DOT {d} - it must be a positive int")
-                continue
-
-            h = _dot_handlers.get(d)
-            if h:
-                log.error(f"Duplicate registration for DOT {d}: {type(h)} and {type(instance)}")
-                continue
-
-            _dot_handlers[d] = instance
+    pass
 
 
 class Packer:
@@ -122,93 +88,11 @@ class Packer:
 
     def pack(self, obj: Any) -> dict:
 
-        if type(obj) in MSGPACK_TYPES:
-            return obj
-
-        type_name = get_class_name(obj.__class__)
-        if type_name not in _decomposers:
-            registered = False
-            if isinstance(obj, Enum):
-                if _enum_auto_registration:
-                    # Use register() directly to avoid adding to _type_name_whitelist;
-                    # auto-registered types are session-only and should not survive reset().
-                    register(EnumTypeDecomposer(type(obj)))
-                    registered = True
-            else:
-                if callable(obj) or (not hasattr(obj, "__dict__")):
-                    raise TypeError(f"{type(obj)} can't be serialized by FOBS without a decomposer")
-                if _data_auto_registration:
-                    # Use register() directly to avoid adding to _type_name_whitelist;
-                    # auto-registered types are session-only and should not survive reset().
-                    register(DataClassDecomposer(type(obj)))
-                    registered = True
-
-            if not registered:
-                return obj
-
-        decomposer = _decomposers[type_name]
-
-        decomposed = decomposer.decompose(obj, self.manager)
-        if self.manager:
-            externalizer = Externalizer(self.manager)
-            decomposed = externalizer.externalize(decomposed)
-
-        return {FOBS_TYPE: type_name, FOBS_DATA: decomposed, FOBS_DECOMPOSER: get_class_name(type(decomposer))}
+        pass
 
     def unpack(self, obj: Any) -> Any:
 
-        if type(obj) is not dict or FOBS_TYPE not in obj:
-            return obj
-
-        type_name = obj[FOBS_TYPE]
-        # Security boundary: types already present in _decomposers are implicitly trusted and
-        # bypass the whitelist and BUILTIN_DECOMPOSERS checks below. This is intentional — only
-        # explicitly registered decomposers are allowed, and registration is the trust grant.
-        # The whitelist only gates the first deserialization of a type (before it is registered).
-        if type_name not in _decomposers:
-            registered = False
-            decomposer_name = obj.get(FOBS_DECOMPOSER)
-
-            # For security reason, only builtin decomposers are allowed without registration
-            if decomposer_name and decomposer_name not in BUILTIN_DECOMPOSERS:
-                raise ValueError(f"Decomposer {decomposer_name} must be registered")
-
-            # Validate type_name against whitelist to prevent arbitrary class loading (RCE)
-            if type_name not in _type_name_whitelist:
-                raise ValueError(
-                    f"Type '{type_name}' is not allowed. "
-                    f"Use fobs.register_data_classes(), fobs.register_enum_types(), "
-                    f"or fobs.add_type_name_whitelist() to allow this type."
-                )
-
-            cls = load_class(type_name)
-            if not decomposer_name:
-                # Maintaining backward compatibility with auto enum registration
-                if _enum_auto_registration:
-                    if issubclass(cls, Enum):
-                        register(EnumTypeDecomposer(cls))
-                        registered = True
-            else:
-                decomposer_class = load_class(decomposer_name)
-                if decomposer_name == self.enum_decomposer_name or decomposer_name == self.data_decomposer_name:
-                    # Generic decomposer's __init__ takes the target class as argument
-                    decomposer = decomposer_class(cls)
-                else:
-                    decomposer = decomposer_class()
-
-                register(decomposer)
-                registered = True
-
-            if not registered:
-                raise TypeError(f"Type {type_name} has no decomposer registered")
-
-        data = obj[FOBS_DATA]
-        if self.manager:
-            internalizer = Internalizer(self.manager)
-            data = internalizer.internalize(data)
-
-        decomposer = _decomposers[type_name]
-        return decomposer.recompose(data, self.manager)
+        pass
 
 
 def add_type_name_whitelist(*type_names: str) -> None:
@@ -221,7 +105,7 @@ def add_type_name_whitelist(*type_names: str) -> None:
     Args:
         type_names: Fully qualified class names (e.g. "mypackage.MyClass")
     """
-    _type_name_whitelist.update(type_names)
+    pass
 
 
 def register_data_classes(*data_classes: Type[T]) -> None:
@@ -234,11 +118,7 @@ def register_data_classes(*data_classes: Type[T]) -> None:
     Args:
         data_classes: The classes to be registered
     """
-
-    for data_class in data_classes:
-        decomposer = DataClassDecomposer(data_class)
-        register(decomposer)
-        _type_name_whitelist.add(get_class_name(data_class))
+    pass
 
 
 def register_enum_types(*enum_types: Type[Enum]) -> None:
@@ -251,13 +131,7 @@ def register_enum_types(*enum_types: Type[Enum]) -> None:
     Args:
         enum_types: The enum classes to be registered
     """
-
-    for enum_type in enum_types:
-        if not issubclass(enum_type, Enum):
-            raise TypeError(f"Can't register class {enum_type}, which is not a subclass of Enum")
-        decomposer = EnumTypeDecomposer(enum_type)
-        register(decomposer)
-        _type_name_whitelist.add(get_class_name(enum_type))
+    pass
 
 
 def auto_register_enum_types(enabled=True) -> None:
@@ -266,9 +140,7 @@ def auto_register_enum_types(enabled=True) -> None:
     Args:
         enabled: Auto-registration of enum classes is enabled if True.
     """
-    global _enum_auto_registration
-
-    _enum_auto_registration = enabled
+    pass
 
 
 def auto_register_data_classes(enabled=True) -> None:
@@ -277,9 +149,7 @@ def auto_register_data_classes(enabled=True) -> None:
     Args:
         enabled: Auto-registration of data classes is enabled if True.
     """
-    global _data_auto_registration
-
-    _data_auto_registration = enabled
+    pass
 
 
 def register_folder(folder: str, package: str):
@@ -289,60 +159,15 @@ def register_folder(folder: str, package: str):
         folder: The folder to scan
         package: The package to import the decomposers from
     """
-    for module in os.listdir(folder):
-        if module != "__init__.py" and module[-3:] == ".py":
-            decomposers = package + "." + module[:-3]
-            try:
-                imported = importlib.import_module(decomposers, __package__)
-                for _, cls_obj in inspect.getmembers(imported, inspect.isclass):
-                    spec = inspect.getfullargspec(cls_obj.__init__)
-                    # classes who are abstract or take extra args in __init__ can't be auto-registered
-                    if issubclass(cls_obj, Decomposer) and not inspect.isabstract(cls_obj) and len(spec.args) == 1:
-                        register(cls_obj)
-            except (ModuleNotFoundError, RuntimeError, ValueError) as e:
-                log.debug(
-                    f"Try to import module {decomposers}, but failed: {secure_format_exception(e)}. "
-                    f"Can't use name in config to refer to classes in module: {decomposers}."
-                )
-                pass
+    pass
 
 
 def register_custom_folder(folder: str):
-    if os.path.isdir(folder) and folder not in sys.path:
-        sys.path.append(folder)
-
-    for root, dirs, files in os.walk(folder):
-        for filename in files:
-            if filename.endswith(".py"):
-                module = filename[:-3]
-                sub_folder = os.path.relpath(root, folder).strip(".").replace(os.sep, ".")
-                if sub_folder:
-                    module = sub_folder + "." + module
-
-                try:
-                    imported = importlib.import_module(module)
-                    for _, cls_obj in inspect.getmembers(imported, inspect.isclass):
-                        if issubclass(cls_obj, Decomposer) and not inspect.isabstract(cls_obj):
-                            spec = inspect.getfullargspec(cls_obj.__init__)
-                            if len(spec.args) == 1:
-                                register(cls_obj)
-                            else:
-                                # Can't handle argument in constructor
-                                log.warning(
-                                    f"Invalid Decomposer from {module}: can't have argument in Decomposer's constructor"
-                                )
-                except (ModuleNotFoundError, RuntimeError, ValueError):
-                    pass
+    pass
 
 
 def _register_decomposers():
-    global _decomposers_registered
-
-    if _decomposers_registered:
-        return
-
-    register_folder(join(dirname(__file__), "decomposers"), ".decomposers")
-    _decomposers_registered = True
+    pass
 
 
 def num_decomposers() -> int:
@@ -351,7 +176,7 @@ def num_decomposers() -> int:
     Returns:
         The number of decomposers
     """
-    return len(_decomposers)
+    pass
 
 
 def serialize(obj: Any, manager: DatumManager = None, **kwargs) -> bytes:
@@ -364,30 +189,7 @@ def serialize(obj: Any, manager: DatumManager = None, **kwargs) -> bytes:
     Returns:
         Serialized data
     """
-    _register_decomposers()
-    packer = Packer(manager)
-    try:
-        result = msgpack.packb(obj, default=packer.pack, strict_types=True, **kwargs)
-    except ValueError as ex:
-        content = str(obj)
-        if len(content) > MAX_CONTENT_LEN:
-            content = content[:MAX_CONTENT_LEN] + " ..."
-        error = f"Object {type(obj)} is not serializable: {secure_format_exception(ex)}: {content}"
-        manager.set_error(error)
-        result = None
-    except Exception as ex:
-        error = f"Exception serializing {type(obj)}: {secure_format_exception(ex)}"
-        manager.set_error(error)
-        result = None
-
-    # must ensure that manager.post_process is always called since some decomposers may need to clean up properly
-    manager.post_process()
-
-    error = manager.get_error()
-    if error:
-        raise RuntimeError(manager.error)
-
-    return result
+    pass
 
 
 def serialize_stream(obj: Any, stream: BinaryIO, manager: DatumManager = None, **kwargs):
@@ -399,8 +201,7 @@ def serialize_stream(obj: Any, stream: BinaryIO, manager: DatumManager = None, *
         manager: Datum manager to externalize datum
         kwargs: Arguments passed to msgpack.packb
     """
-    data = serialize(obj, manager, **kwargs)
-    stream.write(data)
+    pass
 
 
 def deserialize(data: bytes, manager: DatumManager = None, **kwargs) -> Any:
@@ -413,11 +214,7 @@ def deserialize(data: bytes, manager: DatumManager = None, **kwargs) -> Any:
     Returns:
         Deserialized object
     """
-    _register_decomposers()
-    packer = Packer(manager)
-    result = msgpack.unpackb(data, strict_map_key=False, object_hook=packer.unpack, **kwargs)
-    manager.post_process()
-    return result
+    pass
 
 
 def deserialize_stream(stream: BinaryIO, manager: DatumManager = None, **kwargs) -> Any:
@@ -430,20 +227,13 @@ def deserialize_stream(stream: BinaryIO, manager: DatumManager = None, **kwargs)
     Returns:
         Deserialized object
     """
-    data = stream.read()
-    return deserialize(data, manager, **kwargs)
+    pass
 
 
 def get_dot_handler(dot: int):
-    global _dot_handlers
-    return _dot_handlers.get(dot)
+    pass
 
 
 def reset():
     """Reset FOBS to initial state. Used for unit test"""
-    global _decomposers, _decomposers_registered, _dot_handlers
-    _decomposers.clear()
-    _dot_handlers.clear()
-    _type_name_whitelist.clear()
-    _type_name_whitelist.update(BUILTIN_TYPES)
-    _decomposers_registered = False
+    pass

@@ -18,7 +18,7 @@ from nvflare.fuel.utils import fobs
 
 class Learnable(dict):
     def is_empty(self):
-        return False
+        pass
 
     def to_bytes(self) -> bytes:
         """Method to serialize the Learnable object into bytes.
@@ -27,7 +27,7 @@ class Learnable(dict):
             object serialized in bytes.
 
         """
-        return fobs.dumps(self)
+        pass
 
     @classmethod
     def from_bytes(cls, data: bytes):
@@ -40,4 +40,4 @@ class Learnable(dict):
             an object loaded by FOBS from data
 
         """
-        return fobs.loads(data)
+        pass

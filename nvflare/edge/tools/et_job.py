@@ -41,11 +41,4 @@ class ETJob(EdgeJob):
         self.output_shape = output_shape
 
     def _configure_executor(self, aggr_factory_id, max_model_versions, update_timeout):
-        return ETEdgeModelExecutor(
-            et_model=self.device_model,
-            input_shape=self.input_shape,
-            output_shape=self.output_shape,
-            aggr_factory_id=aggr_factory_id,
-            max_model_versions=max_model_versions,
-            update_timeout=update_timeout,
-        )
+        pass

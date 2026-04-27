@@ -80,15 +80,7 @@ class FederatedClient(FederatedClientBase):
         self.executors = executors
 
     def fetch_task(self, fl_ctx: FLContext, timeout=None):
-        fire_event(EventType.BEFORE_PULL_TASK, self.handlers, fl_ctx)
-        self.logger.debug(f"pull_task started with timeout {timeout}")
-        pull_success, task_name, shareable = self.pull_task(fl_ctx, timeout)
-        fire_event(EventType.AFTER_PULL_TASK, self.handlers, fl_ctx)
-        if task_name == SpecialTaskName.TRY_AGAIN:
-            self.logger.debug(f"pull_task completed. Task name:{task_name} Status:{pull_success} ")
-        else:
-            self.logger.info(f"pull_task completed. Task name:{task_name} Status:{pull_success} ")
-        return pull_success, task_name, shareable
+        pass
 
     def extract_shareable(self, responses, fl_ctx: FLContext):
         # shareable = Shareable()
@@ -98,9 +90,4 @@ class FederatedClient(FederatedClientBase):
         #     peer_context = fobs.loads(proto_to_bytes(item.data.params["fl_context"]))
 
         # shareable = fobs.loads(responses.payload)
-        peer_context = responses.get_peer_context()
-
-        fl_ctx.set_peer_context(peer_context)
-        responses.set_peer_props(peer_context.get_all_public_props())
-
-        return responses
+        pass

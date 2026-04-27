@@ -90,27 +90,13 @@ class FlowerController(TieController):
         self.allow_runtime_dependency_installation = allow_runtime_dependency_installation
 
     def get_connector(self, fl_ctx: FLContext):
-        return GrpcServerConnector(
-            int_client_grpc_options=self.int_client_grpc_options,
-            monitor_interval=self.monitor_interval,
-        )
+        pass
 
     def get_applet(self, fl_ctx: FLContext):
-        return FlowerServerApplet(
-            database=self.database,
-            superlink_ready_timeout=self.superlink_ready_timeout,
-            superlink_grace_period=self.superlink_grace_period,
-            superlink_min_query_interval=self.superlink_min_query_interval,
-            run_config=self.run_config,
-            allow_runtime_dependency_installation=self.allow_runtime_dependency_installation,
-        )
+        pass
 
     def get_client_config_params(self, fl_ctx: FLContext) -> dict:
-        return {
-            Constant.CONF_KEY_NUM_ROUNDS: self.num_rounds,
-        }
+        pass
 
     def get_connector_config_params(self, fl_ctx: FLContext) -> dict:
-        return {
-            Constant.CONF_KEY_NUM_ROUNDS: self.num_rounds,
-        }
+        pass

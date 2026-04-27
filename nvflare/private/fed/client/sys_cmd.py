@@ -33,71 +33,23 @@ from nvflare.security.logging import secure_format_exception
 
 class SysInfoProcessor(RequestProcessor):
     def get_topics(self) -> List[str]:
-        return [SysCommandTopic.SYS_INFO]
+        pass
 
     def process(self, req: Message, app_ctx) -> Message:
-        infos = dict(psutil.virtual_memory()._asdict())
-        if pynvml:
-            try:
-                pynvml.nvmlInit()
-                device_count = pynvml.nvmlDeviceGetCount()
-                gpu_info = {"gpu_count": device_count}
-                for index in range(device_count):
-                    handle = pynvml.nvmlDeviceGetHandleByIndex(index)
-                    gpu_info[f"gpu_device_{index}"] = pynvml.nvmlDeviceGetName(handle).decode("utf-8")
-                pynvml.nvmlShutdown()
-                infos.update(gpu_info)
-            except pynvml.nvml.NVMLError_LibraryNotFound:
-                pass
-
-        # docker_image_tag = os.environ.get('DOCKER_IMAGE_TAG', 'N/A')
-        # infos.update({'docker_image_tag':docker_image_tag})
-        message = Message(topic="reply_" + req.topic, body=json.dumps(infos))
-        return message
+        pass
 
 
 class ReportEnvProcessor(RequestProcessor):
     def get_topics(self) -> [str]:
-        return [SysCommandTopic.REPORT_ENV]
+        pass
 
     def process(self, req: Message, app_ctx) -> Message:
-        engine = app_ctx
-        fl_ctx = engine.new_context()
-        assert isinstance(fl_ctx, FLContext)
-        site_name = fl_ctx.get_identity_name()
-        workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_ROOT)
-        secure_mode = fl_ctx.get_prop(FLContextKey.SECURE_MODE)
-        fed_client = fl_ctx.get_prop(SystemComponents.FED_CLIENT)
-        root_url = ""
-        if fed_client:
-            cell = fed_client.cell
-            root_url = cell.get_root_url_for_child()
-        env = {
-            "site_name": site_name,
-            "workspace": workspace,
-            "secure_mode": secure_mode,
-            "root_url": root_url,
-        }
-        message = Message(topic="reply_" + req.topic, body=json.dumps(env))
-        return message
+        pass
 
 
 class ConfigureSiteLogProcessor(RequestProcessor):
     def get_topics(self) -> List[str]:
-        return [SysCommandTopic.CONFIGURE_SITE_LOG]
+        pass
 
     def process(self, req: Message, app_ctx) -> Message:
-        engine = app_ctx
-        fl_ctx = engine.new_context()
-        site_name = fl_ctx.get_identity_name()
-        workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-
-        try:
-            config = validate_site_log_config(req.body)
-            dynamic_log_config(
-                config=config, dir_path=workspace.get_root_dir(), reload_path=workspace.get_log_config_file_path()
-            )
-        except Exception as e:
-            return error_reply(secure_format_exception(e))
-
-        return ok_reply(topic=f"reply_{req.topic}", body=f"successfully configured {site_name} log")
+        pass

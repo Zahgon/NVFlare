@@ -29,96 +29,10 @@ class MockClientRunner(AppRunner, FLComponent):
 
     def run(self, ctx: dict):
         # raise RuntimeError("ABORTED")
-        server_addr = ctx.get(Constant.RUNNER_CTX_SERVER_ADDR)
-        rank = ctx.get(Constant.RUNNER_CTX_RANK)
-        num_rounds = ctx.get(Constant.RUNNER_CTX_NUM_ROUNDS)
-
-        client = GrpcClient(server_addr=server_addr)
-        client.start()
-
-        rank = rank
-        seq = 0
-        total_time = 0
-        total_reqs = 0
-        for i in range(num_rounds):
-            if self.asked_to_stop:
-                self.logger.info("training aborted")
-                self.training_stopped = True
-                return
-
-            self.logger.info(f"Test round {i}")
-            data = os.urandom(1000000)
-
-            self.logger.info("sending allgather")
-            start = time.time()
-            result = client.send_allgather(seq_num=seq + 1, rank=rank, data=data)
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.AllgatherReply):
-                self.logger.error(f"expect reply to be pb2.AllgatherReply but got {type(result)}")
-            elif result.receive_buffer != data:
-                self.logger.error("allgather result does not match request")
-            else:
-                self.logger.info("OK: allgather result matches request!")
-
-            self.logger.info("sending allgatherV")
-            start = time.time()
-            result = client.send_allgatherv(seq_num=seq + 2, rank=rank, data=data)
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.AllgatherVReply):
-                self.logger.error(f"expect reply to be pb2.AllgatherVReply but got {type(result)}")
-            elif result.receive_buffer != data:
-                self.logger.error("allgatherV result does not match request")
-            else:
-                self.logger.info("OK: allgatherV result matches request!")
-
-            self.logger.info("sending allreduce")
-            start = time.time()
-            result = client.send_allreduce(
-                seq_num=seq + 3,
-                rank=rank,
-                data=data,
-                reduce_op=2,
-                data_type=2,
-            )
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.AllreduceReply):
-                self.logger.error(f"expect reply to be pb2.AllreduceReply but got {type(result)}")
-            elif result.receive_buffer != data:
-                self.logger.error("allreduce result does not match request")
-            else:
-                self.logger.info("OK: allreduce result matches request!")
-                print("OK: allreduce result matches request!")
-
-            self.logger.info("sending broadcast")
-            start = time.time()
-            result = client.send_broadcast(
-                seq_num=seq + 4,
-                rank=rank,
-                data=data,
-                root=3,
-            )
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.BroadcastReply):
-                self.logger.error(f"expect reply to be pb2.BroadcastReply but got {type(result)}")
-            elif result.receive_buffer != data:
-                self.logger.error("ERROR: broadcast result does not match request")
-            else:
-                self.logger.info("OK: broadcast result matches request!")
-
-            seq += 4
-            time.sleep(1.0)
-
-        time_per_req = total_time / total_reqs
-        self.logger.info(f"DONE: {total_reqs=} {total_time=} {time_per_req=}")
-        print(f"DONE: {total_reqs=} {total_time=} {time_per_req=}")
-        self.training_stopped = True
+        pass
 
     def stop(self):
-        self.asked_to_stop = True
+        pass
 
     def is_stopped(self) -> (bool, int):
-        return self.training_stopped, 0
+        pass

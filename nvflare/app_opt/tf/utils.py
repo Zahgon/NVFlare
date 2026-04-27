@@ -17,25 +17,9 @@ SPECIAL_KEY = "_nvf_"
 
 def flat_layer_weights_dict(data: dict):
     """Flattens layer weights dict."""
-    result = {}
-    for layer_name, weights in data.items():
-        if len(weights) != 0:
-            # If the original layer get_weights return: {"layer0": [array1, array2]}
-            # We will convert it to: {"layer0_nvf_0": array1, "layer0_nvf_1": array2}
-            for i, item in enumerate(weights):
-                result[f"{layer_name}{SPECIAL_KEY}{i}"] = item
-    return result
+    pass
 
 
 def unflat_layer_weights_dict(data: dict):
     """Unflattens layer weights dict."""
-    result = {}
-    for k, v in data.items():
-        if SPECIAL_KEY in k:
-            # If the weight is: {"layer0_nvf_0": array1, "layer0_nvf_1": array2}
-            # We will convert it back to: {"layer0": [array1, array2]} and load it back
-            layer_name, _ = k.split(SPECIAL_KEY)
-            if layer_name not in result:
-                result[layer_name] = []
-            result[layer_name].append(v)
-    return result
+    pass

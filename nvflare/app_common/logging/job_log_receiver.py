@@ -73,101 +73,25 @@ class JobLogReceiver(Widget):
         self.register_event_handler([EventType.SYSTEM_START, EventType.START_RUN], self._register)
 
     def _effective_dest_dir(self) -> str:
-        return self._dest_dir or tempfile.gettempdir()
+        pass
 
     @staticmethod
     def _sanitize_path_component(name: str) -> str:
         """Strip path separators and traversal sequences from a single path component."""
-        # Use only the base name to prevent directory traversal via '/' or '..'
-        return os.path.basename(name) if name else "unknown"
+        pass
 
     @classmethod
     def _storage_data_type(cls, log_file_name: str) -> str:
-        log_file_name = cls._sanitize_path_component(log_file_name) or WorkspaceConstants.LOG_FILE_NAME
-        if log_file_name == WorkspaceConstants.ERROR_LOG_FILE_NAME:
-            return DataTypes.ERRORLOG.value
-        return f"{DataTypes.LOG.value}_{log_file_name}"
+        pass
 
     def _get_trusted_stream_identity(self, fl_ctx: FLContext):
-        peer_ctx = fl_ctx.get_peer_context()
-        if peer_ctx is None:
-            return "unknown", "unknown"
-
-        client = self._sanitize_path_component(peer_ctx.get_identity_name(default="unknown"))
-        job_id = self._sanitize_path_component(peer_ctx.get_job_id(default="unknown"))
-        return client, job_id
+        pass
 
     def _on_chunk_received(self, data: bytes, stream_ctx: StreamContext, fl_ctx: FLContext):
-        f = stream_ctx.get(_KEY_RECV_FILE)
-        if f is None:
-            client, job_id = self._get_trusted_stream_identity(fl_ctx)
-            log_file_name = self._sanitize_path_component(LogStreamer.get_file_name(stream_ctx) or "log.txt")
-            path = os.path.join(self._effective_dest_dir(), job_id, client, log_file_name)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            self.log_debug(fl_ctx, f"Opening log file for {client} job {job_id}: {path}")
-            f = open(path, "wb")
-            stream_ctx[_KEY_RECV_FILE] = f
-            stream_ctx[_KEY_RECV_PATH] = path
-        f.write(data)
-        f.flush()
+        pass
 
     def _on_stream_done(self, stream_ctx: StreamContext, fl_ctx: FLContext):
-        f = stream_ctx.get(_KEY_RECV_FILE)
-        if f is not None:
-            f.close()
-            stream_ctx[_KEY_RECV_FILE] = None
-
-        rc = LogStreamer.get_rc(stream_ctx)
-        client, job_id = self._get_trusted_stream_identity(fl_ctx)
-
-        if rc != ReturnCode.OK:
-            file_path = stream_ctx.get(_KEY_RECV_PATH)
-            self.log_warning(
-                fl_ctx,
-                f"Live log stream from {client} job {job_id} ended with rc={rc}; partial log retained at {file_path}",
-            )
-            return
-
-        file_path = stream_ctx.get(_KEY_RECV_PATH)
-        if not file_path:
-            self.log_warning(fl_ctx, f"No log data received from {client} for job {job_id}")
-            return
-
-        log_type = LogStreamer.get_file_name(stream_ctx)
-        engine = fl_ctx.get_engine()
-        job_manager = engine.get_component(SystemComponents.JOB_MANAGER)
-        if job_manager is None:
-            # No job manager (e.g. simulator): move file from temp staging dir to the
-            # job's workspace run directory so it lives alongside other job artifacts.
-            if self._dest_dir is None:
-                workspace = getattr(engine, "get_workspace", lambda: None)()
-                if workspace is not None:
-                    dest_path = os.path.join(workspace.get_run_dir(job_id), client, log_type)
-                    try:
-                        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                        shutil.move(file_path, dest_path)
-                        self.log_info(fl_ctx, f"Saved live log '{log_type}' from {client} to {dest_path}")
-                        return
-                    except Exception:
-                        self.log_exception(fl_ctx, f"Failed to move live log to workspace; retained at {file_path}")
-                        return
-            self.log_info(fl_ctx, f"Live log '{log_type}' from {client} retained at {file_path}")
-            return
-        data_type = self._storage_data_type(log_type)
-        self.log_info(
-            fl_ctx, f"Saving live log '{log_type}' as '{data_type}' from {client} for job {job_id}: {file_path}"
-        )
-        job_manager.set_client_data(job_id, file_path, client, data_type, fl_ctx)
+        pass
 
     def _register(self, event_type: str, fl_ctx: FLContext):
-        if self._registered:
-            return
-        self._registered = True
-        LogStreamer.register_stream_processing(
-            fl_ctx,
-            channel=Channels.LOG_STREAMING_CHANNEL,
-            topic=LIVE_LOG_TOPIC,
-            chunk_received_cb=self._on_chunk_received,
-            stream_done_cb=self._on_stream_done,
-            idle_timeout=self._idle_timeout,
-        )
+        pass

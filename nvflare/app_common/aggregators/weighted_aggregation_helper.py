@@ -23,19 +23,7 @@ def _is_aggregatable_metric_value(v: Any) -> bool:
     Boolean values are considered aggregatable and treated as binary values
     (`True=1.0`, `False=0.0`) when averaged.
     """
-    if v is None:
-        return False
-    if isinstance(v, (dict, list, set, tuple, str)):
-        return False
-    # Bool metrics are treated as binary values (True=1, False=0) and averaged.
-    if isinstance(v, (int, float, bool)):
-        return True
-    try:
-        _ = v * 1.0
-        _ = v + v
-        return True
-    except (TypeError, ValueError, AttributeError):
-        return False
+    pass
 
 
 def filter_aggregatable_metrics(
@@ -54,21 +42,7 @@ def filter_aggregatable_metrics(
         warned_metric_keys: Optional set of keys already warned about. If provided, warnings are emitted
             at most once per key and newly warned keys are added to this set.
     """
-    if not metrics:
-        return {}
-
-    filtered = {}
-    for key, value in metrics.items():
-        if _is_aggregatable_metric_value(value):
-            filtered[key] = value
-            continue
-        if warn_skipped is None:
-            continue
-        if warned_metric_keys is None or key not in warned_metric_keys:
-            warn_skipped(key, type(value).__name__)
-            if warned_metric_keys is not None:
-                warned_metric_keys.add(key)
-    return filtered
+    pass
 
 
 class WeightedAggregationHelper(object):
@@ -94,95 +68,23 @@ class WeightedAggregationHelper(object):
         self.history = list()
 
     def reset_stats(self):
-        self.total = dict()
-        self.counts = dict()
-        self.history = list()
+        pass
 
     @staticmethod
     def _is_pytorch_tensor(tensor):
         """Check if tensor is a PyTorch tensor with in-place operation support."""
-        return hasattr(tensor, "add_") and hasattr(tensor, "mul_") and hasattr(tensor, "clone")
+        pass
 
     def add(self, data, weight, contributor_name, contribution_round):
         """Compute weighted sum and sum of weights."""
-        with self.lock:
-            for k, v in data.items():
-                if self.exclude_vars is not None and self.exclude_vars.search(k):
-                    continue
-
-                # Disk-streamed payloads may pass lazy refs
-                # instead of in-memory tensors. If present, materialize() loads
-                # the tensor from disk before weighted aggregation math.
-                materialize_fn = getattr(v, "materialize", None)
-                if callable(materialize_fn):
-                    v = materialize_fn()
-
-                current_total = self.total.get(k, None)
-
-                if current_total is None:
-                    # First contribution: initialize accumulator
-                    # We must create a copy to avoid mutating caller's input tensors
-                    if self._is_pytorch_tensor(v):
-                        if self.weigh_by_local_iter:
-                            # Weigh by local iter: create weighted copy (multiply by weight)
-                            self.total[k] = v.mul(weight)
-                        else:
-                            self.total[k] = v.clone()
-                    else:
-                        # Fallback for non-PyTorch tensors
-                        if self.weigh_by_local_iter:
-                            # Multiply creates a new array/tensor, no aliasing issue
-                            self.total[k] = v * weight
-                        else:
-                            # For HE mode: try to copy to avoid aliasing
-                            # But encrypted tensors can't be copied (requires secret key)
-                            try:
-                                self.total[k] = v.copy() if hasattr(v, "copy") else v
-                            except (ValueError, RuntimeError):
-                                # Encrypted tensor copy failed, use reference (safe, immutable)
-                                self.total[k] = v
-                    self.counts[k] = weight
-                else:
-                    # Subsequent contributions: use in-place operations
-                    if self._is_pytorch_tensor(v) and self._is_pytorch_tensor(current_total):
-                        if self.weigh_by_local_iter:
-                            # Weigh by local iter: weighted accumulation
-                            self.total[k].add_(v, alpha=weight)
-                        else:
-                            self.total[k].add_(v)
-                    else:
-                        # Fallback for non-PyTorch tensors
-                        if self.weigh_by_local_iter:
-                            self.total[k] = current_total + v * weight
-                        else:
-                            self.total[k] = current_total + v
-                    self.counts[k] = self.counts[k] + weight
-
-            self.history.append(
-                {
-                    "contributor_name": contributor_name,
-                    "round": contribution_round,
-                    "weight": weight,
-                }
-            )
+        pass
 
     def get_result(self):
         """Divide weighted sum by sum of weights."""
-        with self.lock:
-            aggregated_dict = {}
-            for k, v in self.total.items():
-                if self._is_pytorch_tensor(v):
-                    # For PyTorch tensors, use in-place division to avoid creating a copy
-                    aggregated_dict[k] = v.div_(self.counts[k])
-                else:
-                    # Fallback for non-PyTorch tensors (including encrypted tensors)
-                    aggregated_dict[k] = v * (1.0 / self.counts[k])
-
-            self.reset_stats()
-            return aggregated_dict
+        pass
 
     def get_history(self):
-        return self.history
+        pass
 
     def get_len(self):
-        return len(self.get_history())
+        pass

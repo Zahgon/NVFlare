@@ -26,4 +26,4 @@ def fire_event(event: str, handlers: list, ctx: FLContext):
     Returns: N/A
 
     """
-    return fire_event_to_components(event, handlers, ctx)
+    pass

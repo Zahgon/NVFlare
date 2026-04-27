@@ -18,27 +18,10 @@ class Aggregator:
         self.initial_value = initial_value
 
     def add(self, a, b):
-        return a + b
+        pass
 
     def _update_aggregation(self, gh_values, sample_bin_assignment, sample_id, aggr):
-        bin_id = sample_bin_assignment[sample_id]
-        if bin_id < 0:
-            return
-
-        sample_value = gh_values[sample_id]
-        current_value = aggr[bin_id]
-        if current_value == 0:
-            # avoid add since sample_value may be cypher-text!
-            aggr[bin_id] = sample_value
-        else:
-            aggr[bin_id] = self.add(current_value, sample_value)
+        pass
 
     def aggregate(self, gh_values: list, sample_bin_assignment, num_bins, sample_ids):
-        aggr_result = [self.initial_value] * num_bins
-        if not sample_ids:
-            for sample_id in range(len(gh_values)):
-                self._update_aggregation(gh_values, sample_bin_assignment, sample_id, aggr_result)
-        else:
-            for sample_id in sample_ids:
-                self._update_aggregation(gh_values, sample_bin_assignment, sample_id, aggr_result)
-        return aggr_result
+        pass

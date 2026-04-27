@@ -29,21 +29,10 @@ class EvalResultManager:
             os.makedirs(result_dir)
 
     def add_result(self, evaluator: str, evaluatee: str, result: DXO):
-        with self.update_lock:
-            save_file_name = evaluator + "-" + evaluatee
-            file_path = self._save_validation_result(save_file_name, result)
-
-            if evaluator not in self.results:
-                self.results[evaluator] = {}
-
-            self.results[evaluator][evaluatee] = file_path
-            return file_path
+        pass
 
     def _save_validation_result(self, file_name, result: DXO):
-        file_path = os.path.join(self.result_dir, file_name)
-        result.to_file(file_path)
-        return file_path
+        pass
 
     def get_results(self):
-        with self.update_lock:
-            return copy.deepcopy(self.results)
+        pass

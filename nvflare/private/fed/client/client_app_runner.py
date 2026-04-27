@@ -47,123 +47,24 @@ class ClientAppRunner(Runner):
         self.client_runner = None
 
     def start_run(self, app_root, args, config_folder, federated_client, secure_train, sp, event_handlers):
-        self.client_runner = self.create_client_runner(
-            app_root, args, config_folder, federated_client, secure_train, event_handlers
-        )
-
-        federated_client.set_client_runner(self.client_runner)
-        federated_client.set_primary_sp(sp)
-
-        with self.client_runner.engine.new_context() as fl_ctx:
-            self.start_command_agent(args, federated_client, fl_ctx)
-
-        self.sync_up_parents_process(federated_client)
-
-        federated_client.start_overseer_agent()
-        notify_timeout = ConfigService.get_float_var(
-            name=ConfigVarName.NOTIFY_CP_MSG_TIMEOUT, conf=SystemConfigs.APPLICATION_CONF, default=5.0
-        )
-        retry_timeout = ConfigService.get_float_var(
-            name=ConfigVarName.NOTIFY_CP_RETRY_TIMEOUT, conf=SystemConfigs.APPLICATION_CONF, default=15.0
-        )
-        self.notify_job_status(
-            federated_client,
-            args.job_id,
-            ClientStatus.STARTED,
-            timeout=notify_timeout,
-            retry_timeout=retry_timeout,
-        )
-        federated_client.status = ClientStatus.STARTED
-
-        self.client_runner.run(app_root, args)
-
-        self.notify_job_status(
-            federated_client,
-            args.job_id,
-            ClientStatus.STOPPED,
-            timeout=notify_timeout,
-        )
-        federated_client.status = ClientStatus.STOPPED
-        federated_client.stop_cell()
+        pass
 
     @staticmethod
     def _set_fl_context(fl_ctx: FLContext, app_root, args, workspace, secure_train):
-        fl_ctx.set_prop(FLContextKey.CLIENT_NAME, args.client_name, private=False)
-        fl_ctx.set_prop(FLContextKey.WORKSPACE_ROOT, args.workspace, private=True)
-        fl_ctx.set_prop(FLContextKey.ARGS, args, sticky=True)
-        fl_ctx.set_prop(FLContextKey.APP_ROOT, app_root, private=True, sticky=True)
-        fl_ctx.set_prop(FLContextKey.WORKSPACE_OBJECT, workspace, private=True)
-        fl_ctx.set_prop(FLContextKey.SECURE_MODE, secure_train, private=True, sticky=True)
-        fl_ctx.set_prop(FLContextKey.CURRENT_RUN, args.job_id, private=False, sticky=True)
-        fl_ctx.set_prop(FLContextKey.CURRENT_JOB_ID, args.job_id, private=False, sticky=True)
+        pass
 
     def create_client_runner(self, app_root, args, config_folder, federated_client, secure_train, event_handlers=None):
-        workspace = Workspace(args.workspace, args.client_name, config_folder)
-        fl_ctx = FLContext()
-        self._set_fl_context(fl_ctx, app_root, args, workspace, secure_train)
-        client_config_file_name = os.path.join(app_root, args.client_config)
-        args.set.append(f"secure_train={secure_train}")
-        conf = ClientJsonConfigurator(
-            workspace_obj=workspace,
-            config_file_name=client_config_file_name,
-            app_root=app_root,
-            args=args,
-            kv_list=args.set,
-        )
-        if event_handlers:
-            conf.set_component_build_authorizer(authorize_build_component, fl_ctx=fl_ctx, event_handlers=event_handlers)
-        conf.configure()
-
-        runner_config = conf.runner_config
-
-        # configure privacy control!
-        privacy_manager = create_privacy_manager(workspace, names_only=False)
-        if privacy_manager.is_policy_defined():
-            if privacy_manager.components:
-                for cid, comp in privacy_manager.components.items():
-                    runner_config.add_component(cid, comp)
-
-        # initialize Privacy Service
-        PrivacyService.initialize(privacy_manager)
-
-        run_manager = self.create_run_manager(args, conf, federated_client, workspace)
-        federated_client.run_manager = run_manager
-        federated_client.runner_config = runner_config
-        federated_client.handlers = conf.runner_config.handlers
-        with run_manager.new_context() as fl_ctx:
-            self._set_fl_context(fl_ctx, app_root, args, workspace, secure_train)
-            client_runner = ClientRunner(
-                config=conf.runner_config,
-                client_config=federated_client.client_args,
-                job_id=args.job_id,
-                engine=run_manager,
-            )
-            run_manager.add_handler(client_runner)
-            fl_ctx.set_prop(FLContextKey.RUNNER, client_runner, private=True)
-
-            # self.start_command_agent(args, client_runner, federated_client, fl_ctx)
-        return client_runner
+        pass
 
     def create_run_manager(self, args, conf, federated_client, workspace):
-        return ClientRunManager(
-            client_name=args.client_name,
-            job_id=args.job_id,
-            workspace=workspace,
-            client=federated_client,
-            components=conf.runner_config.components,
-            handlers=conf.runner_config.handlers,
-            conf=conf,
-        )
+        pass
 
     def start_command_agent(self, args, federated_client, fl_ctx):
         # Start the command agent
-        self.command_agent = CommandAgent(federated_client)
-        self.command_agent.start(fl_ctx)
+        pass
 
     def sync_up_parents_process(self, federated_client):
-        run_manager = federated_client.run_manager
-        with run_manager.new_context() as fl_ctx:
-            run_manager.get_job_clients(fl_ctx)
+        pass
 
     def notify_job_status(self, federated_client, job_id, status, timeout=5.0, retry_timeout=None):
         """Notify the CP the job status. This is called from CJ.
@@ -182,46 +83,10 @@ class ClientAppRunner(Runner):
         successfully, or the retry_timeout has been reached.
 
         """
-        message = Message(topic=TrainingTopic.NOTIFY_JOB_STATUS, body="")
-        message.set_header(RequestHeader.JOB_ID, str(job_id))
-        message.set_header(RequestHeader.JOB_STATUS, status)
-
-        my_fqcn = federated_client.cell.core_cell.get_fqcn()
-        cp_fqcn = FQCN.get_parent(my_fqcn)
-
-        start_time = time.time()
-        num_tries = 0
-        while True:
-            num_tries += 1
-            reply = federated_client.cell.send_request(
-                target=cp_fqcn,
-                channel=CellChannel.CLIENT_MAIN,
-                topic=message.topic,
-                request=new_cell_message({}, message),
-                timeout=timeout,
-                optional=True,
-            )
-            if not retry_timeout:
-                return
-
-            duration = time.time() - start_time
-            assert isinstance(reply, CellMessage)
-            rc = reply.get_header(MessageHeaderKey.RETURN_CODE)
-            if rc == CellReturnCode.OK:
-                self.logger.info(f"notified status {status} to {cp_fqcn} in {duration} seconds after {num_tries} tries")
-                return
-
-            if duration > retry_timeout:
-                self.logger.error(
-                    f"cannot notify status {status} to {cp_fqcn} in {duration} seconds after {num_tries} tries"
-                )
-            else:
-                time.sleep(0.5)
+        pass
 
     def close(self):
-        if self.command_agent:
-            self.command_agent.shutdown()
+        pass
 
     def stop(self):
-        if self.client_runner:
-            self.client_runner.abort()
+        pass

@@ -98,7 +98,4 @@ class BaseFedJob(UnifiedBaseFedJob):
         locator: Optional[ModelLocator] = None,
     ):
         """Setup PyTorch model with persistor and locator."""
-        from nvflare.app_opt.pt.job_config.model import PTModel
-
-        pt_model = PTModel(model=initial_model, persistor=persistor, locator=locator)
-        self.comp_ids.update(self.to_server(pt_model))
+        pass

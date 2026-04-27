@@ -23,11 +23,4 @@ class GPUResourceConsumer(ResourceConsumerSpec):
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
     def consume(self, resources: dict):
-        host_gpus = get_host_gpu_ids()
-        host_gpu_memory_free = get_host_gpu_memory_free(unit="MiB")
-        for gpu_id, gpu_mem in resources.items():
-            if gpu_id not in host_gpus:
-                raise RuntimeError(f"GPU ID {gpu_id} does not exist")
-            if gpu_mem * 1024.0 > host_gpu_memory_free[gpu_id]:
-                raise RuntimeError("GPU free mem is not enough")
-        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join([str(i) for i in resources.keys()])
+        pass

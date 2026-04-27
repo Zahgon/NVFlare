@@ -40,12 +40,4 @@ def log_rss(tag: str) -> None:
     Args:
         tag: label for the log line, e.g. ``"round=3 after_send"``
     """
-    if not _ENABLED:
-        return
-    try:
-        import psutil
-
-        rss_mb = psutil.Process().memory_info().rss / 1024 / 1024
-        _logger.info(f"[RSS] {tag}: {rss_mb:.1f} MB")
-    except Exception:
-        pass
+    pass

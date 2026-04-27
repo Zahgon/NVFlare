@@ -14,9 +14,7 @@
 
 
 def main():
-    print("*****************************************************************")
-    print("** poc command is deprecated, please use 'nvflare poc' instead **")
-    print("*****************************************************************")
+    pass
 
 
 if __name__ == "__main__":

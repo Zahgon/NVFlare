@@ -141,10 +141,7 @@ class PipeHandler(object):
         Returns: None
 
         """
-        check_callable("cb", cb)
-        self.status_cb = cb
-        self.cb_args = args
-        self.cb_kwargs = kwargs
+        pass
 
     def set_message_cb(self, cb, *args, **kwargs):
         """Sets a callback function for message handling.
@@ -172,73 +169,13 @@ class PipeHandler(object):
         Returns: None
 
         """
-        check_callable("cb", cb)
-        self.msg_cb = cb
-        self.msg_cb_args = args
-        self.msg_cb_kwargs = kwargs
+        pass
 
     def _send_to_pipe(self, msg: Message, timeout=None, abort_signal: Signal = None):
-        if self._is_stopped_or_aborted(abort_signal):
-            self.logger.info(
-                f"cannot send '{msg.topic}' to pipe: asked_to_stop={self.asked_to_stop}"
-                f" abort_triggered={abort_signal.triggered if abort_signal else 'N/A'}"
-            )
-            return False
-
-        pipe = self.pipe
-        if not pipe:
-            self.logger.error("cannot send message to pipe since it's already closed")
-            return False
-
-        if not timeout or not pipe.can_resend() or not self.resend_interval:
-            if not timeout:
-                timeout = self.default_request_timeout
-            try:
-                return pipe.send(msg, timeout)
-            finally:
-                pipe.release_send_cache(msg)
-
-        # Release any per-message state (e.g. the cached CellMessage)
-        # once the retry loop exits, regardless of the exit path.  This ensures
-        # the serialized payload bytes are freed promptly rather than waiting for
-        # the Message object to go out of scope.
-        num_sends = 0
-        try:
-            while not self.asked_to_stop:
-                sent = pipe.send(msg, timeout)
-                num_sends += 1
-                if sent:
-                    return sent
-
-                if self.max_resends is not None and num_sends > self.max_resends:
-                    self.logger.error(f"abort sending after {num_sends} tries")
-                    return False
-
-                if self._is_stopped_or_aborted(abort_signal):
-                    return False
-
-                # wait for resend_interval before resend, but return if asked_to_stop is set during the wait
-                self.logger.info(f"will resend '{msg.topic}' in {self.resend_interval} secs")
-                start_wait = time.time()
-                while True:
-                    if self._is_stopped_or_aborted(abort_signal):
-                        return False
-
-                    if time.time() - start_wait > self.resend_interval:
-                        break
-                    time.sleep(0.1)
-            return False
-        finally:
-            pipe.release_send_cache(msg)
+        pass
 
     def _is_stopped_or_aborted(self, abort_signal: Optional[Signal] = None):
-        if self.asked_to_stop:
-            return True
-
-        if abort_signal and abort_signal.triggered:
-            return True
-
-        return False
+        pass
 
     def start(self):
         """Starts the PipeHandler.
@@ -246,11 +183,7 @@ class PipeHandler(object):
         Note:
             Before calling this method, the pipe managed by this PipeHandler must have been opened.
         """
-        if self.reader and not self.reader.is_alive():
-            self.reader.start()
-
-        if self.heartbeat_sender and not self.heartbeat_sender.is_alive():
-            self.heartbeat_sender.start()
+        pass
 
     def stop(self, close_pipe=True):
         """Stops the handler and optionally close the monitored pipe.
@@ -258,16 +191,11 @@ class PipeHandler(object):
         Args:
             close_pipe: whether to close the monitored pipe.
         """
-        self.asked_to_stop = True
-        self.peer_is_up_or_dead.clear()
-        pipe = self.pipe
-        self.pipe = None
-        if pipe and close_pipe:
-            pipe.close()
+        pass
 
     @staticmethod
     def _make_event_message(topic: str, data):
-        return Message.new_request(topic, data)
+        pass
 
     def send_to_peer(self, msg: Message, timeout=None, abort_signal: Signal = None) -> bool:
         """Sends a message to peer.
@@ -281,140 +209,27 @@ class PipeHandler(object):
         Returns:
             Whether the peer has read the data.
         """
-        if timeout is not None:
-            check_positive_number("timeout", timeout)
-        try:
-            return self._send_to_pipe(msg, timeout, abort_signal)
-        except BrokenPipeError:
-            self._add_message(self._make_event_message(Topic.PEER_GONE, "send failed"))
-            return False
+        pass
 
     def notify_end(self, data):
         """Notifies the peer that the communication is ended normally."""
-        p = self.pipe
-        if p:
-            try:
-                # fire and forget
-                p.send(self._make_event_message(Topic.END, data), 0.1)
-            except Exception as ex:
-                self.logger.debug(f"exception notify_end: {secure_format_exception(ex)}")
+        pass
 
     def notify_abort(self, data):
         """Notifies the peer that the communication is aborted."""
-        p = self.pipe
-        if p:
-            try:
-                # fire and forget
-                p.send(self._make_event_message(Topic.ABORT, data), 0.1)
-            except Exception as ex:
-                self.logger.debug(f"exception notify_abort: {secure_format_exception(ex)}")
+        pass
 
     def _add_message(self, msg: Message):
-        if msg.topic in [Topic.END, Topic.ABORT, Topic.PEER_GONE]:
-            if self.status_cb is not None:
-                self.status_cb(msg, *self.cb_args, **self.cb_kwargs)
-                return
-        else:
-            if self.msg_cb is not None:
-                self.msg_cb(msg, *self.msg_cb_args, **self.msg_cb_kwargs)
-                return
-
-        with self.lock:
-            self.messages.append(msg)
+        pass
 
     def _read(self):
-        try:
-            self._try_read()
-        except Exception as e:
-            if not self.asked_to_stop:
-                self.logger.error(f"read error: {secure_format_exception(e)}")
-                self._add_message(
-                    self._make_event_message(Topic.PEER_GONE, f"read error: {secure_format_exception(e)}")
-                )
+        pass
 
     def _try_read(self):
-        self._last_heartbeat_received_time = time.time()
-        while not self.asked_to_stop:
-            time.sleep(self.read_interval)
-            if self.asked_to_stop:
-                break
-            if self._pause:
-                continue
-
-            # we assign self.pipe to p and access pipe methods through p
-            # this is because self.pipe could be set to None at any moment (e.g. the abort process could
-            # stop the pipe handler at any time).
-            p = self.pipe
-            if not p:
-                # the pipe handler is most likely stopped, but we leave it for the while loop to decide
-                continue
-
-            try:
-                msg = p.receive()
-            except BrokenPipeError as e:
-                if not self.asked_to_stop:
-                    self._add_message(
-                        self._make_event_message(Topic.PEER_GONE, f"read error: {secure_format_exception(e)}")
-                    )
-                break
-            now = time.time()
-
-            if msg:
-                self._last_heartbeat_received_time = now
-                # if receive any messages even if Topic is END or ABORT or PEER_GONE
-                #    we still set peer_is_up_or_dead, as we no longer need to wait
-                self.peer_is_up_or_dead.set()
-                if msg.topic != Topic.HEARTBEAT and not self.asked_to_stop:
-                    self._add_message(msg)
-                if msg.topic in [Topic.END, Topic.ABORT]:
-                    break
-            else:
-                # is peer gone?
-                # ask the pipe for the last known active time of the peer
-                last_peer_active_time = p.get_last_peer_active_time()
-                if last_peer_active_time > self._last_heartbeat_received_time:
-                    self._last_heartbeat_received_time = last_peer_active_time
-
-                if (
-                    self.heartbeat_timeout
-                    and now - self._last_heartbeat_received_time > self.heartbeat_timeout
-                    and not self.asked_to_stop
-                ):
-                    elapsed = now - self._last_heartbeat_received_time
-                    self.logger.info(
-                        f"peer gone: no heartbeat for {elapsed:.1f}s (timeout={self.heartbeat_timeout}s)"
-                        f" last_active={self._last_heartbeat_received_time:.1f}"
-                    )
-                    self._add_message(
-                        self._make_event_message(
-                            Topic.PEER_GONE, f"missing heartbeat after {self.heartbeat_timeout} secs"
-                        )
-                    )
-                    break
-
-        self.reader = None
+        pass
 
     def _heartbeat(self):
-        last_heartbeat_sent_time = 0.0
-        while not self.asked_to_stop:
-            if self._pause:
-                time.sleep(self._check_interval)
-                continue
-            now = time.time()
-
-            # send heartbeat to the peer
-            if now - last_heartbeat_sent_time > self.heartbeat_interval:
-                try:
-                    self.send_to_peer(self._make_event_message(Topic.HEARTBEAT, ""), timeout=HEARTBEAT_SEND_TIMEOUT)
-                except Exception as ex:
-                    if not self.asked_to_stop:
-                        self.logger.debug(f"heartbeat send failed, stopping heartbeat: {ex}")
-                        self.asked_to_stop = True
-                    break
-                last_heartbeat_sent_time = now
-
-            time.sleep(self._check_interval)
-        self.heartbeat_sender = None
+        pass
 
     def get_next(self) -> Optional[Message]:
         """Gets the next message from the message queue.
@@ -423,21 +238,12 @@ class PipeHandler(object):
             A Message at the top of the message queue.
             If the queue is empty, returns None.
         """
-        if self.asked_to_stop:
-            return None
-
-        with self.lock:
-            if self.messages:
-                return self.messages.popleft()
-            else:
-                return None
+        pass
 
     def pause(self):
         """Stops heartbeat checking and sending."""
-        self._pause = True
+        pass
 
     def resume(self):
         """Resumes heartbeat checking and sending."""
-        if self._pause:
-            self._pause = False
-            self._last_heartbeat_received_time = time.time()
+        pass

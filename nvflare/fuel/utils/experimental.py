@@ -55,51 +55,12 @@ def experimental(reason):
         # Testing the experimental function
         test_f("Adam", "Eve")  # This should emit an experimental warning for use of the function.
     """
-
     def decorator(obj):
-        if inspect.isclass(obj):
-            fmt = "Use of experimental class {name}{reason}."
-            orig_cls_name = obj.__name__
-
-            class ExperimentalClass(obj):
-                def __new__(obj, *args, **kwargs):
-                    warnings.simplefilter("always", Warning)
-                    warnings.warn(
-                        fmt.format(
-                            name=orig_cls_name,
-                            reason=f" ({reason})" if reason else "",
-                        ),
-                        category=Warning,
-                        stacklevel=2,
-                    )
-                    warnings.simplefilter("default", Warning)
-                    return super(ExperimentalClass, obj).__new__(obj)
-
-            return ExperimentalClass
-        else:  # function
-            fmt = "Call to experimental function {name}{reason}."
-
-            @functools.wraps(obj)
-            def new_func(*args, **kwargs):
-                warnings.simplefilter("always", Warning)
-                warnings.warn(
-                    fmt.format(
-                        name=obj.__name__,
-                        reason=f" ({reason})" if reason else "",
-                    ),
-                    category=Warning,
-                    stacklevel=2,
-                )
-                warnings.simplefilter("default", Warning)
-                return obj(*args, **kwargs)
-
-            return new_func
-
-    if inspect.isclass(reason) or inspect.isfunction(reason):
-        # The @experimental is used without any 'reason'.
-        return decorator(reason)
-    elif isinstance(reason, str):
-        # The @experimental is used with a 'reason'.
-        return decorator
-    else:
-        raise TypeError(f"@experimental decorator `reason` expected to be string but got {type(reason)}")
+        class ExperimentalClass:
+            def __new__(obj, *args, **kwargs):
+                pass
+        pass
+    @functools.wraps(obj)
+    def new_func(*args, **kwargs):
+        pass
+    pass

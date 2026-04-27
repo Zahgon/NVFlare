@@ -31,8 +31,7 @@ def new_admin_client_name():
     Returns: a unique name
 
     """
-    uid = str(uuid.uuid4())
-    return f"{_NAME_PREFIX}{uid}"
+    pass
 
 
 def _is_valid_uid(data: str) -> bool:
@@ -44,14 +43,7 @@ def _is_valid_uid(data: str) -> bool:
     Returns: whether the data is a valid uid.
 
     """
-    try:
-        val = uuid.UUID(data, version=4)
-    except ValueError:
-        return False
-
-    # If data is a valid hex code, but an invalid uuid4,the UUID.__init__ will convert it to a
-    # valid uuid4. This is bad for validation purposes.
-    return val.hex == data.replace("-", "")
+    pass
 
 
 def is_valid_admin_client_name(name: str) -> bool:
@@ -63,10 +55,4 @@ def is_valid_admin_client_name(name: str) -> bool:
     Returns: whether the name is valid admin client name
 
     """
-    if not isinstance(name, str):
-        return False
-
-    if not name.startswith(_NAME_PREFIX):
-        return False
-
-    return _is_valid_uid(name[_NAME_PREFIX_LEN:])
+    pass

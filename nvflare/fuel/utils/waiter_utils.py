@@ -49,29 +49,4 @@ def conditional_wait(
         other integers: returned by condition_cb for other conditions met
 
     """
-    wait_time = min(_SMALL_WAIT, timeout)
-    start = time.time()
-    while True:
-        if waiter:
-            if waiter.wait(wait_time):
-                # the event just happened!
-                return WaiterRC.IS_SET
-        else:
-            time.sleep(wait_time)
-
-        if time.time() - start >= timeout:
-            return WaiterRC.TIMEOUT
-
-        # check conditions
-        if abort_signal and abort_signal.triggered:
-            return WaiterRC.ABORTED
-
-        if condition_cb:
-            try:
-                rc = condition_cb(**cb_kwargs)
-                if rc != WaiterRC.OK:
-                    # a bad condition is detected by the condition_cb
-                    # we return the rc from the condition_cb
-                    return rc
-            except:
-                return WaiterRC.ERROR
+    pass

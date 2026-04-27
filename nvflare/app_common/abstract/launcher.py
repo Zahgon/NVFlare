@@ -39,9 +39,7 @@ class Launcher(FLComponent, ABC):
     @staticmethod
     def get_app_dir(fl_ctx: FLContext) -> str:
         """Gets the deployed application directory."""
-        workspace: Workspace = fl_ctx.get_engine().get_workspace()
-        app_dir = workspace.get_app_dir(fl_ctx.get_job_id())
-        return os.path.abspath(app_dir)
+        pass
 
     def needs_deferred_stop(self) -> bool:
         """Returns True if stop_task() should be deferred to a background thread.
@@ -53,7 +51,7 @@ class Launcher(FLComponent, ABC):
         For launch_once=True launchers the subprocess lives for the entire job, so
         deferring would block the next round's launch indefinitely — return False.
         """
-        return False
+        pass
 
     @abstractmethod
     def launch_task(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> bool:

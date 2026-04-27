@@ -80,21 +80,11 @@ class BaseFedAvg(ModelController):
 
     def _maybe_cleanup_memory(self):
         """Perform memory cleanup if configured (every N rounds based on memory_gc_rounds)."""
-        if self.current_round is None:
-            return
-        if self.memory_gc_rounds > 0 and (self.current_round + 1) % self.memory_gc_rounds == 0:
-            self.info(f"Memory cleanup at round {self.current_round + 1}")
-            cleanup_memory()
+        pass
 
     @staticmethod
     def _check_results(results: List[FLModel]):
-        empty_clients = []
-        for _result in results:
-            if not _result.params:
-                empty_clients.append(_result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN))
-
-        if len(empty_clients) > 0:
-            raise ValueError(f"Result from client(s) {empty_clients} is empty!")
+        pass
 
     @staticmethod
     def aggregate_fn(results: List[FLModel]) -> FLModel:
@@ -105,42 +95,7 @@ class BaseFedAvg(ModelController):
             aggregation. If no aggregatable metrics remain after filtering, the
             aggregated metrics are returned as ``None``.
         """
-        if not results:
-            raise ValueError("received empty results for aggregation.")
-
-        aggr_helper = WeightedAggregationHelper()
-        aggr_metrics_helper = WeightedAggregationHelper()
-        all_metrics = True
-        for _result in results:
-            aggr_helper.add(
-                data=_result.params,
-                weight=_result.meta.get(FLMetaKey.NUM_STEPS_CURRENT_ROUND, 1.0),
-                contributor_name=_result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN),
-                contribution_round=_result.current_round,
-            )
-            if _result.metrics is None:
-                all_metrics = False
-            if all_metrics:
-                aggregatable = filter_aggregatable_metrics(_result.metrics)
-                if aggregatable:
-                    aggr_metrics_helper.add(
-                        data=aggregatable,
-                        weight=_result.meta.get(FLMetaKey.NUM_STEPS_CURRENT_ROUND, 1.0),
-                        contributor_name=_result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN),
-                        contribution_round=_result.current_round,
-                    )
-
-        aggr_params = aggr_helper.get_result()
-        aggr_metrics = aggr_metrics_helper.get_result() if all_metrics else None
-        aggr_metrics = aggr_metrics or None
-
-        aggr_result = FLModel(
-            params=aggr_params,
-            params_type=results[0].params_type,
-            metrics=aggr_metrics,
-            meta={"nr_aggregated": len(results), "current_round": results[0].current_round},
-        )
-        return aggr_result
+        pass
 
     def aggregate(self, results: List[FLModel], aggregate_fn=None) -> FLModel:
         """Called by the `run` routine to aggregate the training results of clients.
@@ -152,30 +107,7 @@ class BaseFedAvg(ModelController):
         Returns: aggregated FLModel.
 
         """
-        self.debug("Start aggregation.")
-        self.event(AppEventType.BEFORE_AGGREGATION)
-        self._check_results(results)
-
-        if not aggregate_fn:
-            aggregate_fn = self.aggregate_fn
-
-        self.info(f"aggregating {len(results)} update(s) at round {self.current_round}")
-        try:
-            aggr_result = aggregate_fn(results)
-        except Exception as e:
-            error_msg = f"Exception in aggregate call: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
-            return FLModel()
-        self._results = []
-
-        self.fire_event_with_data(
-            AppEventType.AFTER_AGGREGATION, self.fl_ctx, AppConstants.AGGREGATION_RESULT, aggr_result
-        )
-
-        self.debug("End aggregation.")
-
-        return aggr_result
+        pass
 
     def update_model(self, model, aggr_result):
         """Called by the `run` routine to update the current global model (self.model) given the aggregated result.
@@ -187,14 +119,4 @@ class BaseFedAvg(ModelController):
         Returns: None.
 
         """
-        self.event(AppEventType.BEFORE_SHAREABLE_TO_LEARNABLE)
-
-        model = FLModelUtils.update_model(model, aggr_result)
-
-        # persistor uses Learnable format to save model
-        ml = make_model_learnable(weights=model.params, meta_props=model.meta)
-        self.fl_ctx.set_prop(AppConstants.GLOBAL_MODEL, ml, private=True, sticky=True)
-
-        self.event(AppEventType.AFTER_SHAREABLE_TO_LEARNABLE)
-
-        return model
+        pass

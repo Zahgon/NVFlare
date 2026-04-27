@@ -40,22 +40,8 @@ class AzureSimpleBuilder(Builder):
 
     def build(self, project: Project, ctx: ProvisionContext):
         """Build CVM configuration for all participants."""
-        server = project.get_server()
-        if server and server.get_prop(PropKey.CC_ENABLED, False):
-            self._build_resources(server, ctx)
-
-        for client in project.get_clients():
-            if client.get_prop(PropKey.CC_ENABLED, False):
-                self._build_resources(client, ctx)
+        pass
 
     def _build_resources(self, entity: Entity, ctx: ProvisionContext):
         """Build resources for the entity."""
-        # Write authorizers to local resources
-        dest_dir = ctx.get_local_dir(entity)
-        authorizers = ctx[CC_AUTHORIZERS_KEY]
-        for authorizer in authorizers:
-            utils.write(
-                os.path.join(dest_dir, f"{authorizer['id']}__p_resources.json"),
-                json.dumps({"components": [authorizer]}, indent=2),
-                "t",
-            )
+        pass

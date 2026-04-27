@@ -63,4 +63,4 @@ class CyclicServerController(ServerSideController):
         self.cyclic_order = cyclic_order
 
     def prepare_config(self):
-        return {Constant.ORDER: self.cyclic_order}
+        pass

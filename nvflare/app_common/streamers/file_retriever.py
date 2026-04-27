@@ -64,33 +64,11 @@ class FileRetriever(ObjectRetriever):
         Returns:
 
         """
-        FileStreamer.register_stream_processing(
-            channel=channel,
-            topic=topic,
-            fl_ctx=fl_ctx,
-            dest_dir=self.dest_dir,
-            stream_done_cb=stream_done_cb,
-            **cb_kwargs,
-        )
+        pass
 
     def validate_request(self, request: Shareable, fl_ctx: FLContext) -> (str, Any):
         # the property name "file_name" in the request must match "file_name" attribute of the retrieve_file method
-        file_name = request.get("file_name")
-        if not file_name:
-            self.log_error(fl_ctx, "bad request: missing file_name")
-            return ReturnCode.BAD_REQUEST_DATA, None
-
-        file_path = os.path.join(self.source_dir, file_name)
-        if not os.path.isfile(file_path):
-            self.log_error(fl_ctx, f"bad request: requested file {file_path} is invalid")
-            return ReturnCode.BAD_REQUEST_DATA, None
-
-        source_dir = Path(self.source_dir).resolve()
-        normalized_path = Path(file_path).resolve()
-        if source_dir not in normalized_path.parents and source_dir != normalized_path:
-            self.log_error(fl_ctx, f"bad request: requested file {file_path} is outside of {self.source_dir}")
-            return ReturnCode.BAD_REQUEST_DATA, None
-        return ReturnCode.OK, file_path
+        pass
 
     def retrieve_file(self, from_site: str, fl_ctx: FLContext, timeout: float, file_name: str) -> (str, str):
         """Retrieve a file from the specified site.
@@ -105,7 +83,7 @@ class FileRetriever(ObjectRetriever):
         Returns: a tuple of (ReturnCode, location of the file received)
 
         """
-        return self.retrieve(from_site=from_site, fl_ctx=fl_ctx, timeout=timeout, file_name=file_name)
+        pass
 
     def do_stream(
         self, target: str, request: Shareable, fl_ctx: FLContext, stream_ctx: StreamContext, validated_data: Any
@@ -123,17 +101,7 @@ class FileRetriever(ObjectRetriever):
         Returns:
 
         """
-        file_path = validated_data
-        FileStreamer.stream_file(
-            targets=[target],
-            stream_ctx=stream_ctx,
-            channel=self.stream_channel,
-            topic=self.topic,
-            file_name=file_path,
-            fl_ctx=fl_ctx,
-            optional=self.stream_msg_optional,
-            secure=self.stream_msg_secure,
-        )
+        pass
 
     def get_result(self, stream_ctx: StreamContext) -> (str, Any):
         """Called on the stream receiving side.
@@ -146,5 +114,4 @@ class FileRetriever(ObjectRetriever):
         Returns:
 
         """
-        self.logger.info(f"getting result from stream ctx: {stream_ctx}")
-        return FileStreamer.get_rc(stream_ctx), FileStreamer.get_file_location(stream_ctx)
+        pass

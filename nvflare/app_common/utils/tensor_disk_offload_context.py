@@ -26,38 +26,9 @@ def apply_enable_tensor_disk_offload(
     Returns:
       (previous value, applied flag).
     """
-    if not engine:
-        return None, False
-
-    run_manager = getattr(engine, "run_manager", None)
-    if run_manager and run_manager.cell:
-        cell = run_manager.cell
-    else:
-        cell = engine.get_cell()
-    if not cell:
-        return None, False
-
-    previous = cell.get_fobs_context().get(_ENABLE_TENSOR_DISK_OFFLOAD, False)
-    if previous != enabled:
-        cell.update_fobs_context({_ENABLE_TENSOR_DISK_OFFLOAD: enabled})
-    return previous, True
+    pass
 
 
 def restore_enable_tensor_disk_offload(engine, previous_value: Any) -> None:
     """Restore prior enable_tensor_disk_offload value on a cell."""
-    # previous_value is None only when apply was not executed because no
-    # engine/cell was available; False is a valid prior value and must restore.
-    if not engine or previous_value is None:
-        return
-
-    run_manager = getattr(engine, "run_manager", None)
-    if run_manager and run_manager.cell:
-        cell = run_manager.cell
-    else:
-        cell = engine.get_cell()
-    if not cell:
-        return
-
-    current = cell.get_fobs_context().get(_ENABLE_TENSOR_DISK_OFFLOAD, False)
-    if current != previous_value:
-        cell.update_fobs_context({_ENABLE_TENSOR_DISK_OFFLOAD: previous_value})
+    pass

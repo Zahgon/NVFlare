@@ -49,35 +49,14 @@ class ExecutorchShareableGenerator(ShareableGenerator):
         Returns:
             model class instance
         """
-        try:
-            module_path, class_name = model_path.rsplit(".", 1)
-            module = importlib.import_module(module_path)
-            model_class = getattr(module, class_name)
-            return model_class
-        except Exception as e:
-            self.system_panic(
-                reason=f"Failed to load model class from '{model_path}': {str(e)}",
-                fl_ctx=fl_ctx,
-            )
-            return None
+        pass
 
     def _export_current_model(self) -> bytes:
         """Export current model in ExecutorTorch format."""
-        input_tensor = torch.randn(self.input_shape)
-        label_tensor = torch.ones(self.output_shape, dtype=torch.int64)
-        model_buffer = export_model(self.model, input_tensor, label_tensor).buffer
-        base64_encoded = base64.b64encode(model_buffer).decode("utf-8")
-        return base64_encoded
+        pass
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        if event == EventType.START_RUN:
-            base_model = self._load_model(self.base_model_path, fl_ctx)
-            executorch_model = self._load_model(self.executorch_model_path, fl_ctx)
-            base_model_inst = base_model()
-            self.model = executorch_model(base_model_inst)
-            # Verify self.model is a torch model
-            if not isinstance(self.model, torch.nn.Module):
-                self.system_panic(reason="Model is not a torch model", fl_ctx=fl_ctx)
+        pass
 
     def learnable_to_shareable(self, model_learnable: ModelLearnable, fl_ctx: FLContext) -> Shareable:
         """Convert ModelLearnable to Shareable.
@@ -89,23 +68,7 @@ class ExecutorchShareableGenerator(ShareableGenerator):
         Returns:
             Shareable: a shareable containing a DXO object.
         """
-        # Compose shareable
-        task_data = Shareable()
-        # Update model weights using global model weights
-        model_weights = model_learnable[ModelLearnableKey.WEIGHTS]
-        # Add 'net' to model_weight keys and convert numpy to tensor
-        # so that it can be loaded by model.load_state_dict
-        model_weights = {"net." + k: torch.from_numpy(v) for k, v in model_weights.items()}
-        self.model.load_state_dict(model_weights)
-        # Convert to buffer
-        model_buffer = self._export_current_model()
-        task_data[MsgKey.PAYLOAD] = {
-            ModelExchangeFormat.MODEL_BUFFER: model_buffer,
-            ModelExchangeFormat.MODEL_BUFFER_TYPE: ModelBufferType.EXECUTORCH,
-            ModelExchangeFormat.MODEL_BUFFER_NATIVE_FORMAT: ModelNativeFormat.BINARY,
-            ModelExchangeFormat.MODEL_BUFFER_ENCODING: ModelEncoding.BASE64,
-        }
-        return task_data
+        pass
 
     def shareable_to_learnable(self, shareable: Shareable, fl_ctx: FLContext) -> ModelLearnable:
         """Convert Shareable to ModelLearnable.
@@ -123,23 +86,4 @@ class ExecutorchShareableGenerator(ShareableGenerator):
             TypeError: if shareable is not of type shareable
             ValueError: if data_kind is not `DataKind.WEIGHTS` and is not `DataKind.WEIGHT_DIFF`
         """
-        if not isinstance(shareable, Shareable):
-            raise TypeError("shareable must be Shareable, but got {}.".format(type(shareable)))
-
-        base_model = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-        weight_to_add = shareable.get(MsgKey.RESULT)
-        divide_factor = shareable.get(MsgKey.NUM_DEVICES)
-
-        # apply updates - only diff mode from device
-        if not base_model:
-            self.system_panic(reason="No global base model found for processing WEIGHT_DIFF!", fl_ctx=fl_ctx)
-            return base_model
-        weights = base_model[ModelLearnableKey.WEIGHTS]
-        # apply updates
-        for k, v in weight_to_add.items():
-            # weights_to_add in executorch json format, convert to numpy array
-            # and divide by number of devices
-            weight_to_add = np.array(v["data"]).reshape(v["sizes"]) / divide_factor
-            weights[k] = weights[k] + weight_to_add
-
-        return base_model
+        pass

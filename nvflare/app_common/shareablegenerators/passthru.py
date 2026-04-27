@@ -19,13 +19,7 @@ from nvflare.app_common.abstract.shareable_generator import ShareableGenerator
 
 class PassthroughShareableGenerator(ShareableGenerator):
     def shareable_to_learnable(self, shareable: Shareable, fl_ctx: FLContext) -> Learnable:
-        result = Learnable()
-        for k, v in shareable.items():
-            result[k] = v
-        return result
+        pass
 
     def learnable_to_shareable(self, model: Learnable, fl_ctx: FLContext) -> Shareable:
-        result = Shareable()
-        for k, v in model.items():
-            result[k] = v
-        return result
+        pass

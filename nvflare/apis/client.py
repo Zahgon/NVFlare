@@ -46,34 +46,34 @@ class Client:
         self.props = {ClientPropKey.FQCN: name, ClientPropKey.FQSN: name, ClientPropKey.IS_LEAF: True}
 
     def set_token(self, token):
-        self.token = token
+        pass
 
     def get_token(self):
-        return self.token
+        pass
 
     def set_prop(self, name, value):
-        self.props[name] = value
+        pass
 
     def get_prop(self, name, default=None):
-        return self.props.get(name, default)
+        pass
 
     def set_fqcn(self, value: str):
-        self.set_prop(ClientPropKey.FQCN, value)
+        pass
 
     def get_fqcn(self):
-        return self.get_prop(ClientPropKey.FQCN)
+        pass
 
     def set_fqsn(self, value: str):
-        self.set_prop(ClientPropKey.FQSN, value)
+        pass
 
     def get_fqsn(self):
-        return self.get_prop(ClientPropKey.FQSN)
+        pass
 
     def set_is_leaf(self, value: bool):
-        self.set_prop(ClientPropKey.IS_LEAF, value)
+        pass
 
     def get_is_leaf(self):
-        return self.get_prop(ClientPropKey.IS_LEAF)
+        pass
 
     def to_dict(self) -> dict:
         """Convert the Client object to a dict representation.
@@ -84,21 +84,7 @@ class Client:
         Note that the client's token is not included in the result since it is authentication data.
 
         """
-        r = {ClientDictKey.NAME: self.name}
-
-        fqcn = self.get_fqcn()
-        if fqcn != self.name:
-            r[ClientDictKey.FQCN] = fqcn
-
-        fqsn = self.get_fqsn()
-        if fqsn != self.name:
-            r[ClientDictKey.FQSN] = fqsn
-
-        is_leaf = self.get_is_leaf()
-        if not is_leaf:
-            r[ClientDictKey.IS_LEAF] = False
-
-        return r
+        pass
 
 
 def from_dict(d: dict) -> Client:
@@ -110,25 +96,4 @@ def from_dict(d: dict) -> Client:
     Returns: a Client object
 
     """
-    if not isinstance(d, dict):
-        raise ValueError(f"expect client dict to be a dict but got {type(d)}")
-
-    name = d.get(ClientDictKey.NAME)
-    if not name:
-        raise ValueError(f"missing '{ClientDictKey.NAME}' from client dict")
-
-    c = Client(name=name, token="")
-
-    # If FQCN is missing, default to name
-    fqcn = d.get(ClientDictKey.FQCN, name)
-    c.set_fqcn(fqcn)
-
-    # If FQSN is missing, default to name
-    fqsn = d.get(ClientDictKey.FQSN, name)
-    c.set_fqsn(fqsn)
-
-    # If IS_LEAF is missing, default to True
-    is_leaf = d.get(ClientDictKey.IS_LEAF, True)
-    c.set_is_leaf(is_leaf)
-
-    return c
+    pass

@@ -48,11 +48,7 @@ class PassthroughResourceManager(ResourceManagerSpec, FLComponent):
         Raises:
             TypeError: if resource_requirement is not a dict.
         """
-        if not isinstance(resource_requirement, dict):
-            raise TypeError(f"resource_requirement should be of type dict, but got {type(resource_requirement)}.")
-
-        token = str(uuid.uuid4())
-        return True, token
+        pass
 
     def cancel_resources(self, resource_requirement: dict, token: str, fl_ctx: FLContext):
         """Cancels a previously reserved resource allocation.
@@ -64,7 +60,7 @@ class PassthroughResourceManager(ResourceManagerSpec, FLComponent):
             token: the reservation token returned by check_resources.
             fl_ctx: the FLContext.
         """
-        return None
+        pass
 
     def allocate_resources(self, resource_requirement: dict, token: str, fl_ctx: FLContext) -> dict:
         """Allocates resources by returning an empty dict.
@@ -79,7 +75,7 @@ class PassthroughResourceManager(ResourceManagerSpec, FLComponent):
         Returns:
             An empty dict.
         """
-        return {}
+        pass
 
     def free_resources(self, resources: dict, token: str, fl_ctx: FLContext):
         """Frees previously allocated resources.
@@ -102,4 +98,4 @@ class PassthroughResourceManager(ResourceManagerSpec, FLComponent):
         Returns:
             An empty dict, as this manager does not track resources.
         """
-        return {}
+        pass

@@ -22,46 +22,16 @@ pd_readers = {
 
 
 def _to_data_tuple(data):
-    data_num = data.shape[0]
-    # split to feature and label
-    x = data.iloc[:, 1:]
-    y = data.iloc[:, 0]
-    return x.to_numpy(), y.to_numpy(), data_num
+    pass
 
 
 def get_pandas_reader(data_path: str):
-    from nvflare.app_common.utils.file_utils import get_file_format
-
-    file_format = get_file_format(data_path)
-    reader = pd_readers.get(file_format, None)
-    if reader is None:
-        raise ValueError(f"no pandas reader for given file format {file_format}")
-    return reader
+    pass
 
 
 def load_data(data_path: str, require_header: bool = False):
-    reader = get_pandas_reader(data_path)
-    if hasattr(reader, "header") and require_header:
-        data = reader(data_path)
-    else:
-        data = reader(data_path, header=None)
-
-    return _to_data_tuple(data)
+    pass
 
 
 def load_data_for_range(data_path: str, start: int, end: int, require_header: bool = False):
-    reader = get_pandas_reader(data_path)
-
-    if hasattr(reader, "skiprows"):
-        data_size = end - start
-        if hasattr(reader, "header") and require_header:
-            data = reader(data_path, skiprows=start, nrows=data_size)
-        else:
-            data = reader(data_path, header=None, skiprows=start, nrows=data_size)
-    else:
-        if hasattr(reader, "header") and require_header:
-            data = reader(data_path).iloc[start:end]
-        else:
-            data = reader(data_path, header=None).iloc[start:end]
-
-    return _to_data_tuple(data)
+    pass

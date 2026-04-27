@@ -22,24 +22,17 @@ from nvflare.fuel.utils.fobs.datum import DatumManager
 
 class CKKSVectorDecomposer(fobs.Decomposer):
     def supported_type(self):
-        return ts.CKKSVector
+        pass
 
     def decompose(self, target: ts.CKKSVector, manager: DatumManager = None) -> Any:
-        return target.serialize(), target.context().serialize()
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> ts.CKKSVector:
-        vec_data, ctx_data = data
-        context = ts.context_from(ctx_data)
-        return ts.ckks_vector_from(context, vec_data)
+        pass
 
 
 def register():
-    if register.registered:
-        return
-
-    fobs.register(CKKSVectorDecomposer)
-
-    register.registered = True
+    pass
 
 
 register.registered = False

@@ -87,27 +87,25 @@ class StudyRegistry:
             }
 
     def has_user(self, user_name: str, study: str) -> bool:
-        return user_name in self._admins.get(study, set())
+        pass
 
     def get_sites(self, study: str) -> Optional[set]:
-        return self._sites.get(study)
+        pass
 
     def has_study(self, study: str) -> bool:
-        return study in self._studies
+        pass
 
     def has_org(self, study: str, org: str) -> bool:
-        return org in self._site_orgs.get(study, {})
+        pass
 
     def get_site_orgs(self, study: str) -> Optional[dict]:
-        site_orgs = self._site_orgs.get(study)
-        return deepcopy(site_orgs) if site_orgs is not None else None
+        pass
 
     def get_studies(self) -> Dict[str, dict]:
-        return deepcopy(self._studies)
+        pass
 
     def get_study(self, study: str) -> Optional[dict]:
-        study_def = self._studies.get(study)
-        return deepcopy(study_def) if study_def is not None else None
+        pass
 
 
 class StudyRegistryService:
@@ -116,20 +114,20 @@ class StudyRegistryService:
 
     @staticmethod
     def initialize(registry: Optional[StudyRegistry]):
-        StudyRegistryService._registry = registry
+        pass
 
     @staticmethod
     def get_registry() -> Optional[StudyRegistry]:
-        return StudyRegistryService._registry
+        pass
 
     @staticmethod
     def reset():
-        StudyRegistryService._registry = None
+        pass
 
     @staticmethod
     def acquire_lock(timeout: float) -> bool:
-        return StudyRegistryService._mutation_lock.acquire(timeout=timeout)
+        pass
 
     @staticmethod
     def release_lock():
-        StudyRegistryService._mutation_lock.release()
+        pass

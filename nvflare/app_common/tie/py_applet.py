@@ -89,23 +89,7 @@ class _PyStarter:
         Returns: None
 
         """
-        try:
-            if not self.in_process:
-                # enable logging
-                configure_logging(self.workspace, job_id=self.job_id, file_prefix="applet")
-            self.runner.start(app_ctx)
-
-            # Note: run_func does not return until it runs to completion!
-            self.stopped = True
-        except Exception as e:
-            secure_log_traceback()
-            self.error = f"Exception starting applet: {secure_format_exception(e)}"
-            self.started = False
-            self.exit_code = Constant.EXIT_CODE_CANT_START
-            self.stopped = True
-            if not self.in_process:
-                # this is a separate process
-                sys.exit(self.exit_code)
+        pass
 
 
 class PyApplet(Applet, ABC):
@@ -144,38 +128,15 @@ class PyApplet(Applet, ABC):
         Returns:
 
         """
-        fl_ctx = app_ctx.get(Constant.APP_CTX_FL_CONTEXT)
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        job_id = fl_ctx.get_job_id()
-        runner = self.get_runner(app_ctx)
-
-        if not isinstance(runner, PyRunner):
-            raise RuntimeError(f"runner must be a PyRunner but got {type(runner)}")
-
-        self.runner = runner
-        self.starter = _PyStarter(runner, self.in_process, workspace, job_id)
-        if self.in_process:
-            self._start_in_thread(self.starter, app_ctx)
-        else:
-            self._start_in_process(self.starter, app_ctx)
+        pass
 
     def _start_in_thread(self, starter, app_ctx: dict):
         """Start the applet in a separate thread."""
-        self.logger.info("Starting applet in another thread")
-        thread = threading.Thread(target=starter.start, args=(app_ctx,), daemon=True, name="applet")
-        thread.start()
-        if not self.starter.started:
-            self.logger.error(f"Cannot start applet: {self.starter.error}")
-            raise RuntimeError(self.starter.error)
+        pass
 
     def _start_in_process(self, starter, app_ctx: dict):
         """Start the applet in a separate process."""
-        # must remove Constant.APP_CTX_FL_CONTEXT from ctx because it's not pickleable!
-        app_ctx.pop(Constant.APP_CTX_FL_CONTEXT, None)
-        self.logger.info("Starting applet in another process")
-        self.process = multiprocessing.Process(target=starter.start, args=(app_ctx,), daemon=True, name="applet")
-        self.process.start()
+        pass
 
     def stop(self, timeout=0.0) -> int:
         """Stop the applet
@@ -187,49 +148,7 @@ class PyApplet(Applet, ABC):
         Returns: None
 
         """
-        if not self.runner:
-            raise RuntimeError("PyRunner is not set")
-
-        if self.in_process:
-            self.runner.stop(timeout)
-            return 0
-        else:
-            p = self.process
-            self.process = None
-            if p:
-                assert isinstance(p, multiprocessing.Process)
-                if p.exitcode is None:
-                    # the process is still running
-                    if timeout > 0:
-                        # wait for the applet to stop by itself
-                        start = time.time()
-                        while time.time() - start < timeout:
-                            if p.exitcode is not None:
-                                # already stopped
-                                self.logger.info(f"applet stopped (rc={p.exitcode}) after {time.time() - start} secs")
-                                return p.exitcode
-                            time.sleep(0.1)
-                    self.logger.info("stopped applet by killing the process")
-                    p.kill()
-                    return -9
+        pass
 
     def is_stopped(self) -> (bool, int):
-        if not self.runner:
-            raise RuntimeError("PyRunner is not set")
-
-        if self.in_process:
-            if self.starter:
-                if self.starter.stopped:
-                    self.logger.info("starter is stopped!")
-                    return True, self.starter.exit_code
-            return self.runner.is_stopped()
-        else:
-            if self.process:
-                assert isinstance(self.process, multiprocessing.Process)
-                ec = self.process.exitcode
-                if ec is None:
-                    return False, 0
-                else:
-                    return True, ec
-            else:
-                return True, 0
+        pass

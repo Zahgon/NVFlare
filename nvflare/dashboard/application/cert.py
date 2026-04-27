@@ -46,24 +46,12 @@ class CertPair:
 
 
 def _pack(entity, pri_key, cert, passphrase=None):
-    ser_pri_key = serialize_pri_key(pri_key, passphrase)
-    ser_cert = serialize_cert(cert)
-    cert_pair = CertPair(entity, ser_pri_key, ser_cert)
-    return cert_pair
+    pass
 
 
 def make_root_cert(subject: Entity):
-    pri_key, pub_key = generate_keys()
-    cert = generate_cert(
-        subject=Identity(subject.name, subject.org, subject.role),
-        issuer=Identity(subject.name, subject.org, subject.role),
-        signing_pri_key=pri_key,
-        subject_pub_key=pub_key,
-        ca=True,
-    )
-    return _pack(subject, pri_key, cert, passphrase=dashboard_pp)
+    pass
 
 
 def deserialize_ca_key(ser_pri_key):
-    pri_key = serialization.load_pem_private_key(ser_pri_key, password=dashboard_pp, backend=default_backend())
-    return pri_key
+    pass

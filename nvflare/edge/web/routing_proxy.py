@@ -27,47 +27,23 @@ app = Flask(__name__)
 
 
 def clean_dict(value: Any):
-    if isinstance(value, dict):
-        return {k: clean_dict(v) for k, v in value.items() if v is not None}
-    return value
+    pass
 
 
 class FilteredJSONProvider(DefaultJSONProvider):
     sort_keys = False
 
     def dumps(self, obj: Any, **kwargs: Any) -> str:
-        return super().dumps(clean_dict(obj))
+        pass
 
 
 @app.errorhandler(ApiError)
 def handle_api_error(error: ApiError):
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
-    return response
+    pass
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Run proxy server with specified port, mapping file, and CA cert file."
-    )
-    # Required positional arguments
-    parser.add_argument("port", type=int, help="Port number to run the proxy server on.")
-    parser.add_argument("lcp_mapping_file", type=str, help="Path to the mapping file.")
-    parser.add_argument("ca_cert_file", type=str, help="Path to the CA certificate file.")
-
-    # Optional SSL cert/key
-    parser.add_argument(
-        "--ssl-cert", type=str, default=None, help="Path to SSL certificate file (optional, self-signed or CA-signed)."
-    )
-    parser.add_argument("--ssl-key", type=str, default=None, help="Path to SSL private key file (optional).")
-
-    args = parser.parse_args()
-
-    # If one SSL argument is provided, require both
-    if (args.ssl_cert and not args.ssl_key) or (args.ssl_key and not args.ssl_cert):
-        parser.error("Both --ssl-cert and --ssl-key must be provided together")
-
-    return args
+    pass
 
 
 if __name__ == "__main__":

@@ -54,23 +54,4 @@ class DeviceRunner(SimulationRunner):
         self.num_workers = num_workers
 
     def create_simulator(self, fl_ctx: FLContext) -> Optional[Simulator]:
-        engine = fl_ctx.get_engine()
-        job_meta = fl_ctx.get_prop(FLContextKey.JOB_META)
-        job_name = job_meta.get(JobMetaKey.JOB_NAME)
-
-        self.log_debug(fl_ctx, f"got job name from meta: {job_name}")
-
-        factory = engine.get_component(self.device_factory_id)
-        if not isinstance(factory, DeviceFactory):
-            self.system_panic(
-                f"component {self.device_factory_id} must be DeviceFactory but got {type(factory)}",
-                fl_ctx,
-            )
-            return None
-
-        return Simulator(
-            job_name=job_name,
-            device_factory=factory,
-            num_devices=self.num_devices,
-            num_workers=self.num_workers,
-        )
+        pass

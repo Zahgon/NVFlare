@@ -29,12 +29,12 @@ from nvflare.widgets.widget import Widget
 @singledispatch
 def to_serializable(val):
     """Default json serializable method."""
-    return str(val)
+    pass
 
 
 @to_serializable.register(np.float32)
 def ts_float32(val):
-    return np.float64(val)
+    pass
 
 
 class ValidationJsonGenerator(Widget):
@@ -53,56 +53,4 @@ class ValidationJsonGenerator(Widget):
         self._json_file_name = json_file_name
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._val_results.clear()
-        elif event_type == AppEventType.VALIDATION_RESULT_RECEIVED:
-            model_owner = fl_ctx.get_prop(AppConstants.MODEL_OWNER, None)
-            data_client = fl_ctx.get_prop(AppConstants.DATA_CLIENT, None)
-            val_results = fl_ctx.get_prop(AppConstants.VALIDATION_RESULT, None)
-
-            if not model_owner:
-                self.log_error(
-                    fl_ctx, "model_owner unknown. Validation result will not be saved to json", fire_event=False
-                )
-            if not data_client:
-                self.log_error(
-                    fl_ctx, "data_client unknown. Validation result will not be saved to json", fire_event=False
-                )
-
-            if val_results:
-                try:
-                    dxo = from_shareable(val_results)
-
-                    if dxo.data_kind == DataKind.METRICS:
-                        if data_client not in self._val_results:
-                            self._val_results[data_client] = {}
-                        self._val_results[data_client][model_owner] = dxo.data
-                    elif dxo.data_kind == DataKind.COLLECTION:
-                        # The DXO could contain multiple sub-DXOs (e.g. received from a T2 system)
-                        leaf_dxos, errors = get_leaf_dxos(dxo, data_client)
-                        if errors:
-                            for err in errors:
-                                self.log_error(fl_ctx, f"Bad result from {data_client}: {err}")
-                        for _sub_data_client, _dxo in leaf_dxos.items():
-                            if _sub_data_client not in self._val_results:
-                                self._val_results[_sub_data_client] = {}
-                            self._val_results[_sub_data_client][model_owner] = _dxo.data
-                    else:
-                        self.log_error(
-                            fl_ctx,
-                            f"Expected dxo of kind METRICS or COLLECTION but got {dxo.data_kind} instead.",
-                            fire_event=False,
-                        )
-                except Exception:
-                    self.log_exception(fl_ctx, "Exception in handling validation result.", fire_event=False)
-            else:
-                self.log_error(fl_ctx, "Validation result not found.", fire_event=False)
-        elif event_type == EventType.END_RUN:
-            run_dir = fl_ctx.get_engine().get_workspace().get_run_dir(fl_ctx.get_job_id())
-            cross_val_res_dir = os.path.join(run_dir, self._results_dir)
-            if not os.path.exists(cross_val_res_dir):
-                os.makedirs(cross_val_res_dir)
-
-            res_file_path = os.path.join(cross_val_res_dir, self._json_file_name)
-            with open(res_file_path, "w") as f:
-                json.dump(self._val_results, f, default=to_serializable)
+        pass

@@ -16,19 +16,4 @@ from nvflare.apis.fl_constant import FilterKey, FLContextKey
 
 
 def apply_filters(filters_name, filter_data, fl_ctx, config_filters, task_name, direction):
-    filter_list = []
-    fl_ctx.set_prop(FLContextKey.FILTER_DIRECTION, direction, private=True, sticky=False)
-    scope_object = fl_ctx.get_prop(FLContextKey.SCOPE_OBJECT)
-    if scope_object:
-        filters = getattr(scope_object, filters_name)
-        if filters:
-            filter_list.extend(filters.get(direction, []))
-
-    task_filter_list = config_filters.get(task_name + FilterKey.DELIMITER + direction)
-    if task_filter_list:
-        filter_list.extend(task_filter_list)
-
-    if filter_list:
-        for f in filter_list:
-            filter_data = f.process(filter_data, fl_ctx)
-    return filter_data
+    pass

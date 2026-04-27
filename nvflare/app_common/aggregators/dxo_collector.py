@@ -25,22 +25,10 @@ class DXOCollector(Aggregator):
         self.dxos = {}
 
     def reset(self, fl_ctx: FLContext):
-        self.dxos = {}
+        pass
 
     def accept(self, shareable: Shareable, fl_ctx: FLContext):
-        try:
-            dxo = from_shareable(shareable)
-        except Exception:
-            self.log_exception(fl_ctx, "shareable data is not a valid DXO")
-            return False
-        peer_ctx = fl_ctx.get_peer_context()
-        client_name = peer_ctx.get_identity_name()
-        if not client_name:
-            self.log_error(fl_ctx, "no identity info in peer context!")
-            return False
-        self.dxos[client_name] = dxo
-        return True
+        pass
 
     def aggregate(self, fl_ctx: FLContext):
-        collection_dxo = DXO(data_kind=DataKind.COLLECTION, data=self.dxos)
-        return collection_dxo.to_shareable()
+        pass

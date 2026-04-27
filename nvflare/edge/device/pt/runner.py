@@ -20,10 +20,4 @@ from .trainer import PTTrainer
 class PTRunner(FlareRunner):
 
     def add_builtin_resolvers(self):
-        self.resolver_registry.update(
-            {
-                "Trainer.DLTrainer": PTTrainer,
-                "Optimizer.SGD": SGDOptimizerWrapper,
-                "Optimizer.Adam": AdamOptimizerWrapper,
-            }
-        )
+        pass

@@ -47,10 +47,7 @@ class CellnetMonitor:
         self.workspace = workspace
 
     def cellnet_stopped(self):
-        touch_file = os.path.join(self.workspace, WorkspaceConstants.SHUTDOWN_FILE)
-        with open(touch_file, "a"):
-            os.utime(touch_file, None)
-        self.stop_event.set()
+        pass
 
 
 class _ConfigKey:
@@ -61,157 +58,11 @@ class _ConfigKey:
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--workspace", "-m", type=str, help="WORKSPACE folder", required=True)
-    parser.add_argument("--relay_config", "-s", type=str, help="relay config json file", required=True)
-    parser.add_argument("--set", metavar="KEY=VALUE", nargs="*")
-    args = parser.parse_args()
-    return args
+    pass
 
 
 def main(args):
-    workspace = Workspace(root_dir=args.workspace)
-    for name in [WorkspaceConstants.RESTART_FILE, WorkspaceConstants.SHUTDOWN_FILE]:
-        try:
-            f = workspace.get_file_path_in_root(name)
-            if os.path.exists(f):
-                os.remove(f)
-        except Exception as ex:
-            print(f"Could not remove file '{name}': {ex}.  Please check your system before starting FL.")
-            sys.exit(-1)
-
-    configure_logging(workspace)
-    logger = logging.getLogger()
-
-    relay_config_file = workspace.get_file_path_in_startup(args.relay_config)
-    with open(relay_config_file, "rt") as f:
-        relay_config = json.load(f)
-
-    if not isinstance(relay_config, dict):
-        raise RuntimeError(f"invalid relay config file {args.relay_config}")
-
-    project_name = relay_config.get(_ConfigKey.PROJECT_NAME)
-    if not project_name:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing {_ConfigKey.PROJECT_NAME}")
-
-    server_identity = relay_config.get(_ConfigKey.SERVER_IDENTITY)
-    if not server_identity:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing {_ConfigKey.SERVER_IDENTITY}")
-
-    my_identity = relay_config.get(_ConfigKey.IDENTITY)
-    if not my_identity:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing {_ConfigKey.IDENTITY}")
-
-    parent = relay_config.get(_ConfigKey.CONNECT_TO)
-    if not parent:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing {_ConfigKey.CONNECT_TO}")
-
-    parent_address = parent.get(ConnPropKey.ADDRESS)
-    if not parent_address:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing parent.address")
-
-    parent_scheme = parent.get(ConnPropKey.SCHEME)
-    if not parent_scheme:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing parent.scheme")
-
-    parent_fqcn = parent.get(ConnPropKey.FQCN)
-    if not parent_fqcn:
-        raise RuntimeError(f"invalid relay config file {args.relay_config}: missing parent.fqcn")
-
-    cmd_vars = parse_vars(args.set)
-    secure_train = cmd_vars.get("secure_train", False)
-    logger.debug(f"{cmd_vars=} {secure_train=}")
-
-    stop_event = threading.Event()
-    monitor = CellnetMonitor(stop_event, args.workspace)
-
-    ConfigService.initialize(
-        section_files={},
-        config_path=[args.workspace],
-    )
-
-    root_cert_path = search_file(SSL_ROOT_CERT, args.workspace)
-    if not root_cert_path:
-        raise ValueError(f"cannot find {SSL_ROOT_CERT} from config path {args.workspace}")
-
-    credentials = {
-        DriverParams.CA_CERT.value: root_cert_path,
-    }
-    enhance_credential_info(credentials)
-
-    conn_security = parent.get(ConnPropKey.CONNECTION_SECURITY)
-    secure_conn = True
-    if conn_security:
-        credentials[DriverParams.CONNECTION_SECURITY.value] = conn_security
-        if conn_security == ConnectionSecurity.CLEAR:
-            secure_conn = False
-    parent_url = make_url(parent_scheme, parent_address, secure_conn)
-
-    if parent_fqcn == FQCN.ROOT_SERVER:
-        my_fqcn = my_identity
-        root_url = parent_url
-        parent_url = None
-    else:
-        my_fqcn = FQCN.join([parent_fqcn, my_identity])
-        root_url = None
-
-    flare_decomposers.register()
-
-    cell = Cell(
-        fqcn=my_fqcn,
-        root_url=root_url,
-        secure=secure_conn,
-        credentials=credentials,
-        create_internal_listener=True,
-        parent_url=parent_url,
-    )
-    NetAgent(cell, agent_closed_cb=monitor.cellnet_stopped)
-    cell.start()
-
-    # authenticate
-    authenticator = Authenticator(
-        cell=cell,
-        project_name=project_name,
-        client_name=my_identity,
-        client_type=ClientType.RELAY,
-        expected_sp_identity=server_identity,
-        secure_mode=secure_train,
-        root_cert_file=credentials.get(DriverParams.CA_CERT.value),
-        private_key_file=credentials.get(DriverParams.CLIENT_KEY.value),
-        cert_file=credentials.get(DriverParams.CLIENT_CERT.value),
-        msg_timeout=5.0,
-        retry_interval=2.0,
-    )
-
-    abort_signal = Signal()
-    shared_fl_ctx = FLContext()
-    shared_fl_ctx.set_public_props({ReservedKey.IDENTITY_NAME: my_identity})
-    token, token_signature, ssid, token_verifier = authenticator.authenticate(
-        shared_fl_ctx=shared_fl_ctx,
-        abort_signal=abort_signal,
-    )
-
-    if secure_train:
-        if not isinstance(token_verifier, TokenVerifier):
-            raise RuntimeError(f"expect token_verifier to be TokenVerifier but got {type(token_verifier)}")
-
-        set_add_auth_headers_filters(cell, my_identity, token, token_signature, ssid)
-
-        cell.core_cell.add_incoming_filter(
-            channel="*",
-            topic="*",
-            cb=_validate_auth_headers,
-            token_verifier=token_verifier,
-            logger=logger,
-        )
-
-    logger.info(f"Successfully authenticated to {server_identity}: {token=} {ssid=}")
-
-    # wait until stopped
-    logger.info(f"Started relay {my_identity=} {my_fqcn=} {root_url=} {parent_url=} {parent_fqcn=}")
-    stop_event.wait()
-    cell.stop()
-    logger.info(f"Relay {my_fqcn} stopped.")
+    pass
 
 
 def _validate_auth_headers(message: CellMessage, token_verifier: TokenVerifier, logger):
@@ -220,7 +71,7 @@ def _validate_auth_headers(message: CellMessage, token_verifier: TokenVerifier, 
         message: the message to validate
     Returns:
     """
-    return validate_auth_headers(message, token_verifier, logger)
+    pass
 
 
 if __name__ == "__main__":

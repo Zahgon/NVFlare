@@ -45,49 +45,13 @@ class SplitNNLearnerExecutor(Executor):
         self.train_task_name = train_task_name
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.initialize(fl_ctx)
-        elif event_type == EventType.ABORT_TASK:
-            try:
-                if self.learner:
-                    self.learner.abort(fl_ctx)
-            except Exception as e:
-                self.log_exception(fl_ctx, f"learner abort exception: {secure_format_exception(e)}")
-        elif event_type == EventType.END_RUN:
-            self.finalize(fl_ctx)
+        pass
 
     def initialize(self, fl_ctx: FLContext):
-        try:
-            engine = fl_ctx.get_engine()
-            self.learner = engine.get_component(self.learner_id)
-            if not isinstance(self.learner, Learner):
-                raise TypeError(f"learner must be Learner type. Got: {type(self.learner)}")
-            self.learner.initialize(engine.get_all_components(), fl_ctx)
-        except Exception as e:
-            self.log_exception(fl_ctx, f"learner initialize exception: {secure_format_exception(e)}")
+        pass
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        self.log_info(fl_ctx, f"Client trainer got task: {task_name}")
-
-        self.log_info(fl_ctx, f"Executing task {task_name}...")
-        try:
-            if task_name == self.init_model_task_name:
-                self.log_info(fl_ctx, "Initializing model...")
-                return self.learner.init_model(shareable=shareable, fl_ctx=fl_ctx, abort_signal=abort_signal)
-            elif task_name == self.train_task_name:
-                self.log_info(fl_ctx, "Running training...")
-                return self.learner.train(shareable=shareable, fl_ctx=fl_ctx, abort_signal=abort_signal)
-            else:
-                self.log_error(fl_ctx, f"Could not handle task: {task_name}")
-                return make_reply(ReturnCode.TASK_UNKNOWN)
-        except Exception as e:
-            # Task execution error, return EXECUTION_EXCEPTION Shareable
-            self.log_exception(fl_ctx, f"learner execute exception: {secure_format_exception(e)}")
-            return make_reply(ReturnCode.EXECUTION_EXCEPTION)
+        pass
 
     def finalize(self, fl_ctx: FLContext):
-        try:
-            if self.learner:
-                self.learner.finalize(fl_ctx)
-        except Exception as e:
-            self.log_exception(fl_ctx, f"learner finalize exception: {secure_format_exception(e)}")
+        pass

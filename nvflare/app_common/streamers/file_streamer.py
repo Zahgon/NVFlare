@@ -51,28 +51,10 @@ class _ChunkConsumer(BaseChunkConsumer):
         stream_ctx: StreamContext,
         fl_ctx: FLContext,
     ) -> Tuple[bool, Shareable]:
-        data = shareable.get(KEY_DATA)
-        data_size = shareable.get(KEY_DATA_SIZE)
-        self._validate_chunk(data, data_size)
-
-        if data:
-            self.received_size += data_size
-            self.file.write(data)
-
-        eof = shareable.get(KEY_EOF)
-        if eof:
-            if self.received_size != self.file_size:
-                err = f"received size {self.received_size} does not match expected file size {self.file_size}"
-                self.logger.error(err)
-                raise ValueError(err)
-            return False, make_reply(ReturnCode.OK)
-        return True, make_reply(ReturnCode.OK)
+        pass
 
     def finalize(self, stream_ctx: StreamContext, fl_ctx: FLContext):
-        if self.file:
-            file_location = stream_ctx.get(KEY_FILE_LOCATION)
-            self.file.close()
-            self.logger.debug(f"closed file {file_location}")
+        pass
 
 
 class _ChunkConsumerFactory(ConsumerFactory):
@@ -80,7 +62,7 @@ class _ChunkConsumerFactory(ConsumerFactory):
         self.dest_dir = dest_dir
 
     def get_consumer(self, stream_ctx: StreamContext, fl_ctx: FLContext) -> ObjectConsumer:
-        return _ChunkConsumer(stream_ctx, self.dest_dir)
+        pass
 
 
 class _ChunkProducer(BaseChunkProducer):
@@ -95,20 +77,7 @@ class _ChunkProducer(BaseChunkProducer):
         stream_ctx: StreamContext,
         fl_ctx: FLContext,
     ) -> Tuple[Shareable, float]:
-        chunk = self.file.read(self.chunk_size)
-        size = 0
-        if chunk:
-            size = len(chunk)
-
-        if not chunk or len(chunk) < self.chunk_size:
-            self.eof = True
-
-        self.logger.debug(f"sending chunk {size=}")
-        result = Shareable()
-        result[KEY_DATA] = chunk
-        result[KEY_DATA_SIZE] = size
-        result[KEY_EOF] = self.eof
-        return result, self.timeout
+        pass
 
 
 class FileStreamer(StreamerBase):
@@ -138,24 +107,7 @@ class FileStreamer(StreamerBase):
         Notes: the stream_done_cb must follow stream_done_cb_signature as defined in apis.streaming.
 
         """
-        if not dest_dir:
-            dest_dir = tempfile.gettempdir()
-
-        if not os.path.isdir(dest_dir):
-            raise ValueError(f"dest_dir '{dest_dir}' is not a valid dir")
-
-        engine = fl_ctx.get_engine()
-        if not isinstance(engine, StreamableEngine):
-            raise RuntimeError(f"engine must be StreamableEngine but got {type(engine)}")
-
-        engine.register_stream_processing(
-            channel=channel,
-            topic=topic,
-            factory=_ChunkConsumerFactory(dest_dir),
-            stream_done_cb=stream_done_cb,
-            consumed_cb=chunk_consumed_cb,
-            **cb_kwargs,
-        )
+        pass
 
     @staticmethod
     def stream_file(
@@ -190,42 +142,7 @@ class FileStreamer(StreamerBase):
 
         Notes: this is a blocking call - only returns after the streaming is done.
         """
-        if not os.path.isfile(file_name):
-            raise ValueError(f"file {file_name} is not a valid file")
-
-        if not chunk_size:
-            chunk_size = 1024 * 1024
-        check_positive_int("chunk_size", chunk_size)
-
-        if not chunk_timeout:
-            chunk_timeout = 5.0
-        check_positive_number("chunk_timeout", chunk_timeout)
-
-        file_stats = os.stat(file_name)
-        file_size = file_stats.st_size
-        if not stream_ctx:
-            stream_ctx = {}
-        stream_ctx[KEY_FILE_SIZE] = file_size
-
-        with open(file_name, "rb") as file:
-            producer = _ChunkProducer(file, chunk_size, chunk_timeout)
-            engine = fl_ctx.get_engine()
-
-            if not isinstance(engine, StreamableEngine):
-                raise RuntimeError(f"engine must be StreamableEngine but got {type(engine)}")
-
-            stream_ctx[KEY_FILE_NAME] = os.path.basename(file_name)
-
-            return engine.stream_objects(
-                channel=channel,
-                topic=topic,
-                stream_ctx=stream_ctx,
-                targets=targets,
-                producer=producer,
-                fl_ctx=fl_ctx,
-                optional=optional,
-                secure=secure,
-            )
+        pass
 
     @staticmethod
     def get_file_name(stream_ctx: StreamContext):
@@ -238,7 +155,7 @@ class FileStreamer(StreamerBase):
         Returns: file base name
 
         """
-        return stream_ctx.get(KEY_FILE_NAME)
+        pass
 
     @staticmethod
     def get_file_location(stream_ctx: StreamContext):
@@ -251,7 +168,7 @@ class FileStreamer(StreamerBase):
         Returns: location (full file path) of the received file
 
         """
-        return stream_ctx.get(KEY_FILE_LOCATION)
+        pass
 
     @staticmethod
     def get_file_size(stream_ctx: StreamContext):
@@ -264,4 +181,4 @@ class FileStreamer(StreamerBase):
         Returns: size (in bytes) of the received file
 
         """
-        return stream_ctx.get(KEY_FILE_SIZE)
+        pass

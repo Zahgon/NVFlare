@@ -22,7 +22,7 @@ class MockExecutor(FlowerExecutor):
         FlowerExecutor.__init__(self)
 
     def get_applet(self, fl_ctx: FLContext):
-        return MockClientApplet()
+        pass
 
 
 class MockPyExecutor(FlowerExecutor):
@@ -31,4 +31,4 @@ class MockPyExecutor(FlowerExecutor):
         self.in_process = in_process
 
     def get_applet(self, fl_ctx: FLContext):
-        return MockClientPyApplet(self.in_process)
+        pass

@@ -37,19 +37,7 @@ class _SimEnvValidator(BaseModel):
     @model_validator(mode="after")
     def check_num_clients_consistency(self):
         # Check if both num_clients and clients are not specified (invalid)
-        if self.num_clients == 0 and (self.clients is None or len(self.clients) == 0):
-            raise ValueError(
-                "Either 'num_clients' must be > 0 or 'clients' list must be provided. "
-                "Cannot run simulation with no clients."
-            )
-
-        # Check if both are specified and inconsistent
-        if self.num_clients > 0 and self.clients and len(self.clients) != self.num_clients:
-            raise ValueError(
-                f"Inconsistent number of clients: num_clients={self.num_clients} "
-                f"but clients list has {len(self.clients)} entries."
-            )
-        return self
+        pass
 
 
 class SimEnv(ExecEnv):
@@ -97,36 +85,16 @@ class SimEnv(ExecEnv):
 
     def deploy(self, job: FedJob):
         # Validate scripts exist locally for simulation
-        non_local_scripts = collect_non_local_scripts(job)
-        if non_local_scripts:
-            raise ValueError(
-                f"The following scripts do not exist locally: {non_local_scripts}. "
-                f"For SimEnv, all scripts must be present on the local machine."
-            )
-
-        job.simulator_run(
-            workspace=os.path.join(self.workspace_root, job.name),
-            n_clients=self.num_clients if self.clients is None else None,
-            clients=self.clients,
-            threads=self.num_threads,
-            gpu=self.gpu_config,
-            log_config=self.log_config,
-        )
-        return job.name
+        pass
 
     def get_job_status(self, job_id: str) -> Optional[str]:
         """Get job status - not supported in simulation environment."""
-        print(
-            f"Note, get_status returns None in SimEnv. The simulation logs can be found at {os.path.join(self.workspace_root, job_id)}"
-        )
-        return None
+        pass
 
     def abort_job(self, job_id: str) -> None:
         """Abort job - not supported in simulation environment."""
-        print("abort is not supported in a simulation environment, it will always run to completion.")
+        pass
 
     def get_job_result(self, job_id: str, timeout: float = 0.0) -> Optional[str]:
         """Get job result workspace path."""
-        if self.workspace_root is None:
-            raise RuntimeError("Simulation workspace_root is None - SimEnv may not be properly initialized")
-        return os.path.join(self.workspace_root, job_id)
+        pass

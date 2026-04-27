@@ -47,57 +47,22 @@ class ApiService(Widget, QueryHandler):
         self.register_event_handler(EventType.SYSTEM_END, self._shutdown)
 
     def _handle_all_request(self, request, event_type: str):
-        with self.engine.new_context() as fl_ctx:
-            assert isinstance(fl_ctx, FLContext)
-            fl_ctx.set_prop(EdgeContextKey.REQUEST_FROM_EDGE, request, sticky=False, private=True)
-            self.fire_event(event_type, fl_ctx)
-            result = fl_ctx.get_prop(EdgeContextKey.REPLY_TO_EDGE)
-            if not result:
-                self.logger.warning(f"no result from ETD for event {event_type}")
-            return result
+        pass
 
     def handle_job_request(self, request: JobRequest) -> JobResponse:
-        return self._handle_all_request(request, EdgeEventType.EDGE_JOB_REQUEST_RECEIVED)
+        pass
 
     def handle_task_request(self, request: TaskRequest) -> TaskResponse:
-        return self._handle_all_request(request, EdgeEventType.EDGE_TASK_REQUEST_RECEIVED)
+        pass
 
     def handle_selection_request(self, request: SelectionRequest) -> SelectionResponse:
-        return self._handle_all_request(request, EdgeEventType.EDGE_SELECTION_REQUEST_RECEIVED)
+        pass
 
     def handle_result_report(self, request: ResultReport) -> ResultResponse:
-        return self._handle_all_request(request, EdgeEventType.EDGE_RESULT_REPORT_RECEIVED)
+        pass
 
     def _startup(self, _event_type: str, fl_ctx: FLContext):
-        client_config = fl_ctx.get_prop(FLContextKey.CLIENT_CONFIG)
-        root_cert_path = client_config.get(SecureTrainConst.SSL_ROOT_CERT)
-        params = {
-            DriverParams.CA_CERT.value: root_cert_path,
-            DriverParams.CONNECTION_SECURITY.value: ConnectionSecurity.TLS,
-        }
-        enhance_credential_info(params)
-
-        ssl_credentials = None
-        ca_cert_file = root_cert_path
-        server_cert_file = params.get(DriverParams.SERVER_CERT.value)
-        server_key_file = params.get(DriverParams.SERVER_KEY.value)
-
-        if ca_cert_file and server_cert_file and server_key_file:
-            ssl_credentials = get_grpc_server_credentials(params)
-
-        self.engine = fl_ctx.get_engine()
-        # TODO: add ssl support
-        self.server = EdgeApiServer(
-            handler=self,
-            address=self.address,
-            max_workers=self.max_workers,
-            ssl_credentials=ssl_credentials,
-        )
-        t = threading.Thread(target=self.server.start, daemon=True)
-        t.start()
-        self.log_info(fl_ctx, f"Edge API GRPC Service is started on address {self.address}")
+        pass
 
     def _shutdown(self, _event_type: str, fl_ctx: FLContext):
-        self.log_info(fl_ctx, f"Edge API GRPC Service on address {self.address} is shutting down")
-        if self.server:
-            self.server.shutdown()
+        pass

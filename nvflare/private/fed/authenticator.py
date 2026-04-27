@@ -44,15 +44,7 @@ def _get_client_ip():
         The host IP
 
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("10.255.255.255", 1))  # doesn't even have to be reachable
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = "127.0.0.1"
-    finally:
-        s.close()
-    return ip
+    pass
 
 
 class Authenticator:
@@ -103,51 +95,7 @@ class Authenticator:
 
     def _challenge_server(self):
         # ask server for its info and make sure that it matches expected host
-        my_nonce = str(uuid.uuid4())
-        headers = {IdentityChallengeKey.COMMON_NAME: self.client_name, IdentityChallengeKey.NONCE: my_nonce}
-        challenge = new_cell_message(headers, None)
-        result = self.cell.send_request(
-            target=FQCN.ROOT_SERVER,
-            channel=CellChannel.SERVER_MAIN,
-            topic=CellChannelTopic.Challenge,
-            request=challenge,
-            timeout=self.msg_timeout,
-            optional=True,
-        )
-        return_code = result.get_header(MessageHeaderKey.RETURN_CODE)
-        error = result.get_header(MessageHeaderKey.ERROR, "")
-        self.logger.debug(f"challenge result: {return_code} {error}")
-        if return_code != ReturnCode.OK:
-            if return_code in [ReturnCode.TARGET_UNREACHABLE, ReturnCode.COMM_ERROR]:
-                # trigger retry
-                return None, None
-            err = result.get_header(MessageHeaderKey.ERROR, "")
-            raise FLCommunicationError(f"failed to challenge server: {return_code}: {err}")
-
-        reply = result.payload
-        assert isinstance(reply, Shareable)
-        server_nonce = reply.get(IdentityChallengeKey.NONCE)
-        cert_bytes = reply.get(IdentityChallengeKey.CERT)
-        server_cert = load_crt_bytes(cert_bytes)
-        server_signature = reply.get(IdentityChallengeKey.SIGNATURE)
-        server_cn = reply.get(IdentityChallengeKey.COMMON_NAME)
-
-        if server_cn != self.expected_sp_identity:
-            raise FLCommunicationError(
-                f"expected server identity is '{self.expected_sp_identity}' but got '{server_cn}'"
-            )
-
-        # Use IdentityVerifier to validate:
-        # - the server cert can be validated with the root cert. Note that all sites have the same root cert!
-        # - the asserted CN matches the CN on the server cert
-        # - signature received from the server is valid
-        id_verifier = IdentityVerifier(root_cert_file=self.root_cert_file)
-        id_verifier.verify_common_name(
-            asserter_cert=server_cert, asserted_cn=server_cn, nonce=my_nonce, signature=server_signature
-        )
-
-        self.logger.info(f"verified server identity '{self.expected_sp_identity}'")
-        return server_nonce, TokenVerifier(server_cert)
+        pass
 
     def authenticate(self, shared_fl_ctx: FLContext, abort_signal: Signal):
         """Register the client with the FLARE Server.
@@ -188,109 +136,7 @@ class Authenticator:
         Returns: A tuple of (token, token_signature, ssid, token_verifier)
 
         """
-        local_ip = _get_client_ip()
-        shareable = Shareable()
-        shareable.set_peer_context(shared_fl_ctx)
-
-        token_verifier = None
-        if self.secure_mode:
-            # explicitly authenticate with the Server
-            start_time = time.time()
-            while True:
-                server_nonce, token_verifier = self._challenge_server()
-
-                if abort_signal.triggered:
-                    return None, None, None, None
-
-                if server_nonce is None:
-                    # retry
-                    self.logger.info(f"re-challenge after {self.retry_interval} seconds")
-
-                    if self.timeout and time.time() - start_time > self.timeout:
-                        raise FLCommunicationError(f"cannot connect to server for {self.timeout} seconds")
-
-                    time.sleep(self.retry_interval)
-                else:
-                    break
-
-            id_asserter = IdentityAsserter(private_key_file=self.private_key_file, cert_file=self.cert_file)
-            cn_signature = id_asserter.sign_common_name(nonce=server_nonce)
-            shareable[IdentityChallengeKey.CERT] = id_asserter.cert_data
-            shareable[IdentityChallengeKey.SIGNATURE] = cn_signature
-            shareable[IdentityChallengeKey.COMMON_NAME] = id_asserter.cn
-            self.logger.debug(f"sent identity info for client {self.client_name}")
-
-        headers = {
-            CellMessageHeaderKeys.CLIENT_NAME: self.client_name,
-            CellMessageHeaderKeys.CLIENT_TYPE: self.client_type,
-            CellMessageHeaderKeys.CLIENT_IP: local_ip,
-            CellMessageHeaderKeys.PROJECT_NAME: self.project_name,
-        }
-        login_message = new_cell_message(headers, shareable)
-
-        self.logger.debug("Trying to register with server ...")
-        start_time = time.time()
-        while True:
-            try:
-                result = self.cell.send_request(
-                    target=FQCN.ROOT_SERVER,
-                    channel=CellChannel.SERVER_MAIN,
-                    topic=CellChannelTopic.Register,
-                    request=login_message,
-                    timeout=self.msg_timeout,
-                    optional=True,
-                )
-
-                if not isinstance(result, Message):
-                    raise FLCommunicationError(f"expect result to be Message but got {type(result)}")
-
-                return_code = result.get_header(MessageHeaderKey.RETURN_CODE)
-                self.logger.debug(f"register RC: {return_code}")
-                if return_code == ReturnCode.UNAUTHENTICATED:
-                    reason = result.get_header(MessageHeaderKey.ERROR)
-                    self.logger.error(f"registration rejected: {reason}")
-                    raise FLCommunicationError("error:client_registration " + reason)
-
-                payload = result.payload
-                if not isinstance(payload, dict):
-                    raise FLCommunicationError(f"expect payload to be dict but got {type(payload)}")
-
-                token = payload.get(CellMessageHeaderKeys.TOKEN)
-                token_signature = payload.get(CellMessageHeaderKeys.TOKEN_SIGNATURE, "NA")
-                ssid = payload.get(CellMessageHeaderKeys.SSID)
-
-                # Extract server's CC info if present (for CCManager validation)
-                server_cc_info = payload.get("_cc_info")
-                if server_cc_info:
-                    shared_fl_ctx.set_prop(key="_cc_info", value=server_cc_info, sticky=False, private=False)
-                    self.logger.debug("Received server CC info in registration response")
-
-                if not token and not abort_signal.triggered:
-                    if self.timeout and time.time() - start_time > self.timeout:
-                        # timed out
-                        raise FLCommunicationError(f"cannot authenticate to server for {self.timeout} seconds")
-
-                    time.sleep(self.retry_interval)
-                else:
-                    break
-
-            except Exception as ex:
-                traceback.print_exc()
-                raise FLCommunicationError("error:client_registration", ex)
-
-        # make sure token_verifier works
-        if token_verifier:
-            if not isinstance(token_verifier, TokenVerifier):
-                raise RuntimeError(f"expect token_verifier to be TokenVerifier but got {type(token_verifier)}")
-
-        if token_verifier and token_signature:
-            valid = token_verifier.verify(client_name=self.client_name, token=token, signature=token_signature)
-            if valid:
-                self.logger.info("Verified received token and signature successfully")
-            else:
-                raise RuntimeError("invalid token or verifier!")
-
-        return token, token_signature, ssid, token_verifier
+        pass
 
 
 def validate_auth_headers(message: CellMessage, token_verifier: TokenVerifier, logger):
@@ -302,42 +148,4 @@ def validate_auth_headers(message: CellMessage, token_verifier: TokenVerifier, l
 
     Returns:
     """
-    headers = message.headers
-    logger.debug(f"**** _validate_auth_headers: {headers=}")
-    topic = message.get_header(MessageHeaderKey.TOPIC)
-    channel = message.get_header(MessageHeaderKey.CHANNEL)
-
-    origin = message.get_header(MessageHeaderKey.ORIGIN)
-
-    if topic in [CellChannelTopic.Register, CellChannelTopic.Challenge] and channel == CellChannel.SERVER_MAIN:
-        # skip: client not registered yet
-        logger.debug(f"skip special message {topic=} {channel=}")
-        return None
-
-    client_name = message.get_header(CellMessageHeaderKeys.CLIENT_NAME)
-    err_text = f"unauthenticated msg ({channel=} {topic=}) received from {origin}"
-    if not client_name:
-        err = "missing client name"
-        logger.error(f"{err_text}: {err}")
-        return make_cellnet_reply(rc=F3ReturnCode.UNAUTHENTICATED, error=err)
-
-    token = message.get_header(CellMessageHeaderKeys.TOKEN)
-    if not token:
-        err = "missing auth token"
-        logger.error(f"{err_text}: {err}")
-        return make_cellnet_reply(rc=F3ReturnCode.UNAUTHENTICATED, error=err)
-
-    signature = message.get_header(CellMessageHeaderKeys.TOKEN_SIGNATURE)
-    if not signature:
-        err = "missing auth token signature"
-        logger.error(f"{err_text}: {err}")
-        return make_cellnet_reply(rc=F3ReturnCode.UNAUTHENTICATED, error=err)
-
-    if not token_verifier.verify(client_name, token, signature):
-        err = "invalid auth token signature"
-        logger.error(f"{err_text}: {err}")
-        return make_cellnet_reply(rc=F3ReturnCode.UNAUTHENTICATED, error=err)
-
-    # all good
-    logger.debug(f"auth headers valid from {origin}: {topic=} {channel=}")
-    return None
+    pass

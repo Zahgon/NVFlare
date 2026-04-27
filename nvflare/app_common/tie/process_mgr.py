@@ -114,62 +114,12 @@ class ProcessManager:
         Returns: None
 
         """
-        job_id = fl_ctx.get_job_id()
-
-        if self.cmd_desc.stdout_msg_prefix:
-            site_name = fl_ctx.get_identity_name()
-            self.msg_prefix = f"[{self.cmd_desc.stdout_msg_prefix}@{site_name}]"
-
-        if self.cmd_desc.log_file_name:
-            ws = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-            if not isinstance(ws, Workspace):
-                self.logger.error(
-                    f"FL context prop {FLContextKey.WORKSPACE_OBJECT} should be Workspace but got {type(ws)}"
-                )
-                raise RuntimeError("bad FLContext object")
-
-            run_dir = ws.get_run_dir(job_id)
-            log_file_path = os.path.join(run_dir, self.cmd_desc.log_file_name)
-            self.log_file = open(log_file_path, "a")
-
-        env = os.environ.copy()
-        if self.cmd_desc.env:
-            env.update(self.cmd_desc.env)
-
-        command_seq = shlex.split(self.cmd_desc.cmd)
-        self.process = subprocess.Popen(
-            command_seq,
-            shell=False,
-            stderr=subprocess.STDOUT,
-            cwd=self.cmd_desc.cwd,
-            env=env,
-            stdout=subprocess.PIPE,
-        )
-        log_writer = threading.Thread(target=self._write_log, daemon=True)
-        log_writer.start()
+        pass
 
     def _write_log(self):
         # write messages from the process's stdout pipe to log file and sys.stdout.
         # note that depending on how the process flushes out its output, the messages may be buffered/delayed.
-        while True:
-            line = self.process.stdout.readline()
-            if not line:
-                break
-
-            assert isinstance(line, bytes)
-            line = line.decode("utf-8")
-            # use file_lock to ensure file integrity since the log file could be closed by the self.stop() method!
-            with self.file_lock:
-                if self.log_file:
-                    self.log_file.write(line)
-                    self.log_file.flush()
-
-            if self.cmd_desc.log_stdout:
-                assert isinstance(line, str)
-                if self.msg_prefix and not line.startswith("\r"):
-                    line = f"{self.msg_prefix} {line}"
-                sys.stdout.write(line)
-                sys.stdout.flush()
+        pass
 
     def poll(self):
         """Perform a poll request on the process.
@@ -177,9 +127,7 @@ class ProcessManager:
         Returns: None if the process is still running; an exit code (int) if process is not running.
 
         """
-        if not self.process:
-            raise RuntimeError("there is no process to poll")
-        return self.process.poll()
+        pass
 
     def stop(self) -> int:
         """Stop the process.
@@ -188,33 +136,7 @@ class ProcessManager:
         Returns: the exit code of the process. If killed, returns -9.
 
         """
-        self.logger.info(f"stopping process: {self.cmd_desc.cmd}")
-        rc = self.poll()
-        if rc is None:
-            # process is still alive
-            stop_method = self.cmd_desc.stop_method
-            self.logger.info(f"process still running - {stop_method} process: {self.cmd_desc.cmd}")
-            try:
-                if stop_method == StopMethod.KILL:
-                    self.process.kill()
-                    rc = -9
-                else:
-                    self.process.terminate()
-                    rc = -15
-            except Exception as ex:
-                # ignore kill error
-                self.logger.debug(f"ignored exception {ex} from {stop_method}")
-                pass
-        else:
-            self.logger.info(f"process already stopped: {rc=}")
-
-        # close the log file if any
-        with self.file_lock:
-            if self.log_file:
-                self.logger.info("closed subprocess log file!")
-                self.log_file.close()
-                self.log_file = None
-        return rc
+        pass
 
 
 def start_process(cmd_desc: CommandDescriptor, fl_ctx: FLContext, stop_method="kill") -> ProcessManager:
@@ -228,34 +150,8 @@ def start_process(cmd_desc: CommandDescriptor, fl_ctx: FLContext, stop_method="k
     Returns: a ProcessManager object.
 
     """
-    mgr = ProcessManager(cmd_desc, stop_method)
-    mgr.start(fl_ctx)
-    return mgr
+    pass
 
 
 def run_command(cmd_desc: CommandDescriptor) -> str:
-    env = os.environ.copy()
-    if cmd_desc.env:
-        env.update(cmd_desc.env)
-
-    command_seq = shlex.split(cmd_desc.cmd)
-    p = subprocess.Popen(
-        command_seq,
-        shell=False,
-        stderr=subprocess.PIPE,
-        cwd=cmd_desc.cwd,
-        env=env,
-        stdout=subprocess.PIPE,
-    )
-
-    output = []
-    while True:
-        line = p.stdout.readline()
-        # prevent blocking
-        stderr_line = p.stderr.readline()
-        if not line and not stderr_line:
-            break
-
-        line = line.decode("utf-8")
-        output.append(line)
-    return "".join(output)
+    pass

@@ -39,82 +39,79 @@ class CommandCtxKey(object):
 
 class CommandContext(SimpleContext):
     def set_requester(self, r):
-        self.set_prop(CommandCtxKey.REQUESTER, r)
+        pass
 
     def get_requester(self):
-        return self.get_prop(CommandCtxKey.REQUESTER)
+        pass
 
     def set_command_result(self, result):
-        self.set_prop(CommandCtxKey.RESULT, result)
+        pass
 
     def get_command_result(self):
-        return self.get_prop(CommandCtxKey.RESULT)
+        pass
 
     def set_api(self, api):
-        self.set_prop(CommandCtxKey.API, api)
+        pass
 
     def get_api(self):
-        return self.get_prop(CommandCtxKey.API)
+        pass
 
     def set_command(self, command):
-        self.set_prop(CommandCtxKey.CMD, command)
+        pass
 
     def get_command(self):
-        return self.get_prop(CommandCtxKey.CMD)
+        pass
 
     def get_command_name(self):
-        args = self.get_command_args()
-        full_name = args[0]
-        parts = full_name.split(".")
-        return parts[-1]
+        pass
 
     def set_command_args(self, cmd_args):
-        self.set_prop(CommandCtxKey.CMD_ARGS, cmd_args)
+        pass
 
     def get_command_args(self):
-        return self.get_prop(CommandCtxKey.CMD_ARGS)
+        pass
 
     def set_command_entry(self, entry):
-        self.set_prop(CommandCtxKey.CMD_ENTRY, entry)
+        pass
 
     def get_command_entry(self):
-        return self.get_prop(CommandCtxKey.CMD_ENTRY)
+        pass
 
     def set_reply_processor(self, processor):
-        self.set_prop(CommandCtxKey.REPLY_PROCESSOR, processor)
+        pass
 
     def get_reply_processor(self):
-        return self.get_prop(CommandCtxKey.REPLY_PROCESSOR)
+        pass
 
     def set_json_processor(self, processor):
-        self.set_prop(CommandCtxKey.JSON_PROCESSOR, processor)
+        pass
 
     def get_json_processor(self):
-        return self.get_prop(CommandCtxKey.JSON_PROCESSOR)
+        pass
 
     def set_meta(self, meta):
-        self.set_prop(CommandCtxKey.META, meta)
+        pass
 
     def get_meta(self):
-        return self.get_prop(CommandCtxKey.META)
+        pass
 
     def set_custom_props(self, value):
-        self.set_prop(CommandCtxKey.CUSTOM_PROPS, value)
+        pass
 
     def get_custom_props(self):
-        return self.get_prop(CommandCtxKey.CUSTOM_PROPS)
+        pass
 
     def set_command_props(self, value):
-        self.set_prop(CommandCtxKey.CMD_PROPS, value)
+        pass
 
     def get_command_props(self):
-        return self.get_prop(CommandCtxKey.CMD_PROPS)
+        pass
 
     def set_command_headers(self, value):
-        self.set_prop(CommandCtxKey.CMD_HEADERS, value)
+        pass
 
     def get_command_headers(self):
-        return self.get_prop(CommandCtxKey.CMD_HEADERS)
+        pass
 
 
 class ApiPocValue(object):

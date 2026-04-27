@@ -22,4 +22,4 @@ class TemplateBuilder(Builder):
     """
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        print("TemplateBuilder is obsolete!")
+        pass

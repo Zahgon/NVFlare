@@ -60,29 +60,16 @@ class FlowerExecutor(TieExecutor):
         self.allow_runtime_dependency_installation = allow_runtime_dependency_installation
 
     def get_connector(self, fl_ctx: FLContext):
-        return GrpcClientConnector(
-            int_server_grpc_options=self.int_server_grpc_options,
-            per_msg_timeout=self.per_msg_timeout,
-            tx_timeout=self.tx_timeout,
-        )
+        pass
 
     def get_applet(self, fl_ctx: FLContext):
-        return FlowerClientApplet(
-            extra_env=self.extra_env,
-            allow_runtime_dependency_installation=self.allow_runtime_dependency_installation,
-        )
+        pass
 
     def configure(self, config: dict, fl_ctx: FLContext):
-        self.num_rounds = config.get(Constant.CONF_KEY_NUM_ROUNDS)
-        self._log_states(fl_ctx)
+        pass
 
     def get_connector_config(self, fl_ctx: FLContext) -> dict:
-        return {Constant.CONF_KEY_NUM_ROUNDS: self.num_rounds}
+        pass
 
     def _log_states(self, fl_ctx: FLContext):
-        self.log_info(fl_ctx, "States are:")
-        self.log_info(fl_ctx, f"    {self.int_server_grpc_options=}")
-        self.log_info(fl_ctx, f"    {self.per_msg_timeout=}")
-        self.log_info(fl_ctx, f"    {self.tx_timeout=}")
-        self.log_info(fl_ctx, f"    {self.client_shutdown_timeout=}")
-        self.log_info(fl_ctx, f"    {self.extra_env=}")
+        pass

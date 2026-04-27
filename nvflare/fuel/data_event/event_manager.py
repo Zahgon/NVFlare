@@ -42,4 +42,4 @@ class EventManager:
             event_name (str): The name of the event to be fired.
             event_data (Any, optional): Additional data associated with the event (default is None).
         """
-        self.data_bus.publish([event_name], event_data)
+        pass

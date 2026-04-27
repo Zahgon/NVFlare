@@ -102,30 +102,10 @@ class FLModel:
         self._summary: dict = {}
 
     def _add_to_summary(self, kvs: Dict):
-        for key, value in kvs.items():
-            if value:
-                if isinstance(value, dict):
-                    self._summary[key] = len(value)
-                elif isinstance(value, ParamsType):
-                    self._summary[key] = value
-                elif isinstance(value, int):
-                    self._summary[key] = value
-                else:
-                    self._summary[key] = type(value)
+        pass
 
     def summary(self):
-        kvs = dict(
-            params=self.params,
-            optimizer_params=self.optimizer_params,
-            metrics=self.metrics,
-            meta=self.meta,
-            params_type=self.params_type,
-            start_round=self.start_round,
-            current_round=self.current_round,
-            total_rounds=self.total_rounds,
-        )
-        self._add_to_summary(kvs)
-        return self._summary
+        pass
 
     def __repr__(self):
         return str(self.summary())

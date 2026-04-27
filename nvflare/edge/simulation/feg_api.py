@@ -48,51 +48,16 @@ class FegApi:
         }
 
     def get_job(self, request: JobRequest) -> JobResponse:
-        return self._do_post(
-            clazz=JobResponse,
-            url=urljoin(self.endpoint, "job"),
-            params={},
-            body={EdgeProtoKey.JOB_NAME: request.job_name, EdgeProtoKey.CAPABILITIES: request.capabilities},
-        )
+        pass
 
     def get_task(self, request: TaskRequest) -> TaskResponse:
-        return self._do_post(
-            clazz=TaskResponse,
-            url=urljoin(self.endpoint, "task"),
-            params={EdgeProtoKey.JOB_ID: request.job_id},
-            body={EdgeProtoKey.COOKIE: request.cookie} if request.cookie else {},
-        )
+        pass
 
     def report_result(self, report: ResultReport) -> ResultResponse:
-        body = {
-            EdgeProtoKey.STATUS: report.status,
-            EdgeProtoKey.TASK_NAME: report.task_name,
-            EdgeProtoKey.RESULT: report.result,
-        }
-        if report.cookie:
-            body[EdgeProtoKey.COOKIE] = report.cookie
-
-        return self._do_post(
-            clazz=ResultResponse,
-            url=urljoin(self.endpoint, "result"),
-            params={
-                EdgeProtoKey.JOB_ID: report.job_id,
-                EdgeProtoKey.TASK_ID: report.task_id,
-            },
-            body=body,
-        )
+        pass
 
     def get_selection(self, request: SelectionRequest) -> SelectionResponse:
-        return self._do_post(
-            clazz=SelectionResponse,
-            url=urljoin(self.endpoint, "selection"),
-            params={EdgeProtoKey.JOB_ID: request.job_id},
-            body={},
-        )
+        pass
 
     def _do_post(self, clazz, url, params, body):
-        response = requests.post(url, params=params, json=body, headers=self.common_headers)
-        code = response.status_code
-        if code == 200:
-            return clazz(**response.json())
-        raise ApiError(code, "ERROR", f"API Call failed with status code {code}", response.json())
+        pass

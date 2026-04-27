@@ -36,12 +36,4 @@ class UserInfo(BaseModel):
 
     @staticmethod
     def extract_from_dict(d: dict):
-        error = ""
-        user_info_dict = d.pop(EdgeProtoKey.USER_INFO, None)
-        if user_info_dict:
-            user_info = UserInfo()
-            user_info.update(user_info_dict)
-        else:
-            error = "missing user_info"
-            user_info = None
-        return error, user_info
+        pass

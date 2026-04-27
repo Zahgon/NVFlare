@@ -51,20 +51,4 @@ class HEInTimeAccumulateWeightedAggregator(InTimeAccumulateWeightedAggregator):
         decomposers.register()
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
-        shareable = super().aggregate(fl_ctx=fl_ctx)
-
-        # get processed keys and add to dxo
-        dxo = from_shareable(shareable)
-        weights = dxo.data
-        if not isinstance(weights, dict):
-            raise ValueError(f"Expected weights to be of type dict but got type {type(weights)}")
-
-        encrypted_layers = dict()
-        for k, v in weights.items():
-            if isinstance(v, ts.CKKSVector):
-                encrypted_layers[k] = True
-            else:
-                encrypted_layers[k] = False
-        dxo.set_meta_prop(MetaKey.PROCESSED_KEYS, encrypted_layers)
-
-        return dxo.to_shareable()
+        pass

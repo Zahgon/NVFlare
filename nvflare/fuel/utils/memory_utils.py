@@ -53,16 +53,7 @@ def _get_glibc() -> Optional[CDLL]:
     Returns:
         CDLL handle to glibc with malloc_trim configured, or None if not available.
     """
-    try:
-        libc = CDLL("libc.so.6")
-        if not hasattr(libc, "malloc_trim"):
-            return None
-        libc.malloc_trim.argtypes = [c_size_t]
-        libc.malloc_trim.restype = int
-        return libc
-    except (OSError, AttributeError):
-        # Not Linux, or glibc not available (e.g., Alpine/musl)
-        return None
+    pass
 
 
 @lru_cache(maxsize=1)
@@ -79,21 +70,7 @@ def get_allocator_type() -> str:
         - Detection is cached after first call
         - Safe to call frequently (no overhead after first call)
     """
-    try:
-        # Load the C library that the process is using
-        libc = ctypes.CDLL(None)
-
-        # jemalloc has mallctl function
-        if hasattr(libc, "mallctl"):
-            return "jemalloc"
-
-        # glibc has malloc_trim
-        if hasattr(libc, "malloc_trim"):
-            return "glibc"
-    except Exception:
-        pass
-
-    return "unknown"
+    pass
 
 
 def try_malloc_trim() -> Optional[int]:
@@ -110,14 +87,7 @@ def try_malloc_trim() -> Optional[int]:
         - Safe no-op on other platforms
         - Very low overhead, safe to call frequently
     """
-    libc = _get_glibc()
-    if libc is None:
-        return None
-    try:
-        return int(libc.malloc_trim(0))
-    except Exception as e:
-        logger.debug(f"malloc_trim failed: {e}")
-        return None
+    pass
 
 
 def cleanup_memory(cuda_empty_cache: bool = False) -> None:
@@ -138,33 +108,4 @@ def cleanup_memory(cuda_empty_cache: bool = False) -> None:
         The function automatically detects the allocator type and applies
         the appropriate cleanup strategy.
     """
-    # Step 1: Python garbage collection (always)
-    freed = gc.collect()
-    if freed > 0:
-        logger.info(f"gc.collect() freed {freed} unreachable objects")
-
-    # Step 2: Allocator-specific cleanup
-    allocator = get_allocator_type()
-    if allocator == "glibc":
-        # glibc: manually return freed pages to OS
-        result = try_malloc_trim()
-        if result is not None:
-            logger.debug(f"malloc_trim returned {result}")
-    elif allocator == "jemalloc":
-        # jemalloc: auto-decay handles memory return, no manual action needed
-        # Memory is returned based on MALLOC_CONF settings (dirty_decay_ms, muzzy_decay_ms)
-        logger.debug("jemalloc detected, relying on auto-decay for memory management")
-    # unknown: gc.collect() is the only safe action
-
-    # Step 3: Clear PyTorch CUDA cache if requested
-    if cuda_empty_cache:
-        try:
-            import torch
-
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                logger.debug("torch.cuda.empty_cache() called")
-        except ImportError:
-            pass  # PyTorch not installed
-        except Exception as e:
-            logger.debug(f"cuda.empty_cache failed: {e}")
+    pass

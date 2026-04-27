@@ -31,16 +31,7 @@ class LogWriter(FLComponent, ABC):
         self.engine = None
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABOUT_TO_START_RUN:
-            engine = fl_ctx.get_engine()
-            if self.metrics_sender_id:
-                self.sender = engine.get_component(self.metrics_sender_id)
-                if self.sender is None:
-                    self.system_panic("Cannot load MetricsSender!", fl_ctx=fl_ctx)
-                self.sender.writer = self.get_writer_name()
-            else:
-                self.sender = AnalyticsSender(self.event_type, self.get_writer_name())
-                self.sender.engine = engine
+        pass
 
     def write(self, tag: str, value, data_type: AnalyticsDataType, global_step: Optional[int] = None, **kwargs):
         """Writes a record.
@@ -54,11 +45,11 @@ class LogWriter(FLComponent, ABC):
         Raises:
             TypeError: global_step must be an int
         """
-        self.sender.add(tag=tag, value=value, data_type=data_type, global_step=global_step, **kwargs)
+        pass
 
     @abstractmethod
     def get_writer_name(self) -> LogWriterName:
         pass
 
     def get_default_metric_data_type(self) -> AnalyticsDataType:
-        return AnalyticsDataType.METRICS
+        pass

@@ -76,11 +76,7 @@ class FedAdminAgent(object):
         self.register_cell_cb()
 
     def register_cell_cb(self):
-        self.cell.register_request_cb(
-            channel=CellChannel.CLIENT_MAIN,
-            topic="*",
-            cb=self._dispatch_request,
-        )
+        pass
 
     def register_processor(self, processor: RequestProcessor):
         """To register the RequestProcessor.
@@ -89,103 +85,14 @@ class FedAdminAgent(object):
             processor: RequestProcessor
 
         """
-        if not isinstance(processor, RequestProcessor):
-            raise TypeError("processor must be an instance of RequestProcessor, but got {}".format(type(processor)))
-
-        topics = processor.get_topics()
-        for topic in topics:
-            assert topic not in self.processors, "duplicate processors for topic {}".format(topic)
-            self.processors[topic] = processor
+        pass
 
     def _dispatch_request(
         self,
         request: CellMessage,
         # *args, **kwargs
     ) -> CellMessage:
-        assert isinstance(request, CellMessage), "request must be CellMessage but got {}".format(type(request))
-        req = request.payload
-
-        assert isinstance(req, Message), "request payload must be Message but got {}".format(type(req))
-        topic = req.topic
-
-        # create audit record
-        if self.auditor:
-            user_name = req.get_header(RequestHeader.USER_NAME, "")
-            ref_event_id = req.get_header(ConnProps.EVENT_ID, "")
-            self.auditor.add_event(user=user_name, action=topic, ref=ref_event_id)
-
-        processor: RequestProcessor = self.processors.get(topic)
-        if processor:
-            with self.app_ctx.new_context() as fl_ctx:
-                peer_props = req.get_header(ReservedHeaderKey.PEER_PROPS)
-                if peer_props:
-                    peer_ctx = FLContext()
-                    peer_ctx.set_public_props(peer_props)
-                    fl_ctx.set_peer_context(peer_ctx)
-
-                try:
-                    reply = None
-
-                    cmd = req.get_header(RequestHeader.ADMIN_COMMAND, None)
-                    if cmd:
-                        site_security = SiteSecurity()
-                        self._set_security_data(req, fl_ctx)
-                        authorized, messages = site_security.authorization_check(self.app_ctx, cmd, fl_ctx)
-                        if not authorized:
-                            reply = error_reply(messages)
-
-                    if not reply:
-                        # see whether pre-authorization is needed
-                        authz_flag = req.get_header(RequestHeader.REQUIRE_AUTHZ)
-                        require_authz = authz_flag == "true"
-                        if require_authz:
-                            # authorize this command!
-                            if cmd:
-                                user = Person(
-                                    name=req.get_header(RequestHeader.USER_NAME, ""),
-                                    org=req.get_header(RequestHeader.USER_ORG, ""),
-                                    role=req.get_header(RequestHeader.USER_ROLE, ""),
-                                )
-                                submitter = Person(
-                                    name=req.get_header(RequestHeader.SUBMITTER_NAME, ""),
-                                    org=req.get_header(RequestHeader.SUBMITTER_ORG, ""),
-                                    role=req.get_header(RequestHeader.SUBMITTER_ROLE, ""),
-                                )
-
-                                authz_ctx = AuthzContext(user=user, submitter=submitter, right=cmd)
-                                authorized, err = AuthorizationService.authorize(authz_ctx)
-                                if err:
-                                    reply = error_reply(err)
-                                elif not authorized:
-                                    reply = error_reply(ReplyKeyword.NOT_AUTHORIZED)
-                            else:
-                                reply = error_reply("requires authz but missing admin command")
-
-                    if not reply:
-                        reply = processor.process(req, self.app_ctx)
-                        if reply is None:
-                            # simply ack
-                            reply = ok_reply()
-                        else:
-                            if not isinstance(reply, Message):
-                                raise RuntimeError(f"processor for topic {topic} failed to produce valid reply")
-                except Exception as e:
-                    secure_log_traceback()
-                    reply = error_reply(f"exception_occurred: {secure_format_exception(e)}")
-        else:
-            reply = error_reply("invalid_request")
-        return new_cell_message({}, reply)
+        pass
 
     def _set_security_data(self, req, fl_ctx: FLContext):
-        security_items = fl_ctx.get_prop(FLContextKey.SECURITY_ITEMS, {})
-
-        security_items[FLContextKey.USER_NAME] = req.get_header(RequestHeader.USER_NAME, "")
-        security_items[FLContextKey.USER_ORG] = req.get_header(RequestHeader.USER_ORG, "")
-        security_items[FLContextKey.USER_ROLE] = req.get_header(RequestHeader.USER_ROLE, "")
-        security_items[FLContextKey.SUBMITTER_NAME] = req.get_header(RequestHeader.SUBMITTER_NAME, "")
-        security_items[FLContextKey.SUBMITTER_ORG] = req.get_header(RequestHeader.SUBMITTER_ORG, "")
-        security_items[FLContextKey.SUBMITTER_ROLE] = req.get_header(RequestHeader.SUBMITTER_ROLE, "")
-
-        security_items[FLContextKey.JOB_META] = req.get_header(RequestHeader.JOB_META, {})
-
-        fl_ctx.set_prop(FLContextKey.SECURITY_ITEMS, security_items, private=True, sticky=False)
+        pass

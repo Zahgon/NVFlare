@@ -57,7 +57,7 @@ class Executor(FLComponent, ABC):
         Returns:
 
         """
-        return JobTargetType.CLIENT
+        pass
 
     def add_to_fed_job(self, job, ctx, **kwargs):
         """This method is used by Job API.
@@ -69,6 +69,4 @@ class Executor(FLComponent, ABC):
         Returns:
 
         """
-        job.check_kwargs(args_to_check=kwargs, args_expected={"tasks": False})
-        tasks = kwargs.get("tasks", ["*"])
-        job.add_executor(obj=self, tasks=tasks, ctx=ctx)
+        pass

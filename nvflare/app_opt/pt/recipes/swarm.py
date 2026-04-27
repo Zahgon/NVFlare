@@ -41,9 +41,7 @@ class _SwarmValidator(BaseModel):
     @field_validator("initial_ckpt")
     @classmethod
     def validate_initial_ckpt(cls, v):
-        if v is not None:
-            validate_ckpt(v)
-        return v
+        pass
 
     model_config = {"arbitrary_types_allowed": True}
 

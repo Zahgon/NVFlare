@@ -57,69 +57,13 @@ class BroadcastAndProcess(Controller):
         self.clients = clients
 
     def start_controller(self, fl_ctx: FLContext) -> None:
-        self.log_info(fl_ctx, "Initializing BroadcastAndProcess.")
-        if isinstance(self.processor, str):
-            checker_id = self.processor
-
-            # the processor is a component id - get the processor component
-            engine = fl_ctx.get_engine()
-            if not engine:
-                self.system_panic("Engine not found. BroadcastAndProcess exiting.", fl_ctx)
-                return
-
-            self.processor = engine.get_component(checker_id)
-            if not isinstance(self.processor, ResponseProcessor):
-                self.system_panic(
-                    f"component {checker_id} must be a ResponseProcessor type object but got {type(self.processor)}",
-                    fl_ctx,
-                )
+        pass
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext) -> None:
-        task_data = self.processor.create_task_data(self.task_name, fl_ctx)
-        if not isinstance(task_data, Shareable):
-            self.system_panic(
-                f"ResponseProcessor {type(self.processor)} failed to return valid task data: "
-                f"expect Shareable but got {type(task_data)}",
-                fl_ctx,
-            )
-            return
-
-        task = Task(
-            name=self.task_name,
-            data=task_data,
-            timeout=self.timeout,
-            result_received_cb=self._process_client_response,
-        )
-
-        self.broadcast_and_wait(
-            task=task,
-            wait_time_after_min_received=self.wait_time_after_min_received,
-            fl_ctx=fl_ctx,
-            abort_signal=abort_signal,
-            targets=self.clients,
-            min_responses=self.min_responses_required,
-        )
-
-        success = self.processor.final_process(fl_ctx)
-        if not success:
-            self.system_panic(reason=f"ResponseProcessor {type(self.processor)} failed final check!", fl_ctx=fl_ctx)
+        pass
 
     def _process_client_response(self, client_task: ClientTask, fl_ctx: FLContext) -> None:
-        task = client_task.task
-        response = client_task.result
-        client = client_task.client
-
-        ok = self.processor.process_client_response(
-            client=client, task_name=task.name, response=response, fl_ctx=fl_ctx
-        )
-
-        # Cleanup task result
-        client_task.result = None
-
-        if not ok:
-            self.system_panic(
-                reason=f"ResponseProcessor {type(self.processor)} failed to check client {client.name}", fl_ctx=fl_ctx
-            )
+        pass
 
     def stop_controller(self, fl_ctx: FLContext):
         pass

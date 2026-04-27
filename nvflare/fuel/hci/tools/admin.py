@@ -33,78 +33,7 @@ def main():
     """
     Script to launch the admin client to issue admin commands to the server.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--workspace", "-m", type=str, help="WORKSPACE folder", required=True)
-
-    parser.add_argument(
-        "--fed_admin", "-s", type=str, help="json file with configurations for launching admin client", required=True
-    )
-    parser.add_argument("--study", type=str, default=DEFAULT_STUDY, help="study context for this admin session")
-    parser.add_argument("--cli_history_size", type=int, default=DEFAULT_CLI_HIST_SIZE)
-    parser.add_argument("--with_debug", action="store_true")
-
-    args = parser.parse_args()
-
-    invalid, reason = name_check(args.study, "study")
-    if invalid:
-        print(reason)
-        sys.exit(1)
-
-    try:
-        os.chdir(args.workspace)
-        workspace = Workspace(root_dir=args.workspace)
-        conf = secure_load_admin_config(workspace)
-    except ConfigError as e:
-        print(f"{secure_format_exception(e)}")
-        return
-
-    admin_config = conf.get_admin_config()
-    if not admin_config:
-        print(f"Missing '{AdminConfigKey.ADMIN}' section in fed_admin configuration.")
-        return
-
-    modules = []
-    if admin_config.get(AdminConfigKey.WITH_FILE_TRANSFER):
-        modules.append(
-            FileTransferModule(
-                upload_dir=admin_config.get(AdminConfigKey.UPLOAD_DIR),
-                download_dir=admin_config.get(AdminConfigKey.DOWNLOAD_DIR),
-            )
-        )
-
-    if args.with_debug:
-        with_debug = True
-    else:
-        with_debug = admin_config.get(AdminConfigKey.WITH_DEBUG, False)
-
-    cli_history_size = admin_config.get(AdminConfigKey.CLI_HISTORY_SIZE)
-    if not cli_history_size:
-        cli_history_size = args.cli_history_size
-
-    if not isinstance(cli_history_size, int) or cli_history_size <= 0:
-        print(f"invalid cli_history_size {cli_history_size}: set it to {DEFAULT_CLI_HIST_SIZE}")
-        cli_history_size = DEFAULT_CLI_HIST_SIZE
-
-    if with_debug:
-        with_file_transfer = admin_config.get(AdminConfigKey.WITH_FILE_TRANSFER)
-        print(f"CLI History Size: {cli_history_size}")
-        print(f"File Transfer: {with_file_transfer}")
-        if with_file_transfer:
-            print(f"  Upload Dir: {admin_config.get(AdminConfigKey.UPLOAD_DIR)}")
-            print(f"  Download Dir: {admin_config.get(AdminConfigKey.DOWNLOAD_DIR)}")
-
-    client = AdminClient(
-        admin_config=admin_config,
-        cmd_modules=modules,
-        debug=with_debug,
-        username=admin_config.get(AdminConfigKey.USERNAME, ""),
-        handlers=conf.handlers,
-        cli_history_dir=args.workspace,
-        cli_history_size=cli_history_size,
-        study=args.study,
-    )
-
-    client.run()
+    pass
 
 
 if __name__ == "__main__":

@@ -21,24 +21,12 @@ from nvflare.private.fed.utils.fed_utils import get_job_meta_from_workspace
 
 class SimulatorClientRunManager(ClientRunManager):
     def create_job_processing_context_properties(self, workspace: Workspace, job_id):
-        job_meta = get_job_meta_from_workspace(workspace, job_id)
-        return {FLContextKey.JOB_META: job_meta}
+        pass
 
 
 class SimulatorClientAppRunner(ClientAppRunner):
     def create_run_manager(self, args, conf, federated_client, workspace):
-        run_manager = SimulatorClientRunManager(
-            client_name=args.client_name,
-            job_id=args.job_id,
-            workspace=workspace,
-            client=federated_client,
-            components=conf.runner_config.components,
-            handlers=conf.runner_config.handlers,
-            conf=conf,
-        )
-        with run_manager.new_context() as fl_ctx:
-            fl_ctx.set_prop(FLContextKey.SIMULATE_MODE, True, private=True, sticky=True)
-        return run_manager
+        pass
 
 
 class SimulatorServerAppRunner(ServerAppRunner):

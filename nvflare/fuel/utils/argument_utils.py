@@ -20,22 +20,7 @@ _false_set = {"no", "false", "f", "n", "0"}
 
 
 def str2bool(value, raise_exc=False):
-    if isinstance(value, bool):
-        return value
-
-    if isinstance(value, str):
-        value = value.lower()
-        if value in _true_set:
-            return True
-        if value in _false_set:
-            return False
-
-    if isinstance(value, int):
-        return value != 0
-
-    if raise_exc:
-        raise ValueError('Expected "%s"' % '", "'.join(_true_set | _false_set))
-    return None
+    pass
 
 
 def parse_var(s):
@@ -49,13 +34,7 @@ def parse_var(s):
 
     Returns: Tuple of key and value
     """
-    items = s.split("=")
-    key = items[0].strip()  # we remove blanks around keys, as is logical
-    value = ""
-    if len(items) > 1:
-        # rejoin the rest:
-        value = "=".join(items[1:])
-    return key, value
+    pass
 
 
 def parse_vars(items):
@@ -67,23 +46,7 @@ def parse_vars(items):
     Returns: dictionary like {'a': '1', 'b': '2', 'c': '3'}
 
     """
-    d = {}
-    if items:
-        for item in items:
-            key, value = parse_var(item)
-
-            # d[key] = value
-            try:
-                d[key] = int(value)
-            except ValueError:
-                try:
-                    d[key] = float(value)
-                except ValueError:
-                    try:
-                        d[key] = bool(str2bool(str(value), True))
-                    except ValueError:
-                        d[key] = value
-    return d
+    pass
 
 
 class SafeArgumentParser(argparse.ArgumentParser):
@@ -94,6 +57,4 @@ class SafeArgumentParser(argparse.ArgumentParser):
         super().__init__(**kwargs)
 
     def error(self, message):
-        writer = io.StringIO()
-        self.print_help(writer)
-        raise ValueError(message + "\n" + writer.getvalue())
+        pass

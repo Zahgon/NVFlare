@@ -83,33 +83,13 @@ class FileDownloadable(Downloadable):
         self.logger = get_obj_logger(self)
 
     def produce(self, state: dict, requester: str) -> Tuple[str, Any, dict]:
-        received_bytes = 0
-        if state:
-            received_bytes = state.get(_StateKey.RECEIVED_BYTES, 0)
-
-        if not isinstance(received_bytes, int) or received_bytes < 0:
-            self.logger.error(f"bad {_StateKey.RECEIVED_BYTES} {received_bytes} from {requester}")
-            return ProduceRC.ERROR, None, {}
-
-        if received_bytes >= self.size:
-            # already done
-            return ProduceRC.EOF, None, {}
-
-        num_bytes_to_send = min(self.chunk_size, self.size - received_bytes)
-        with open(self.name, "rb") as f:
-            f.seek(received_bytes)
-            chunk = f.read(num_bytes_to_send)
-
-        self.logger.debug(f"{received_bytes=}; sending {len(chunk)} bytes")
-        return ProduceRC.OK, chunk, {_StateKey.RECEIVED_BYTES: received_bytes + len(chunk)}
+        pass
 
     def downloaded_to_one(self, to_receiver: str, status: str):
-        if self.file_downloaded_cb:
-            self.file_downloaded_cb(to_receiver, status, self.name, **self.cb_kwargs)
+        pass
 
     def downloaded_to_all(self):
-        if self.file_downloaded_cb:
-            self.file_downloaded_cb("", "", self.name, **self.cb_kwargs)
+        pass
 
 
 def add_file(
@@ -137,11 +117,7 @@ def add_file(
         cb(to_receiver: str, status: str, file_name: str, **cb_kwargs)
 
     """
-    obj = FileDownloadable(file_name, chunk_size=chunk_size, file_downloaded_cb=file_downloaded_cb, **cb_kwargs)
-    return downloader.add_object(
-        obj=obj,
-        ref_id=ref_id,
-    )
+    pass
 
 
 def download_file(
@@ -169,28 +145,7 @@ def download_file(
     Returns: tuple of (error message if any, full path of the downloaded file).
 
     """
-    if location is not None:
-        if not os.path.exists(location):
-            raise ValueError(f"location '{location}' does not exist")
-
-        if not os.path.isdir(location):
-            raise ValueError(f"location '{location}' is not a valid dir")
-    else:
-        location = tempfile.gettempdir()
-
-    consumer = _ChunkConsumer(location)
-    download_object(
-        from_fqcn=from_fqcn,
-        ref_id=ref_id,
-        consumer=consumer,
-        per_request_timeout=per_request_timeout,
-        cell=cell,
-        secure=secure,
-        optional=optional,
-        abort_signal=abort_signal,
-    )
-
-    return consumer.error, consumer.file_path
+    pass
 
 
 class _ChunkConsumer(Consumer):
@@ -205,17 +160,10 @@ class _ChunkConsumer(Consumer):
         self.error = None
 
     def consume(self, ref_id, state: dict, data: Any) -> dict:
-        assert isinstance(data, bytes)
-        self.file.write(data)
-        self.total_bytes += len(data)
-        self.logger.debug(f"received {self.total_bytes} bytes for file {self.file_path}")
-        return {_StateKey.RECEIVED_BYTES: self.total_bytes}
+        pass
 
     def download_failed(self, ref_id, reason: str):
-        self.logger.error(f"failed to download file with ref {ref_id}: {reason}")
-        self.error = reason
-        self.file.close()
+        pass
 
     def download_completed(self, ref_id: str):
-        self.file.close()
-        self.logger.debug(f"closed file {self.file_path}")
+        pass

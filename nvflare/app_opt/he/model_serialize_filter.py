@@ -36,10 +36,7 @@ class HEModelSerializeFilter(PersistorFilter):
         self.tenseal_context_file = tenseal_context_file
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.tenseal_context = load_tenseal_context_from_workspace(self.tenseal_context_file, fl_ctx)
-        elif event_type == EventType.END_RUN:
-            self.tenseal_context = None
+        pass
 
     def process_post_load(self, learnable: Learnable, fl_ctx: FLContext) -> Learnable:
         """Filter process applied to the Learnable object after it was loaded.
@@ -51,7 +48,7 @@ class HEModelSerializeFilter(PersistorFilter):
         Returns:
             a Learnable object
         """
-        return deserialize_nested_dict(learnable, self.tenseal_context)
+        pass
 
     def process_pre_save(self, learnable: Learnable, fl_ctx: FLContext) -> Learnable:
         """Filter process applied to the Learnable object to support persisting when containing encrypted objects.
@@ -63,7 +60,7 @@ class HEModelSerializeFilter(PersistorFilter):
         Returns:
             a Learnable object
         """
-        return serialize_nested_dict(learnable)
+        pass
 
     def process_post_save(self, learnable: Learnable, fl_ctx: FLContext) -> Learnable:
         """Filter process applied to the Learnable object to support persisting when containing encrypted objects.
@@ -75,7 +72,7 @@ class HEModelSerializeFilter(PersistorFilter):
         Returns:
             a Learnable object
         """
-        return deserialize_nested_dict(learnable, self.tenseal_context)
+        pass
 
     def process_post_get(self, learnable: Learnable, fl_ctx: FLContext) -> Learnable:
         """Filter process applied to the Learnable object after it was returned.
@@ -87,4 +84,4 @@ class HEModelSerializeFilter(PersistorFilter):
         Returns:
             a Learnable object
         """
-        return deserialize_nested_dict(learnable, self.tenseal_context)
+        pass

@@ -31,11 +31,4 @@ class EdgeApiClient:
             self.logger.info("SSL Credentials not provided - will connect via insecure channel")
 
     def query(self, address: str, request: Request) -> Reply:
-        if self.ssl_credentials:
-            # SSL
-            channel = grpc.secure_channel(address, options=self.grpc_options, credentials=self.ssl_credentials)
-        else:
-            channel = grpc.insecure_channel(address, options=self.grpc_options)
-
-        stub = EdgeApiStub(channel)
-        return stub.Query(request)
+        pass

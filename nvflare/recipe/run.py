@@ -57,7 +57,7 @@ class Run:
         Returns:
             str: The job ID.
         """
-        return self.job_id
+        pass
 
     def get_status(self) -> Optional[str]:
         """Get the status of the run.
@@ -65,14 +65,7 @@ class Run:
         Returns:
             Optional[str]: The status of the run, or None if not available or on error.
         """
-        with self._lock:
-            if self._stopped:
-                return self._cached_status
-            try:
-                return self.exec_env.get_job_status(self.job_id)
-            except Exception as e:
-                self.logger.warning(f"Failed to get job status: {e}")
-                return None
+        pass
 
     def get_result(self, timeout: float = 0.0) -> Optional[str]:
         """Get the result workspace of the run.
@@ -85,32 +78,7 @@ class Run:
         Returns:
             Optional[str]: Result workspace path, or None if job not finished or on error.
         """
-        with self._lock:
-            if self._stopped:
-                return self._cached_result
-
-            result = None
-            try:
-                result = self.exec_env.get_job_result(self.job_id, timeout=timeout)
-                self._cached_result = result
-            except Exception as e:
-                self.logger.warning(f"Failed to get job result: {e}")
-                self._cached_result = None
-
-            try:
-                self._cached_status = self.exec_env.get_job_status(self.job_id)
-            except Exception as e:
-                self.logger.warning(f"Failed to get job status: {e}")
-                self._cached_status = None
-
-            try:
-                self.exec_env.stop(clean_up=True)
-            except Exception as e:
-                self.logger.warning(f"Failed to stop execution environment: {e}")
-            finally:
-                self._stopped = True
-
-            return result
+        pass
 
     def abort(self) -> None:
         """Abort the running job.
@@ -118,10 +86,4 @@ class Run:
         This is a no-op if the execution environment has already been stopped
         (e.g., after get_result() was called). Errors are logged but not raised.
         """
-        with self._lock:
-            if self._stopped:
-                return
-            try:
-                self.exec_env.abort_job(self.job_id)
-            except Exception as e:
-                self.logger.warning(f"Failed to abort job: {e}")
+        pass

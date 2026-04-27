@@ -28,12 +28,10 @@ class QQ:
         self.logger = get_obj_logger(self)
 
     def close(self):
-        self.closed = True
+        pass
 
     def append(self, i):
-        if self.closed:
-            raise QueueClosed("queue stopped")
-        self.q.put_nowait(i)
+        pass
 
     def __iter__(self):
         return self

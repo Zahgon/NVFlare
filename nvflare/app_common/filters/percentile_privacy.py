@@ -57,38 +57,4 @@ class PercentilePrivacy(DXOFilter):
 
         Returns: filtered dxo
         """
-        self.log_debug(fl_ctx, "inside filter")
-        self.logger.debug("check gamma")
-        if self.gamma <= 0:
-            self.log_debug(fl_ctx, "no partial model: gamma: {}".format(self.gamma))
-            return None
-        if self.percentile < 0 or self.percentile > 100:
-            self.log_debug(fl_ctx, "no partial model: percentile: {}".format(self.percentile))
-            return None  # do nothing
-
-        # invariant to local steps
-        model_diff = dxo.data
-        total_steps = dxo.get_meta_prop(MetaKey.NUM_STEPS_CURRENT_ROUND, 1)
-
-        delta_w = {name: model_diff[name] / total_steps for name in model_diff}
-        # abs delta
-        all_abs_values = np.concatenate([np.abs(delta_w[name].ravel()) for name in delta_w])
-        cutoff = np.percentile(a=all_abs_values, q=self.percentile, overwrite_input=False)
-        self.log_info(
-            fl_ctx,
-            f"Max abs delta_w: {np.max(all_abs_values)}, Min abs delta_w: {np.min(all_abs_values)},"
-            f"cutoff: {cutoff}, scale: {total_steps}.",
-        )
-
-        for name in delta_w:
-            diff_w = delta_w[name]
-            if np.ndim(diff_w) == 0:  # single scalar, no clipping
-                delta_w[name] = diff_w * total_steps
-                continue
-            selector = (diff_w > -cutoff) & (diff_w < cutoff)
-            diff_w[selector] = 0.0
-            diff_w = np.clip(diff_w, a_min=-self.gamma, a_max=self.gamma)
-            delta_w[name] = diff_w * total_steps
-
-        dxo.data = delta_w
-        return dxo
+        pass

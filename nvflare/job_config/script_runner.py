@@ -178,21 +178,7 @@ class BaseScriptRunner:
         self._cuda_empty_cache = cuda_empty_cache
 
     def _create_cell_pipe(self):
-        ct = self._pipe_connect_type
-        if not ct:
-            ct = PipeConnectType.VIA_CP
-        conn_url = _PIPE_CONNECT_URL.get(ct)
-        if not conn_url:
-            raise RuntimeError(f"cannot determine pipe connect url for {self._pipe_connect_type}")
-
-        return CellPipe(
-            mode=Mode.PASSIVE,
-            site_name="{" + SystemVarName.SITE_NAME + "}",
-            token="{" + SystemVarName.JOB_ID + "}",
-            root_url=conn_url,
-            secure_mode="{" + SystemVarName.SECURE_MODE + "}",
-            workspace_dir="{" + SystemVarName.WORKSPACE + "}",
-        )
+        pass
 
     def add_to_fed_job(self, job: FedJob, ctx, **kwargs):
         """This method is used by Job API.
@@ -204,104 +190,13 @@ class BaseScriptRunner:
         Returns:
 
         """
-        job.check_kwargs(args_to_check=kwargs, args_expected={"tasks": False})
-        tasks = kwargs.get("tasks", ["*"])
-        comp_ids = {}
-
-        if self._launch_external_process:
-            task_pipe = self._task_pipe if self._task_pipe else self._create_cell_pipe()
-            task_pipe_id = job.add_component("pipe", task_pipe, ctx)
-            comp_ids["pipe_id"] = task_pipe_id
-
-            launcher = (
-                self._launcher
-                if self._launcher
-                else SubprocessLauncher(
-                    script=self._command + " custom/" + self._script + " " + self._script_args,
-                    launch_once=self._launch_once,
-                    shutdown_timeout=self._shutdown_timeout,
-                )
-            )
-            launcher_id = job.add_component("launcher", launcher, ctx)
-            comp_ids["launcher_id"] = launcher_id
-
-            executor = (
-                self._executor
-                if self._executor
-                else self._get_ex_process_executor_cls(self._framework)(
-                    pipe_id=task_pipe_id,
-                    launcher_id=launcher_id,
-                    params_exchange_format=self._params_exchange_format,
-                    params_transfer_type=self._params_transfer_type,
-                    server_expected_format=self._server_expected_format,
-                    memory_gc_rounds=self._memory_gc_rounds,
-                    cuda_empty_cache=self._cuda_empty_cache,
-                )
-            )
-            job.add_executor(executor, tasks=tasks, ctx=ctx)
-
-            metric_pipe = self._metric_pipe if self._metric_pipe else self._create_cell_pipe()
-            metric_pipe_id = job.add_component("metrics_pipe", metric_pipe, ctx)
-            comp_ids["metric_pipe_id"] = metric_pipe_id
-
-            component = (
-                self._metric_relay
-                if self._metric_relay
-                else MetricRelay(
-                    pipe_id=metric_pipe_id,
-                    event_type="fed.analytix_log_stats",
-                    heartbeat_timeout=0,
-                )
-            )
-            metric_relay_id = job.add_component("metric_relay", component, ctx)
-            comp_ids["metric_relay_id"] = metric_relay_id
-
-            component = ExternalConfigurator(
-                component_ids=[metric_relay_id],
-            )
-            comp_ids["config_preparer_id"] = job.add_component("config_preparer", component, ctx)
-        else:
-            executor = (
-                self._executor
-                if self._executor
-                else self._get_in_process_executor_cls(self._framework)(
-                    task_script_path=self._script,
-                    task_script_args=self._script_args,
-                    params_exchange_format=self._params_exchange_format,
-                    params_transfer_type=self._params_transfer_type,
-                    server_expected_format=self._server_expected_format,
-                    memory_gc_rounds=self._memory_gc_rounds,
-                    cuda_empty_cache=self._cuda_empty_cache,
-                )
-            )
-            job.add_executor(executor, tasks=tasks, ctx=ctx)
-
-        job.add_resources(resources=[self._script], ctx=ctx)
-        return comp_ids
+        pass
 
     def _get_ex_process_executor_cls(self, framework: FrameworkType) -> Type[ClientAPILauncherExecutor]:
-        if framework == FrameworkType.PYTORCH:
-            from nvflare.app_opt.pt.client_api_launcher_executor import PTClientAPILauncherExecutor
-
-            return PTClientAPILauncherExecutor
-        elif framework == FrameworkType.TENSORFLOW:
-            from nvflare.app_opt.tf.client_api_launcher_executor import TFClientAPILauncherExecutor
-
-            return TFClientAPILauncherExecutor
-        else:
-            return ClientAPILauncherExecutor
+        pass
 
     def _get_in_process_executor_cls(self, framework: FrameworkType) -> Type[InProcessClientAPIExecutor]:
-        if framework == FrameworkType.PYTORCH:
-            from nvflare.app_opt.pt.in_process_client_api_executor import PTInProcessClientAPIExecutor
-
-            return PTInProcessClientAPIExecutor
-        elif framework == FrameworkType.TENSORFLOW:
-            from nvflare.app_opt.tf.in_process_client_api_executor import TFInProcessClientAPIExecutor
-
-            return TFInProcessClientAPIExecutor
-        else:
-            return InProcessClientAPIExecutor
+        pass
 
 
 class ScriptRunner(BaseScriptRunner):

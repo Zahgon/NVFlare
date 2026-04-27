@@ -19,24 +19,12 @@ def get_positive_float_var(var_name, default):
     # use ConfigService to determine value for the specified var_name:
     #   the job config could define variable var_name;
     #   the user could define OS env var NVFLARE_VAR_NAME (the var_name turned to uppercase)
-    value = ConfigService.get_float_var(name=var_name, conf=SystemConfigs.APPLICATION_CONF, default=default)
-    if value is None:
-        return default
-    else:
-        return value if value > 0.0 else default
+    pass
 
 
 def get_positive_int_var(var_name, default):
-    value = ConfigService.get_int_var(name=var_name, conf=SystemConfigs.APPLICATION_CONF, default=default)
-    if value is None:
-        return default
-    else:
-        return value if value > 0 else default
+    pass
 
 
 def get_int_var(var_name, default):
-    value = ConfigService.get_int_var(name=var_name, conf=SystemConfigs.APPLICATION_CONF, default=default)
-    if value is None:
-        return default
-    else:
-        return value
+    pass

@@ -56,33 +56,10 @@ class HEBuilder(Builder):
         self.serialized = None
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        self._context = ts.context(
-            self.scheme_type,
-            poly_modulus_degree=self.poly_modulus_degree,
-            coeff_mod_bit_sizes=self.coeff_mod_bit_sizes,
-            encryption_type=ts.ENCRYPTION_TYPE.SYMMETRIC,
-        )
-        # dynamically call different generate keys method
-        # getattr(self._context, f'generate_{self.key_type}_keys')()
-        self._context.generate_relin_keys()
-        self._context.global_scale = 2**self.scale_bits
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
-        server = project.get_server()
-        if server:
-            dest_dir = ctx.get_kit_dir(server)
-            with open(os.path.join(dest_dir, ProvFileName.SERVER_CONTEXT_TENSEAL), "wb") as f:
-                f.write(self.get_serialized_context())
-        for client in project.get_clients():
-            dest_dir = ctx.get_kit_dir(client)
-            with open(os.path.join(dest_dir, ProvFileName.CLIENT_CONTEXT_TENSEAL), "wb") as f:
-                f.write(self.get_serialized_context(is_client=True))
+        pass
 
     def get_serialized_context(self, is_client=False):
-        _serialized_context = self._context.serialize(
-            save_public_key=is_client,
-            save_secret_key=is_client,
-            save_galois_keys=False,
-            save_relin_keys=True,
-        )
-        return _serialized_context
+        pass

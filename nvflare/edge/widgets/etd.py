@@ -103,117 +103,25 @@ class EdgeTaskDispatcher(Widget):
         self.logger.debug("EdgeTaskDispatcher created!")
 
     def _add_job(self, job_meta: dict, fl_ctx: FLContext):
-        with self.lock:
-            edge_method = job_meta.get(JobMetaKey.EDGE_METHOD)
-            if not edge_method:
-                # this is not an edge job
-                return
-
-            name = job_meta.get(JobMetaKey.JOB_NAME)
-            job_ids = self.edge_jobs.get(name)
-            if not job_ids:
-                job_ids = []
-                self.edge_jobs[name] = job_ids
-
-            job_id = job_meta.get(JobMetaKey.JOB_ID)
-
-            if job_id not in job_ids:
-                job_ids.append(job_id)
-
-            # get device config of the job
-            workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-            config_dir = workspace.get_app_config_dir(job_id)
-            device_config_file = os.path.join(config_dir, EdgeConfigFile.DEVICE_CONFIG)
-            device_config = None
-            if os.path.exists(device_config_file):
-                with open(device_config_file, "r") as f:
-                    device_config = json.load(f)
-
-            self.job_metas[job_id] = job_meta
-            self.job_device_config[job_id] = device_config
+        pass
 
     def _remove_job(self, job_id: str):
-        with self.lock:
-            if job_id in self.job_metas:
-                del self.job_metas[job_id]
-
-            if job_id in self.job_device_config:
-                del self.job_device_config[job_id]
-
-            for name, job_ids in list(self.edge_jobs.items()):
-                assert isinstance(job_ids, list)
-                if job_ids and job_id in job_ids:
-                    job_ids.remove(job_id)
-                    if not job_ids:
-                        # no more jobs for this edge method
-                        self.edge_jobs.pop(name)
-                    return
+        pass
 
     def _match_job(self, job_name: str):
-        with self.lock:
-            for name, job_ids in self.edge_jobs.items():
-                if name == job_name:
-                    # pick one randomly
-                    i = randrange(len(job_ids))
-                    job_id = job_ids[i]
-                    self.logger.debug(f"matched job {job_id}")
-                    return job_id, self.job_device_config.get(job_id)
-
-            # no job matched
-            return None, None
+        pass
 
     def _job_exists(self, job_id: str):
-        with self.lock:
-            for jobs in self.edge_jobs.values():
-                if job_id in jobs:
-                    return True
-            return False
+        pass
 
     def _handle_job_launched(self, event_type: str, fl_ctx: FLContext):
-        self.logger.debug(f"handling event {event_type}")
-        job_meta = fl_ctx.get_prop(FLContextKey.JOB_META)
-        if not job_meta:
-            self.logger.error(f"missing {FLContextKey.JOB_META} from fl_ctx for event {event_type}")
-        else:
-            self.logger.debug(f"adding job: {job_meta=}")
-            self._add_job(job_meta, fl_ctx)
+        pass
 
     def _handle_job_done(self, event_type: str, fl_ctx: FLContext):
-        self.logger.debug(f"handling event {event_type}")
-        job_id = fl_ctx.get_prop(FLContextKey.CURRENT_JOB_ID)
-        if not job_id:
-            self.logger.error(f"missing {FLContextKey.CURRENT_JOB_ID} from fl_ctx for event {event_type}")
-        else:
-            self._remove_job(job_id)
+        pass
 
     def _handle_edge_job_request(self, event_type: str, fl_ctx: FLContext):
-        self.logger.debug(f"handling event {event_type}")
-        req = fl_ctx.get_prop(EdgeContextKey.REQUEST_FROM_EDGE)
-        assert isinstance(req, JobRequest)
-        job_name = req.job_name
-        if not job_name:
-            self.logger.error(f"missing 'job_name' from JobRequest for event {event_type}")
-            self._set_edge_reply(reply=JobResponse(EdgeApiStatus.INVALID_REQUEST), fl_ctx=fl_ctx)
-            return
-
-        # find job for the caps
-        self.logger.debug(f"trying to match job: {job_name}")
-        job_id, device_config = self._match_job(job_name)
-        if job_id:
-            reply = JobResponse(
-                EdgeApiStatus.OK,
-                job_id=job_id,
-                job_name=job_name,
-                job_data={
-                    JobDataKey.CONFIG: device_config,
-                },
-            )
-        else:
-            reply = JobResponse(EdgeApiStatus.NO_JOB)
-
-        self.logger.debug(f"sending job response: {reply}")
-        self._set_edge_reply(reply, fl_ctx)
-        fl_ctx.set_prop(FLContextKey.JOB_META, self.job_metas.get(job_id), private=True, sticky=False)
+        pass
 
     @staticmethod
     def _set_edge_reply(reply, fl_ctx: FLContext):
@@ -226,12 +134,7 @@ class EdgeTaskDispatcher(Widget):
         Returns: None
 
         """
-        fl_ctx.set_prop(
-            key=EdgeContextKey.REPLY_TO_EDGE,
-            value=reply,
-            private=True,
-            sticky=False,
-        )
+        pass
 
     def _handle_edge_request(
         self,
@@ -242,39 +145,4 @@ class EdgeTaskDispatcher(Widget):
         no_job_reply,
         comm_err_reply,
     ):
-        req = fl_ctx.get_prop(EdgeContextKey.REQUEST_FROM_EDGE)
-        job_id = req.job_id
-
-        # try to find the job
-        if not job_id:
-            self.logger.error(f"handling event {event_type}: missing job_id from {type(req)}")
-            self._set_edge_reply(bad_req_reply, fl_ctx)
-            return
-
-        if not self._job_exists(job_id):
-            self._set_edge_reply(no_job_reply, fl_ctx)
-            return
-
-        # send task request data to CJ
-        self.logger.debug(f"Sending edge request to CJ {job_id}")
-        engine = fl_ctx.get_engine()
-        start = time.time()
-        reply = engine.send_to_job(
-            job_id=job_id,
-            channel=CellChannel.EDGE_REQUEST,
-            topic=msg_topic,
-            msg=new_cell_message({}, req),
-            timeout=self.request_timeout,
-            optional=True,
-        )
-
-        assert isinstance(reply, CellMessage)
-        rc = reply.get_header(MessageHeaderKey.RETURN_CODE)
-
-        if rc != CellReturnCode.OK:
-            self.logger.debug(f"Failed to get edge response after {time.time() - start} secs: {rc}")
-            reply = comm_err_reply
-        else:
-            reply = reply.payload
-
-        self._set_edge_reply(reply, fl_ctx)
+        pass

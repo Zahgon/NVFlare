@@ -105,93 +105,13 @@ class ServerJsonConfigurator(FedJsonConfigurator):
         self.workflows = []
 
     def process_config_element(self, config_ctx: ConfigContext, node: Node):
-        FedJsonConfigurator.process_config_element(self, config_ctx, node)
-
-        element = node.element
-        path = node.path()
-
-        if path == "server.heart_beat_timeout":
-            self.heartbeat_timeout = element
-            if not isinstance(element, int) and not isinstance(element, float):
-                raise ConfigError('"heart_beat_timeout" must be a number, but got {}'.format(type(element)))
-
-            if element <= 0.0:
-                raise ConfigError('"heart_beat_timeout" must be positive number, but got {}'.format(element))
-
-            return
-
-        if path == "server.task_request_interval":
-            self.task_request_interval = element
-            if not isinstance(element, int) and not isinstance(element, float):
-                raise ConfigError('"task_request_interval" must be a number, but got {}'.format(type(element)))
-
-            if element <= 0:
-                raise ConfigError('"task_request_interval" must > 0, but got {}'.format(element))
-
-            return
-
-        if re.search(r"^workflows\.#[0-9]+$", path):
-            controller = self.authorize_and_build_component(element, config_ctx, node)
-            if not isinstance(controller, Controller):
-                raise ConfigError('"controller" must be a Controller object, but got {}'.format(type(controller)))
-
-            cid = element.get("id", None)
-            if not cid:
-                cid = type(controller).__name__
-
-            if not isinstance(cid, str):
-                raise ConfigError('"id" must be str but got {}'.format(type(cid)))
-
-            if cid in self._get_all_workflows_ids():
-                raise ConfigError('duplicate workflow id "{}"'.format(cid))
-
-            if cid in self.components:
-                raise ConfigError('duplicate component id "{}"'.format(cid))
-
-            communicator = WFCommServer()
-            self.handlers.append(communicator)
-            controller.set_communicator(communicator)
-
-            self.workflows.append(WorkFlow(cid, controller))
-            self.components[cid] = controller
-            return
+        pass
 
     def _get_all_workflows_ids(self):
-        ids = []
-        for t in self.workflows:
-            ids.append(t.id)
-        return ids
+        pass
 
     def build_component(self, config_dict):
-        t = super().build_component(config_dict)
-        if isinstance(t, FLComponent):
-            self.handlers.append(t)
-        return t
+        pass
 
     def finalize_config(self, config_ctx: ConfigContext):
-        FedJsonConfigurator.finalize_config(self, config_ctx)
-
-        if not self.workflows:
-            raise ConfigError("workflows not specified")
-
-        self.runner_config = ServerRunnerConfig(
-            heartbeat_timeout=self.heartbeat_timeout,
-            task_request_interval=self.task_request_interval,
-            workflows=self.workflows,
-            task_data_filters=self.data_filter_table,
-            task_result_filters=self.result_filter_table,
-            components=self.components,
-            handlers=self.handlers,
-        )
-
-        ConfigService.initialize(
-            section_files={},
-            config_path=[self.app_root],
-            parsed_args=self.args,
-            var_dict=self.cmd_vars,
-        )
-
-        ConfigService.add_section(
-            section_name=SystemConfigs.APPLICATION_CONF,
-            data=self.config_data,
-        )
+        pass

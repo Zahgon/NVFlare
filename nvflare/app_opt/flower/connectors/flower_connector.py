@@ -40,12 +40,7 @@ class FlowerServerConnector(Connector):
         Returns: None
 
         """
-        num_rounds = config.get(Constant.CONF_KEY_NUM_ROUNDS)
-        if num_rounds is None:
-            raise RuntimeError("num_rounds is not configured")
-
-        check_positive_int(Constant.CONF_KEY_NUM_ROUNDS, num_rounds)
-        self.num_rounds = num_rounds
+        pass
 
     @abstractmethod
     def send_request_to_flower(self, request: Shareable, fl_ctx: FLContext) -> Shareable:
@@ -73,14 +68,7 @@ class FlowerServerConnector(Connector):
         Returns: response from the Flower server converted to Shareable
 
         """
-        stopped, ec = self._is_stopped()
-        if stopped:
-            self.log_warning(fl_ctx, f"dropped request '{op}' since connector is already stopped {ec=}")
-            return make_reply(ReturnCode.SERVICE_UNAVAILABLE)
-
-        reply = self.send_request_to_flower(request, fl_ctx)
-        self.log_debug(fl_ctx, f"received reply for '{op}'")
-        return reply
+        pass
 
 
 class FlowerClientConnector(Connector):
@@ -114,12 +102,7 @@ class FlowerClientConnector(Connector):
         Returns: None
 
         """
-        num_rounds = config.get(Constant.CONF_KEY_NUM_ROUNDS)
-        if num_rounds is None:
-            raise RuntimeError("num_rounds is not configured")
-
-        check_positive_int(Constant.CONF_KEY_NUM_ROUNDS, num_rounds)
-        self.num_rounds = num_rounds
+        pass
 
     def _send_flower_request(self, request: Shareable) -> Shareable:
         """Send Flower request to the FL server via FLARE message.
@@ -130,15 +113,4 @@ class FlowerClientConnector(Connector):
         Returns: operation result
 
         """
-        op = "request"
-        reply = self.send_request(
-            op=op,
-            target=None,  # server
-            request=request,
-            per_msg_timeout=self.per_msg_timeout,
-            tx_timeout=self.tx_timeout,
-            fl_ctx=None,
-        )
-        if not isinstance(reply, Shareable):
-            raise RuntimeError(f"invalid reply for op {op}: expect Shareable but got {type(reply)}")
-        return reply
+        pass

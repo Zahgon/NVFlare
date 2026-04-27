@@ -17,22 +17,12 @@ from typing import Optional
 
 
 def get_ext_format(ext: str) -> str:
-    if ext is None or ext == "" or ext.isspace():
-        return "csv"
-    elif ext.startswith("."):
-        return ext[1:]
-    else:
-        return ext
+    pass
 
 
 def get_file_format(input_path: str) -> str:
-    ext = get_file_ext(input_path)
-    return get_ext_format(ext)
+    pass
 
 
 def get_file_ext(input_path: str) -> Optional[str]:
-    ext = pathlib.Path(input_path).suffix
-    if ext.startswith("."):
-        return ext[1:]
-    else:
-        return ext
+    pass

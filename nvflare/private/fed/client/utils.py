@@ -28,13 +28,7 @@ def determine_parent_name(client_config: dict) -> Optional[str]:
     Returns: the name of parent client or None if the client has no parent
 
     """
-    if not isinstance(client_config, dict):
-        raise ValueError(f"expect client_config to be dict but got {type(client_config)}")
-
-    fqsn = client_config.get("fqsn")
-    if not fqsn:
-        return None
-    return get_parent_site_name(fqsn)
+    pass
 
 
 def determine_parent_fqcn(client_config: dict, fl_ctx: FLContext) -> str:
@@ -49,19 +43,4 @@ def determine_parent_fqcn(client_config: dict, fl_ctx: FLContext) -> str:
     Returns: the FQCN of the parent cell
 
     """
-    parent_client_name = determine_parent_name(client_config)
-    if parent_client_name:
-        engine = fl_ctx.get_engine()
-        if not engine:
-            raise ValueError("bad FLContext object - missing engine")
-
-        parent_client = engine.get_client_from_name(parent_client_name)
-        if not parent_client:
-            raise RuntimeError(f"cannot find parent '{parent_client_name}'")
-
-        if not isinstance(parent_client, Client):
-            raise RuntimeError(f"expect parent_client to be Client but got {type(parent_client)}")
-
-        return parent_client.get_fqcn()
-    else:
-        return FQCN.ROOT_SERVER
+    pass

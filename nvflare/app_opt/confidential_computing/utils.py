@@ -21,7 +21,4 @@ class NonceHistory:
         self.history = deque(maxlen=2 * size)
 
     def add(self, nonce):
-        if nonce in self.history:
-            return False
-        self.history.append(nonce)
-        return True
+        pass

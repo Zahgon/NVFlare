@@ -39,15 +39,10 @@ class TaskHandler(InitFinalComponent, ABC):
         Args:
             fl_ctx: fl_ctx: FLContext of the running environment
         """
-        self.fl_ctx = fl_ctx
-        self.load_and_init_local_comp(fl_ctx)
+        pass
 
     def load_and_init_local_comp(self, fl_ctx):
-        engine = fl_ctx.get_engine()
-        local_comp: InitFinalComponent = engine.get_component(self.local_comp_id)
-        check_component_type(local_comp, self.target_local_comp_type)
-        local_comp.initialize(fl_ctx)
-        self.local_comp = local_comp
+        pass
 
     @abstractmethod
     def execute_task(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
@@ -65,6 +60,4 @@ class TaskHandler(InitFinalComponent, ABC):
         pass
 
     def finalize(self, fl_ctx: FLContext):
-        if self.local_comp:
-            self.local_comp.finalize(fl_ctx)
-        self.local_comp = None
+        pass

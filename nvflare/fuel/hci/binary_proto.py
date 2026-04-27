@@ -135,68 +135,13 @@ class ExchangeHandler:
         Returns: received bytes
 
         """
-        buffer = bytearray()
-        received = 0
-        while received < num_bytes:
-            size_to_recv = num_bytes - received
-            data = self.receiver.recv(size_to_recv)
-            if not data:
-                return None
-            if len(data) == num_bytes:
-                # most case
-                return data
-            else:
-                buffer.extend(data)
-            received += len(data)
-        return bytes(buffer)
+        pass
 
     def _parse_text(self):
-        while True:
-            data = self.receiver.recv(MAX_BLOCK_SIZE)
-            if not data:
-                break
-
-            should_stop = self.processor.process(data, CT_TEXT)
-            if should_stop:
-                break
+        pass
 
     def _parse_binary(self, body_size):
-        received_size = 0
-        checksum = Checksum()
-
-        # receive the body data of the exchange
-        # note that we do not receive the footer in this loop!
-        while True:
-            remaining = body_size - received_size
-
-            if remaining == 0:
-                break
-
-            rcv_size = MAX_BLOCK_SIZE
-            if remaining < MAX_BLOCK_SIZE:
-                rcv_size = remaining
-
-            data = self.receiver.recv(rcv_size)
-            if not data:
-                raise RuntimeError(f"failed to receive {rcv_size} bytes")
-
-            received_size += len(data)
-            checksum.update(data)
-            self.processor.process(data, CT_BINARY)
-
-        # receive the footer and validate: check end-of-data marker, and compare checksum
-        buffer = self._must_recv(FOOTER_LEN)
-        if not buffer:
-            raise RuntimeError(f"cannot get footer buffer of {FOOTER_LEN} bytes")
-        if len(buffer) != FOOTER_LEN:
-            raise RuntimeError(f"expect {FOOTER_LEN} footer bytes but only got {len(buffer)}")
-
-        footer_marker, checksum_received = FOOTER_STRUCT.unpack_from(buffer, 0)
-        if footer_marker != 0:
-            raise RuntimeError(f"footer marker must be 0 but got {footer_marker}")
-        computed_checksum = checksum.result()
-        if checksum_received != computed_checksum:
-            raise RuntimeError(f"checksum mismatch: received {checksum_received} != {computed_checksum}")
+        pass
 
     def receive_and_parse(self):
         """Receive data of the exchange from the peer and parse it according to the protocol definition.
@@ -204,44 +149,7 @@ class ExchangeHandler:
         Returns: None
 
         """
-        # Check the binary marker. If binary protocol, the 1st byte of the exchange is the special BINARY_MARKER
-        # If the value is not BINARY_MARKER, then it is treated as text protocol. This is to be backward compatible
-        # with the current text-based protocol!
-        data = self.receiver.recv(1)
-        if not data:
-            raise RuntimeError("no data type marker received")
-
-        marker = data[0]
-        if marker == BINARY_MARKER:
-            # Binary protocol - process according to binary protocol definition
-            self.content_type = CT_BINARY
-            buffer = self._must_recv(HEADER_LEN)
-            if not buffer:
-                raise RuntimeError(f"cannot get header buffer of {HEADER_LEN} bytes")
-            if len(buffer) != HEADER_LEN:
-                raise RuntimeError(f"expect {HEADER_LEN} header bytes but only got {len(buffer)}")
-
-            meta_size, body_size = HEADER_STRUCT.unpack_from(buffer, 0)
-            if meta_size < 0:
-                raise RuntimeError(f"invalid binary data meta size {meta_size}")
-
-            # get meta
-            meta_bytes = self._must_recv(meta_size)
-            if not data:
-                raise RuntimeError("no meta data received")
-            if len(meta_bytes) != meta_size:
-                raise RuntimeError(f"expect {meta_size} meta bytes but got {len(meta_bytes)}")
-
-            # meta data must be str!
-            self.meta = str(meta_bytes, "utf-8")
-            self._parse_binary(body_size)
-        else:
-            # text content - the 1st byte is part of the data!
-            self.content_type = CT_TEXT
-            self.processor.process(data, CT_TEXT)
-            self._parse_text()
-
-        self.processor.finalize()
+        pass
 
 
 class MsgDataProcessor(DataProcessor):
@@ -259,29 +167,10 @@ class MsgDataProcessor(DataProcessor):
         self.total_text = None
 
     def process(self, data, content_type: int):
-        if content_type == CT_TEXT:
-            data = str(data, "utf-8")
-            end_idx = data.find(ALL_END)
-            if end_idx >= 0:
-                self.text_segs.append(data[:end_idx])
-                return True  # all received
-            else:
-                self.text_segs.append(data)
-        else:
-            # binary - write to file
-            if not self.file:
-                self.file_name = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-                self.file = open(self.file_name, "w+b")
-            self.file.write(data)
-        return False
+        pass
 
     def finalize(self):
-        if self.text_segs:
-            total_text = "".join(self.text_segs)
-            self.total_text = total_text.replace(LINE_END, "")
-
-        if self.file:
-            self.file.close()
+        pass
 
 
 def receive_all(receiver: Receiver):
@@ -298,20 +187,7 @@ def receive_all(receiver: Receiver):
     temporary file that holds the received body data. However, if there is no data (size 0), the value of
     additional_data is None.
     """
-    p = MsgDataProcessor()
-    handler = ExchangeHandler(receiver=receiver, processor=p)
-    handler.receive_and_parse()
-    if handler.content_type == CT_TEXT:
-        return CT_TEXT, p.total_text, None
-    elif handler.content_type == CT_BINARY:
-        # binary
-        return (
-            CT_BINARY,
-            handler.meta,
-            p.file_name,
-        )
-    else:
-        raise RuntimeError(f"invalid content type {handler.content_type} from receiver")
+    pass
 
 
 def binary_header(meta_size: int, body_size: int):
@@ -324,7 +200,7 @@ def binary_header(meta_size: int, body_size: int):
     Returns: encoded bytes of the header
 
     """
-    return HEADER_STRUCT.pack(meta_size, body_size)
+    pass
 
 
 def binary_footer(checksum: int):
@@ -336,8 +212,7 @@ def binary_footer(checksum: int):
     Returns: encoded bytes of the footer
 
     """
-    # the value of the end-of-data marker is always 0!
-    return FOOTER_STRUCT.pack(0, checksum)
+    pass
 
 
 class DataGenerator(ABC):
@@ -387,36 +262,7 @@ def send_binary_data(sender: Sender, generator: DataGenerator, meta: str) -> int
     Returns: number of body bytes sent
 
     """
-    body_size = generator.data_size()
-    meta_size = 0
-    meta_bytes = None
-    if meta:
-        meta_bytes = bytes(meta, "utf-8")
-        meta_size = len(meta_bytes)
-
-    header_bytes = binary_header(meta_size, body_size)
-    sender.sendall(bytes([BINARY_MARKER]))  # add binary marker at the beginning!
-    sender.sendall(header_bytes)
-
-    if meta_bytes:
-        sender.sendall(meta_bytes)
-
-    sent_body_size = 0
-    checksum = Checksum()
-    while True:
-        data = generator.generate()
-        if not data:
-            break
-        sent_body_size += len(data)
-        checksum.update(data)
-        sender.sendall(data)
-    if sent_body_size != body_size:
-        raise RuntimeError(f"generated body size {sent_body_size} != expected body size {body_size}")
-
-    # add footer
-    footer_bytes = binary_footer(checksum.result())
-    sender.sendall(footer_bytes)
-    return sent_body_size
+    pass
 
 
 class GenerateDataFromFile(DataGenerator):
@@ -430,13 +276,10 @@ class GenerateDataFromFile(DataGenerator):
         self.file = open(file_name, "rb")
 
     def data_size(self) -> int:
-        return self.size
+        pass
 
     def generate(self) -> bytes:
-        data = self.file.read(MAX_BLOCK_SIZE)
-        if not data:
-            self.file.close()
-        return data
+        pass
 
 
 def send_binary_file(sender: Sender, file_name: str, meta: str) -> int:
@@ -450,5 +293,4 @@ def send_binary_file(sender: Sender, file_name: str, meta: str) -> int:
     Returns: number of bytes sent (the same as size of the file)
 
     """
-    gen = GenerateDataFromFile(file_name)
-    return send_binary_data(sender, gen, meta)
+    pass

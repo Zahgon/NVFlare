@@ -29,7 +29,7 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_debug(self.fl_ctx, msg)
+        pass
 
     def info(self, msg: str):
         """Convenience method for logging an INFO message with contextual info
@@ -40,7 +40,7 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_info(self.fl_ctx, msg)
+        pass
 
     def error(self, msg: str):
         """Convenience method for logging an ERROR message with contextual info
@@ -51,7 +51,7 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_error(self.fl_ctx, msg)
+        pass
 
     def warning(self, msg: str):
         """Convenience method for logging a WARNING message with contextual info
@@ -62,7 +62,7 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_warning(self.fl_ctx, msg)
+        pass
 
     def exception(self, msg: str):
         """Convenience method for logging an EXCEPTION message with contextual info
@@ -73,7 +73,7 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_exception(self.fl_ctx, msg)
+        pass
 
     def critical(self, msg: str):
         """Convenience method for logging a CRITICAL message with contextual info
@@ -84,4 +84,4 @@ class ComponentBase(FLComponent):
         Returns:
 
         """
-        self.log_critical(self.fl_ctx, msg)
+        pass

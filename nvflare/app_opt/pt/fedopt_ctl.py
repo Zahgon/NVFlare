@@ -71,46 +71,7 @@ class FedOpt(FedAvg):
 
     def run(self):
         # set up source model
-        if isinstance(self.source_model, str):
-            self.torch_model = self.get_component(self.source_model)
-        else:
-            self.torch_model = self.source_model
-
-        if self.torch_model is None:
-            self.panic("Model is not available")
-            return
-        elif not isinstance(self.torch_model, torch.nn.Module):
-            self.panic(f"expect model to be torch.nn.Module but got {type(self.torch_model)}")
-            return
-        else:
-            print("server model", self.torch_model)
-        self.torch_model.to(self.device)
-
-        # set up optimizer
-        try:
-            if "args" not in self.optimizer_args:
-                self.optimizer_args["args"] = {}
-            self.optimizer_args["args"]["params"] = self.torch_model.parameters()
-            self.optimizer = self.build_component(self.optimizer_args)
-        except Exception as e:
-            error_msg = f"Exception while constructing optimizer: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
-            return
-
-        # set up lr scheduler
-        try:
-            if "args" not in self.lr_scheduler_args:
-                self.lr_scheduler_args["args"] = {}
-            self.lr_scheduler_args["args"]["optimizer"] = self.optimizer
-            self.lr_scheduler = self.build_component(self.lr_scheduler_args)
-        except Exception as e:
-            error_msg = f"Exception while constructing lr_scheduler: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
-            return
-
-        super().run()
+        pass
 
     def optimizer_update(self, model_diff):
         """Updates the global model using the specified optimizer.
@@ -122,54 +83,7 @@ class FedOpt(FedAvg):
             The updated PyTorch model state dictionary.
 
         """
-        self.torch_model.train()
-        self.optimizer.zero_grad()
-
-        # Apply the update to the model. We must multiply weights_delta by -1.0 to
-        # view it as a gradient that should be applied to the server_optimizer.
-        updated_params = []
-        for name, param in self.torch_model.named_parameters():
-            if name in model_diff:
-                param.grad = torch.tensor(-1.0 * model_diff[name]).to(self.device)
-                updated_params.append(name)
-
-        self.optimizer.step()
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-
-        return self.torch_model.state_dict(), updated_params
+        pass
 
     def update_model(self, global_model: FLModel, aggr_result: FLModel):
-        model_diff = aggr_result.params
-
-        start = time.time()
-        weights, updated_params = self.optimizer_update(model_diff)
-        secs = time.time() - start
-
-        # convert to numpy dict of weights
-        start = time.time()
-        for key in weights:
-            weights[key] = weights[key].detach().cpu().numpy()
-        secs_detach = time.time() - start
-
-        # update unnamed parameters such as batch norm layers if there are any using the averaged update
-        n_fedavg = 0
-        for key, value in model_diff.items():
-            if key not in updated_params:
-                weights[key] = global_model.params[key] + value
-                n_fedavg += 1
-
-        self.info(
-            f"FedOpt ({type(self.optimizer)} {self.device}) server model update "
-            f"round {self.current_round}, "
-            f"{type(self.lr_scheduler)} "
-            f"lr: {self.optimizer.param_groups[-1]['lr']}, "
-            f"fedopt layers: {len(updated_params)}, "
-            f"fedavg layers: {n_fedavg}, "
-            f"update: {secs} secs., detach: {secs_detach} secs.",
-        )
-
-        global_model.params = weights
-        global_model.meta = aggr_result.meta
-
-        return global_model
+        pass

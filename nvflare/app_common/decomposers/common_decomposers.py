@@ -27,54 +27,17 @@ from nvflare.fuel.utils.fobs.decomposer import DictDecomposer, Externalizer, Int
 
 class FLModelDecomposer(fobs.Decomposer):
     def supported_type(self):
-        return FLModel
+        pass
 
     def decompose(self, b: FLModel, manager: DatumManager = None) -> Any:
-        externalizer = Externalizer(manager)
-        return (
-            b.params_type,
-            externalizer.externalize(b.params),
-            externalizer.externalize(b.optimizer_params),
-            externalizer.externalize(b.metrics),
-            b.start_round,
-            b.current_round,
-            b.total_rounds,
-            externalizer.externalize(b.meta),
-        )
+        pass
 
     def recompose(self, data: tuple, manager: DatumManager = None) -> FLModel:
-        assert isinstance(data, tuple)
-        pt, params, opt_params, metrics, sr, cr, tr, meta = data
-        internalizer = Internalizer(manager)
-        return FLModel(
-            params_type=pt,
-            params=internalizer.internalize(params),
-            optimizer_params=internalizer.internalize(opt_params),
-            metrics=internalizer.internalize(metrics),
-            start_round=sr,
-            current_round=cr,
-            total_rounds=tr,
-            meta=internalizer.internalize(meta),
-        )
+        pass
 
 
 def register():
-    if register.registered:
-        return
-
-    fobs.register(DictDecomposer(Learnable))
-    fobs.register(DictDecomposer(ModelLearnable))
-    fobs.register(FLModelDecomposer)
-
-    fobs.register_data_classes(
-        _CtxPropReq,
-        _EventReq,
-        _EventStats,
-    )
-
-    fobs.register_folder(os.path.dirname(__file__), __package__)
-
-    register.registered = True
+    pass
 
 
 register.registered = False

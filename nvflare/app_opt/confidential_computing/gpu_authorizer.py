@@ -91,43 +91,10 @@ class GPUAuthorizer(CCAuthorizer):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def generate(self):
-        try:
-            nonce = uuid.uuid4().hex + uuid.uuid1().hex
-            self.client.set_nonce(nonce)
-            self.my_nonce_history.add(nonce)
-            evidence_list = self.client.get_evidence()
-            self.client.attest(evidence_list)
-            token = self.client.get_token()
-        except BaseException:
-            self.can_generate = False
-            token = "[[],{}]"
-        return token
+        pass
 
     def verify(self, eat_token):
-        try:
-            jwt_token = json.loads(eat_token)[1]
-            remote_gpu_claims = jwt_token.get("REMOTE_GPU_CLAIMS")
-            if (
-                isinstance(remote_gpu_claims, list)
-                and len(remote_gpu_claims) > 0
-                and isinstance(remote_gpu_claims[0], list)
-                and len(remote_gpu_claims[0]) > 1
-            ):
-                claims = jwt.decode(remote_gpu_claims[0][1], options={"verify_signature": False})
-            else:
-                self.logger.info("Invalid structure for REMOTE_GPU_CLAIMS")
-                return False
-            # With claims, we will retrieve the nonce
-            nonce = claims.get("eat_nonce")
-            if not self.seen_nonce_history.add(nonce):
-                return False
-            self.client.set_nonce(nonce)
-            self.client.set_token(name="nvflare_node", eat_token=eat_token)
-            result = self.client.validate_token(self.remote_att_result_policy)
-        except BaseException as e:
-            self.logger.info(f"Token verification failed {e=}")
-            result = False
-        return result
+        pass
 
     def get_namespace(self) -> str:
-        return GPU_NAMESPACE
+        pass

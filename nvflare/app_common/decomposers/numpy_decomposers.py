@@ -34,30 +34,30 @@ class NumpyScalarDecomposer(fobs.Decomposer, ABC):
     """Decomposer base class for all numpy types with item method."""
 
     def decompose(self, target: Any, manager: DatumManager = None) -> Any:
-        return target.item()
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> np.ndarray:
-        return self.supported_type()(data)
+        pass
 
 
 class Float64ScalarDecomposer(NumpyScalarDecomposer):
     def supported_type(self):
-        return np.float64
+        pass
 
 
 class Float32ScalarDecomposer(NumpyScalarDecomposer):
     def supported_type(self):
-        return np.float32
+        pass
 
 
 class Int64ScalarDecomposer(NumpyScalarDecomposer):
     def supported_type(self):
-        return np.int64
+        pass
 
 
 class Int32ScalarDecomposer(NumpyScalarDecomposer):
     def supported_type(self):
-        return np.int32
+        pass
 
 
 class NumpyArrayDecomposer(ViaDownloaderDecomposer):
@@ -66,13 +66,13 @@ class NumpyArrayDecomposer(ViaDownloaderDecomposer):
         ViaDownloaderDecomposer.__init__(self, 1024 * 1024 * 2, "np_")
 
     def supported_type(self):
-        return np.ndarray
+        pass
 
     def get_download_dot(self) -> int:
-        return dots.NUMPY_DOWNLOAD
+        pass
 
     def to_downloadable(self, items: dict, max_chunk_size: int, fobs_ctx: dict) -> Downloadable:
-        return ArrayDownloadable(items, max_chunk_size)
+        pass
 
     def download(
         self,
@@ -84,33 +84,17 @@ class NumpyArrayDecomposer(ViaDownloaderDecomposer):
         optional=False,
         abort_signal=None,
     ) -> Tuple[str, dict]:
-        return download_arrays(
-            from_fqcn,
-            ref_id,
-            per_request_timeout,
-            cell,
-            secure,
-            optional,
-            abort_signal,
-        )
+        pass
 
     def native_decompose(self, target: np.ndarray, manager: DatumManager = None) -> bytes:
-        stream = BytesIO()
-        np.save(stream, target, allow_pickle=False)
-        return stream.getvalue()
+        pass
 
     def native_recompose(self, data: bytes, manager: DatumManager = None) -> np.ndarray:
-        stream = BytesIO(data)
-        return np.load(stream, allow_pickle=False)
+        pass
 
 
 def register():
-    if register.registered:
-        return
-
-    fobs.register_folder(os.path.dirname(__file__), __package__)
-
-    register.registered = True
+    pass
 
 
 register.registered = False

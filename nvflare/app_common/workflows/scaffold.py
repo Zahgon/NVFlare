@@ -50,83 +50,13 @@ class Scaffold(BaseFedAvg):
     """
 
     def initialize(self, fl_ctx):
-        super().initialize(fl_ctx)
-        self.model = self.load_model()
-        self.model.start_round = self.start_round
-        self.model.total_rounds = self.num_rounds
-
-        self._global_ctrl_weights = copy.deepcopy(self.model.params)
-        # Initialize correction term with zeros
-        for k in self._global_ctrl_weights.keys():
-            self._global_ctrl_weights[k] = np.zeros_like(self._global_ctrl_weights[k])
+        pass
 
     def run(self) -> None:
-        self.info("Start FedAvg.")
-
-        for self.current_round in range(self.start_round, self.start_round + self.num_rounds):
-            self.info(f"Round {self.current_round} started.")
-            self.model.current_round = self.current_round
-
-            clients = self.sample_clients(self.num_clients)
-
-            # Add SCAFFOLD global control terms to global model meta
-            global_model = self.model
-            global_model.meta[AlgorithmConstants.SCAFFOLD_CTRL_GLOBAL] = self._global_ctrl_weights
-
-            results = self.send_model_and_wait(targets=clients, data=global_model)
-
-            aggregate_results = self.aggregate(results, aggregate_fn=scaffold_aggregate_fn)
-
-            self.model = self.update_model(self.model, aggregate_results)
-
-            # update SCAFFOLD global controls
-            ctr_diff = aggregate_results.meta[AlgorithmConstants.SCAFFOLD_CTRL_DIFF]
-            for v_name, v_value in ctr_diff.items():
-                self._global_ctrl_weights[v_name] += v_value
-
-            self.save_model(self.model)
-
-            # Memory cleanup at end of round (if configured)
-            self._maybe_cleanup_memory()
-
-        self.info("Finished FedAvg.")
+        pass
 
 
 def scaffold_aggregate_fn(results: List[FLModel]) -> FLModel:
     # aggregates both the model weights and the SCAFFOLD control terms
 
-    aggregation_helper = WeightedAggregationHelper()
-    crtl_aggregation_helper = WeightedAggregationHelper()
-    for _result in results:
-        aggregation_helper.add(
-            data=_result.params,
-            weight=_result.meta.get(FLMetaKey.NUM_STEPS_CURRENT_ROUND, 1.0),
-            contributor_name=_result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN),
-            contribution_round=_result.current_round,
-        )
-        if AlgorithmConstants.SCAFFOLD_CTRL_DIFF not in _result.meta:
-            client_name = _result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN)
-            raise ValueError(
-                f"Client '{client_name}' did not return required "
-                f"FLModel.meta['{AlgorithmConstants.SCAFFOLD_CTRL_DIFF}'] for Scaffold aggregation."
-            )
-        crtl_aggregation_helper.add(
-            data=_result.meta[AlgorithmConstants.SCAFFOLD_CTRL_DIFF],
-            weight=_result.meta.get(FLMetaKey.NUM_STEPS_CURRENT_ROUND, 1.0),
-            contributor_name=_result.meta.get("client_name", AppConstants.CLIENT_UNKNOWN),
-            contribution_round=_result.current_round,
-        )
-
-    aggregated_dict = aggregation_helper.get_result()
-
-    aggr_result = FLModel(
-        params=aggregated_dict,
-        params_type=results[0].params_type,
-        meta={
-            AlgorithmConstants.SCAFFOLD_CTRL_DIFF: crtl_aggregation_helper.get_result(),
-            "nr_aggregated": len(results),
-            "current_round": results[0].current_round,
-        },
-    )
-
-    return aggr_result
+    pass

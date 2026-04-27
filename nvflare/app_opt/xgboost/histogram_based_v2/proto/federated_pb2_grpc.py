@@ -58,55 +58,23 @@ class FederatedServicer(object):
 
     def Allgather(self, request, context):
         """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        pass
 
     def AllgatherV(self, request, context):
         """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        pass
 
     def Allreduce(self, request, context):
         """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        pass
 
     def Broadcast(self, request, context):
         """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        pass
 
 
 def add_FederatedServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-            'Allgather': grpc.unary_unary_rpc_method_handler(
-                    servicer.Allgather,
-                    request_deserializer=federated__pb2.AllgatherRequest.FromString,
-                    response_serializer=federated__pb2.AllgatherReply.SerializeToString,
-            ),
-            'AllgatherV': grpc.unary_unary_rpc_method_handler(
-                    servicer.AllgatherV,
-                    request_deserializer=federated__pb2.AllgatherVRequest.FromString,
-                    response_serializer=federated__pb2.AllgatherVReply.SerializeToString,
-            ),
-            'Allreduce': grpc.unary_unary_rpc_method_handler(
-                    servicer.Allreduce,
-                    request_deserializer=federated__pb2.AllreduceRequest.FromString,
-                    response_serializer=federated__pb2.AllreduceReply.SerializeToString,
-            ),
-            'Broadcast': grpc.unary_unary_rpc_method_handler(
-                    servicer.Broadcast,
-                    request_deserializer=federated__pb2.BroadcastRequest.FromString,
-                    response_serializer=federated__pb2.BroadcastReply.SerializeToString,
-            ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-            'xgboost.collective.federated.Federated', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
+    pass
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -124,11 +92,7 @@ class Federated(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/xgboost.collective.federated.Federated/Allgather',
-            federated__pb2.AllgatherRequest.SerializeToString,
-            federated__pb2.AllgatherReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+        pass
 
     @staticmethod
     def AllgatherV(request,
@@ -141,11 +105,7 @@ class Federated(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/xgboost.collective.federated.Federated/AllgatherV',
-            federated__pb2.AllgatherVRequest.SerializeToString,
-            federated__pb2.AllgatherVReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+        pass
 
     @staticmethod
     def Allreduce(request,
@@ -158,11 +118,7 @@ class Federated(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/xgboost.collective.federated.Federated/Allreduce',
-            federated__pb2.AllreduceRequest.SerializeToString,
-            federated__pb2.AllreduceReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+        pass
 
     @staticmethod
     def Broadcast(request,
@@ -175,8 +131,4 @@ class Federated(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/xgboost.collective.federated.Federated/Broadcast',
-            federated__pb2.BroadcastRequest.SerializeToString,
-            federated__pb2.BroadcastReply.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+        pass

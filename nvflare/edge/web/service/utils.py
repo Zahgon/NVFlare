@@ -29,65 +29,48 @@ from .edge_api_pb2 import Reply, Request
 
 
 def to_bytes(data: Optional[dict]) -> bytes:
-    if not data:
-        return NONE_DATA
-    str_data = json.dumps(data)
-    return str_data.encode("utf-8")
+    pass
 
 
 def make_reply(status: str, payload: Optional[dict] = None):
-    return Reply(
-        status=status,
-        payload=to_bytes(payload),
-    )
+    pass
 
 
 def _request_to_grpc(query_type: str, method: str, req) -> Request:
-    payload = {}
-    payload.update(req)
-
-    return Request(type=query_type, method=method, header=NONE_DATA, payload=to_bytes(payload))
+    pass
 
 
 def _grpc_reply_to_response(reply: Reply, clazz):
-    if reply.status != EdgeApiStatus.OK:
-        return clazz(status=reply.status)
-    if reply.payload != NONE_DATA:
-        d = json.loads(reply.payload)
-        resp = clazz(EdgeApiStatus.OK)
-        resp.update(d)
-    else:
-        resp = None
-    return resp
+    pass
 
 
 def job_request_to_grpc_request(request: JobRequest) -> Request:
-    return _request_to_grpc(QueryType.JOB_REQUEST, "POST", request)
+    pass
 
 
 def grpc_reply_to_job_response(reply: Reply) -> JobResponse:
-    return _grpc_reply_to_response(reply, JobResponse)
+    pass
 
 
 def task_request_to_grpc_request(request: TaskRequest) -> Request:
-    return _request_to_grpc(QueryType.TASK_REQUEST, "GET", request)
+    pass
 
 
 def grpc_reply_to_task_response(reply: Reply) -> TaskResponse:
-    return _grpc_reply_to_response(reply, TaskResponse)
+    pass
 
 
 def selection_request_to_grpc_request(request: SelectionRequest) -> Request:
-    return _request_to_grpc(QueryType.SELECTION_REQUEST, "GET", request)
+    pass
 
 
 def grpc_reply_to_selection_response(reply: Reply) -> SelectionResponse:
-    return _grpc_reply_to_response(reply, SelectionResponse)
+    pass
 
 
 def result_report_to_grpc_request(request: ResultReport) -> Request:
-    return _request_to_grpc(QueryType.RESULT_REPORT, "POST", request)
+    pass
 
 
 def grpc_reply_to_result_response(reply: Reply) -> ResultResponse:
-    return _grpc_reply_to_response(reply, ResultResponse)
+    pass

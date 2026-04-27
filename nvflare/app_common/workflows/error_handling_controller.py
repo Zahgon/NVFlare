@@ -32,15 +32,4 @@ class ErrorHandlingController(Controller, ABC):
         }
 
     def handle_client_errors(self, rc: str, client_task: ClientTask, fl_ctx: FLContext):
-        client_name = client_task.client.name
-        task_name = client_task.task.name
-        abort = self.abort_job_in_error[rc]
-        self.log_error(fl_ctx, f"error code = {rc}")
-        if abort:
-            self.system_panic(
-                f"Failed in client-site for {client_name} during task {task_name}.controller is exiting.",
-                fl_ctx=fl_ctx,
-            )
-            self.log_error(fl_ctx, f"Execution failed for {client_name}")
-        else:
-            raise ValueError(f"Execution result is not received for {client_name}")
+        pass

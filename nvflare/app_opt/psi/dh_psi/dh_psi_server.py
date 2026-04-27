@@ -46,12 +46,7 @@ class PSIServer:
         Returns:
             setup (ServerSetup): The server setup protobuf serialize string
         """
-        # version >= 1.0.3
-        setup = self.psi_server.CreateSetupMessage(
-            self.fpr, client_items_size, self.items, psi.DataStructure.BLOOM_FILTER
-        )
-
-        return setup.SerializeToString()
+        pass
 
     def process_request(self, client_request_msg) -> str:
         """Returns the corresponding response for the client to compute the private set intersection.
@@ -61,8 +56,4 @@ class PSIServer:
         Returns:
             response (Response): The server response serialized str
         """
-        req_stub = psi.Request()
-        req_stub.ParseFromString(client_request_msg)
-        request = req_stub
-        response = self.psi_server.ProcessRequest(request)
-        return response.SerializeToString()
+        pass

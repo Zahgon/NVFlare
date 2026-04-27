@@ -25,28 +25,7 @@ def _consume_recipe_args() -> tuple:
     these flags regardless of the order in which parse_args() and execute() appear
     in job.py.
     """
-    argv = sys.argv[1:]
-    export = False
-    export_dir = "./fl_job"
-    remaining = []
-    i = 0
-    while i < len(argv):
-        if argv[i] == "--export":
-            export = True
-            i += 1
-        elif argv[i] == "--export-dir":
-            if i + 1 >= len(argv):
-                raise ValueError("--export-dir requires an argument")
-            export_dir = argv[i + 1]
-            i += 2
-        elif argv[i].startswith("--export-dir="):
-            export_dir = argv[i].split("=", 1)[1]
-            i += 1
-        else:
-            remaining.append(argv[i])
-            i += 1
-    sys.argv[1:] = remaining
-    return export, export_dir
+    pass
 
 
 # Intentional import-time sys.argv mutation: strip --export / --export-dir before
@@ -58,7 +37,7 @@ _RECIPE_EXPORT, _RECIPE_EXPORT_DIR = _consume_recipe_args()
 
 def _peek_recipe_args(argv: Optional[List[str]] = None) -> tuple:
     """Return the export flags consumed at import time (argv argument is ignored)."""
-    return _RECIPE_EXPORT, _RECIPE_EXPORT_DIR
+    pass
 
 
 from nvflare.apis.filter import Filter
@@ -92,7 +71,7 @@ class ExecEnv(ABC):
         Returns: value of the property or the default
 
         """
-        return self.extra.get(prop_name, default)
+        pass
 
     @abstractmethod
     def deploy(self, job: FedJob) -> str:
@@ -174,42 +153,13 @@ class Recipe(ABC):
         pass
 
     def _snapshot_additional_params(self) -> Dict[str, Dict]:
-        snapshot = {}
-        deploy_map = getattr(self.job, "_deploy_map", {})
-        for target, app in deploy_map.items():
-            app_config = getattr(app, "app_config", None)
-            if app_config is None:
-                continue
-            params = getattr(app_config, "additional_params", None)
-            if isinstance(params, dict):
-                snapshot[target] = dict(params)
-        return snapshot
+        pass
 
     def _restore_additional_params(self, snapshot: Dict[str, Dict]) -> None:
-        deploy_map = getattr(self.job, "_deploy_map", {})
-        for target, app in deploy_map.items():
-            app_config = getattr(app, "app_config", None)
-            if app_config is None:
-                continue
-            params = getattr(app_config, "additional_params", None)
-            if isinstance(params, dict):
-                original = snapshot.get(target, {})
-                params.clear()
-                params.update(original)
+        pass
 
     def _replace_additional_params_for_targets(self, targets: List[str], new_params: dict) -> None:
-        deploy_map = getattr(self.job, "_deploy_map", {})
-        for target in targets:
-            app = deploy_map.get(target)
-            if app is None:
-                continue
-            app_config = getattr(app, "app_config", None)
-            if app_config is None:
-                continue
-            params = getattr(app_config, "additional_params", None)
-            if isinstance(params, dict):
-                params.clear()
-                params.update(new_params)
+        pass
 
     @contextmanager
     def _temporary_exec_params(
@@ -224,29 +174,7 @@ class Recipe(ABC):
 
         Any original additional_params are restored when the context exits.
         """
-        params_snapshot = None
-        if server_exec_params is not None or client_exec_params is not None:
-            params_snapshot = self._snapshot_additional_params()
-
-        try:
-            if server_exec_params is not None:
-                if server_exec_params:
-                    self.job.to_server(server_exec_params)
-                else:
-                    # Preserve the long-standing "empty dict means temporarily clear params"
-                    # behavior rather than treating {} as a no-op.
-                    self._replace_additional_params_for_targets(["server"], {})
-
-            if client_exec_params is not None:
-                if client_exec_params:
-                    self._add_to_client_apps(client_exec_params)
-                else:
-                    client_targets = [target for target in getattr(self.job, "_deploy_map", {}) if target != "server"]
-                    self._replace_additional_params_for_targets(client_targets, {})
-            yield
-        finally:
-            if params_snapshot is not None:
-                self._restore_additional_params(params_snapshot)
+        pass
 
     def _add_to_client_apps(self, obj, clients: Optional[List[str]] = None, **kwargs):
         """Add an object to client apps, preserving existing per-site structure.
@@ -256,27 +184,7 @@ class Recipe(ABC):
             clients: Optional list of specific client names. If None, applies to all clients.
             **kwargs: Extra options forwarded to `job.to()`/`job.to_clients()`.
         """
-        if clients is None:
-            from nvflare.apis.job_def import ALL_SITES, SERVER_SITE_NAME
-            from nvflare.job_config.defs import JobTargetType
-
-            # FedJob has no public API to list per-site deploy targets, so we inspect
-            # private deploy map to preserve existing per-site client topology.
-            deploy_map = getattr(self.job, "_deploy_map", {})
-            existing_client_sites = [
-                target
-                for target in deploy_map.keys()
-                if target not in [ALL_SITES, SERVER_SITE_NAME]
-                and JobTargetType.get_target_type(target) == JobTargetType.CLIENT
-            ]
-            if existing_client_sites:
-                for site in existing_client_sites:
-                    self.job.to(obj, site, **kwargs)
-            else:
-                self.job.to_clients(obj, **kwargs)
-        else:
-            for client in clients:
-                self.job.to(obj, client, **kwargs)
+        pass
 
     def add_client_input_filter(
         self, filter: Filter, tasks: Optional[List[str]] = None, clients: Optional[List[str]] = None
@@ -291,7 +199,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        self._add_to_client_apps(filter, clients=clients, filter_type=FilterType.TASK_DATA, tasks=tasks)
+        pass
 
     def add_client_output_filter(
         self, filter: Filter, tasks: Optional[List[str]] = None, clients: Optional[List[str]] = None
@@ -306,7 +214,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        self._add_to_client_apps(filter, clients=clients, filter_type=FilterType.TASK_RESULT, tasks=tasks)
+        pass
 
     def add_client_config(self, config: Dict, clients: Optional[List[str]] = None):
         """Add top-level configuration parameters to config_fed_client.json.
@@ -318,10 +226,7 @@ class Recipe(ABC):
         Raises:
             TypeError: If config is not a dictionary.
         """
-        if not isinstance(config, dict):
-            raise TypeError(f"config must be a dict, got {type(config).__name__}")
-
-        self._add_to_client_apps(config, clients=clients)
+        pass
 
     def add_client_file(self, file_path: str, clients: Optional[List[str]] = None):
         """Add a file or directory to client apps.
@@ -343,10 +248,7 @@ class Recipe(ABC):
             # Add a script to specific clients
             recipe.add_client_file("custom_script.py", clients=["site1", "site2"])
         """
-        if not isinstance(file_path, str):
-            raise TypeError(f"file_path must be a str, got {type(file_path).__name__}")
-
-        self._add_to_client_apps(file_path, clients=clients)
+        pass
 
     def add_server_output_filter(self, filter: Filter, tasks: Optional[List[str]] = None):
         """Add a filter to the server for outgoing tasks to clients.
@@ -358,7 +260,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        self.job.to_server(filter, filter_type=FilterType.TASK_DATA, tasks=tasks)
+        pass
 
     def add_server_input_filter(self, filter: Filter, tasks: Optional[List[str]] = None):
         """Add a filter to server for incoming task result from clients. .
@@ -370,7 +272,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        self.job.to_server(filter, filter_type=FilterType.TASK_RESULT, tasks=tasks)
+        pass
 
     def add_server_config(self, config: Dict):
         """Add top-level configuration parameters to config_fed_server.json.
@@ -381,10 +283,7 @@ class Recipe(ABC):
         Raises:
             TypeError: If config is not a dictionary.
         """
-        if not isinstance(config, dict):
-            raise TypeError(f"config must be a dict, got {type(config).__name__}")
-
-        self.job.to_server(config)
+        pass
 
     def add_server_file(self, file_path: str):
         """Add a file or directory to server app.
@@ -402,22 +301,14 @@ class Recipe(ABC):
             # Add a wrapper script to server
             recipe.add_server_file("server_wrapper.sh")
         """
-        if not isinstance(file_path, str):
-            raise TypeError(f"file_path must be a str, got {type(file_path).__name__}")
-
-        self.job.to_server(file_path)
+        pass
 
     @staticmethod
     def _get_full_class_name(obj):
         """
         Returns the fully qualified name of an object.
         """
-        cls = type(obj)
-        module = cls.__module__
-        qualname = cls.__qualname__
-        if module == "builtins":  # For built-in types like int, str, etc.
-            return qualname
-        return f"{module}.{qualname}"
+        pass
 
     def add_decomposers(self, decomposers: List[Union[str, Decomposer]]):
         """Add decomposers to the job
@@ -428,21 +319,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        if not decomposers:
-            return
-
-        class_names = []
-        for d in decomposers:
-            if isinstance(d, str):
-                # class name
-                class_names.append(d)
-            elif isinstance(d, Decomposer):
-                class_names.append(self._get_full_class_name(d))
-            else:
-                raise TypeError(f"decomposer must be str or Decomposer, got {type(d).__name__}")
-
-        self.job.to_server(DecomposerRegister(class_names), id="decomposer_reg")
-        self._add_to_client_apps(DecomposerRegister(class_names), id="decomposer_reg")
+        pass
 
     def export(
         self,
@@ -462,10 +339,7 @@ class Recipe(ABC):
         Returns: None
 
         """
-        with self._temporary_exec_params(server_exec_params=server_exec_params, client_exec_params=client_exec_params):
-            if env is not None:
-                self.process_env(env)
-            self.job.export_job(job_dir)
+        pass
 
     def run(
         self, env: ExecEnv, server_exec_params: Optional[dict] = None, client_exec_params: Optional[dict] = None
@@ -480,12 +354,7 @@ class Recipe(ABC):
         Returns: Run to get job ID and execution results
 
         """
-        with self._temporary_exec_params(server_exec_params=server_exec_params, client_exec_params=client_exec_params):
-            self.process_env(env)
-            job_id = env.deploy(self.job)
-            from nvflare.recipe.run import Run
-
-            return Run(env, job_id)
+        pass
 
     def execute(
         self,
@@ -511,15 +380,4 @@ class Recipe(ABC):
             Run when executing; raises SystemExit(0) when exporting so callers
             need not guard against a None return value.
         """
-        recipe_export, recipe_export_dir = _peek_recipe_args()
-        if recipe_export:
-            self.export(
-                job_dir=recipe_export_dir,
-                server_exec_params=server_exec_params,
-                client_exec_params=client_exec_params,
-                env=env,
-            )
-            print(f"Job exported to: {recipe_export_dir}")
-            raise SystemExit(0)
-
-        return self.run(env, server_exec_params=server_exec_params, client_exec_params=client_exec_params)
+        pass

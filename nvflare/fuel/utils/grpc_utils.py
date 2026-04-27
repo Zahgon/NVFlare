@@ -28,15 +28,4 @@ def create_channel(server_addr, grpc_options, ready_timeout: float, test_only: b
     If the server does not become ready within ready_timeout, the RuntimeError exception will raise.
 
     """
-    channel = grpc.insecure_channel(server_addr, options=grpc_options)
-
-    # wait for channel ready
-    try:
-        grpc.channel_ready_future(channel).result(timeout=ready_timeout)
-    except grpc.FutureTimeoutError:
-        raise RuntimeError(f"cannot connect to server after {ready_timeout} seconds")
-
-    if test_only:
-        channel.close()
-        channel = None
-    return channel
+    pass

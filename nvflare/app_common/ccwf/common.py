@@ -129,18 +129,7 @@ class StatusReport:
         self.error = error
 
     def to_dict(self) -> dict:
-        result = {
-            Constant.TIMESTAMP: self.timestamp,
-            Constant.ACTION: self.action,
-            Constant.ALL_DONE: self.all_done,
-        }
-
-        if self.last_round is not None:
-            result[Constant.LAST_ROUND] = self.last_round
-
-        if self.error:
-            result[Constant.ERROR] = self.error
-        return result
+        pass
 
     def __eq__(self, other):
         if not isinstance(other, StatusReport):
@@ -157,54 +146,25 @@ class StatusReport:
 
 
 def status_report_from_dict(d: dict) -> StatusReport:
-    last_round = d.get(Constant.LAST_ROUND)
-    timestamp = d.get(Constant.TIMESTAMP)
-    all_done = d.get(Constant.ALL_DONE)
-    error = d.get(Constant.ERROR)
-    action = d.get(Constant.ACTION)
-
-    return StatusReport(
-        last_round=last_round,
-        timestamp=timestamp,
-        action=action,
-        all_done=all_done,
-        error=error,
-    )
+    pass
 
 
 def rotate_to_front(item, items: list):
-    num_items = len(items)
-    idx = items.index(item)
-    if idx != 0:
-        new_list = [None] * num_items
-        for i in range(num_items):
-            new_pos = i - idx
-            if new_pos < 0:
-                new_pos += num_items
-            new_list[new_pos] = items[i]
-
-        for i in range(num_items):
-            items[i] = new_list[i]
+    pass
 
 
 def topic_for_end_workflow(wf_id):
-    return f"{Constant.TOPIC_END_WORKFLOW}.{wf_id}"
+    pass
 
 
 def topic_for_membership_update(wf_id):
-    return f"{Constant.TOPIC_UPDATE_MEMBERSHIP}.{wf_id}"
+    pass
 
 
 def make_task_name(prefix: str, base_name: str) -> str:
-    return f"{prefix}_{base_name}"
+    pass
 
 
 class NumberMetricComparator(MetricComparator):
     def compare(self, a, b) -> Union[int, float]:
-        if not isinstance(a, (int, float)):
-            raise ValueError(f"metric value must be a number but got {type(a)}")
-
-        if not isinstance(b, (int, float)):
-            raise ValueError(f"metric value must be a number but got {type(b)}")
-
-        return a - b
+        pass

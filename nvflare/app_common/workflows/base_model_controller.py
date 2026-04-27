@@ -82,29 +82,10 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         self._current_failed_clients = set()  # Set of client names that returned errors in this task
 
     def start_controller(self, fl_ctx: FLContext) -> None:
-        self.fl_ctx = fl_ctx
-        self.info("Initializing BaseModelController workflow.")
-
-        self.engine = self.fl_ctx.get_engine()
-
-        if self._persistor_id:
-            self.persistor = self.engine.get_component(self._persistor_id)
-            if not isinstance(self.persistor, LearnablePersistor):
-                self.warning(
-                    f"Persistor {self._persistor_id} must be a LearnablePersistor type object, "
-                    f"but got {type(self.persistor)}"
-                )
-                self.persistor = None
-
-        FLComponentWrapper.initialize(self)
+        pass
 
     def _build_shareable(self, data: FLModel = None) -> Shareable:
-        data_shareable: Shareable = FLModelUtils.to_shareable(data)
-        data_shareable.add_cookie(
-            AppConstants.CONTRIBUTION_ROUND, data_shareable.get_header(AppConstants.CURRENT_ROUND)
-        )
-
-        return data_shareable
+        pass
 
     def broadcast_model(
         self,
@@ -134,65 +115,7 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         Returns:
             List[FLModel] if blocking=True else None
         """
-
-        if not isinstance(task_name, str):
-            raise TypeError(f"task_name must be a string but got {type(task_name)}")
-        if not isinstance(data, FLModel):
-            raise TypeError(f"data must be a FLModel but got {type(data)}")
-        if min_responses is None:
-            min_responses = 0  # this is internally used by controller's broadcast to represent all targets
-        check_non_negative_int("min_responses", min_responses)
-        check_non_negative_int("timeout", timeout)
-        check_non_negative_int("wait_time_after_min_received", wait_time_after_min_received)
-        if not blocking and not isinstance(callback, Callable):
-            raise TypeError("callback must be defined if blocking is False, but got {}".format(type(callback)))
-
-        # Store task context for dynamic ignore_result_error mode
-        num_targets = len(targets) if targets else len(self.engine.get_clients())
-        self._current_min_responses = min_responses if min_responses > 0 else num_targets
-        self._current_num_targets = num_targets
-        self._current_failed_clients = set()
-
-        self.set_fl_context(data)
-
-        task = self._prepare_task(data=data, task_name=task_name, timeout=timeout, callback=callback)
-
-        if targets:
-            targets = [client.name if isinstance(client, Client) else client for client in targets]
-            self.info(f"Sending task {task_name} to {targets}")
-        else:
-            self.info(f"Sending task {task_name} to all clients")
-
-        if blocking:
-            self._results = []  # reset results list
-            self.broadcast_and_wait(
-                task=task,
-                targets=targets,
-                min_responses=min_responses,
-                wait_time_after_min_received=wait_time_after_min_received,
-                fl_ctx=self.fl_ctx,
-                abort_signal=self.abort_signal,
-            )
-
-            if targets is not None:
-                expected_responses = min_responses if min_responses != 0 else len(targets)
-                if len(self._results) != expected_responses:
-                    self.warning(
-                        f"Number of results ({len(self._results)}) is different from number of expected responses ({expected_responses})."
-                    )
-
-            # de-reference the internal results before returning
-            results = self._results
-            self._results = []
-            return results
-        else:
-            self.broadcast(
-                task=task,
-                targets=targets,
-                min_responses=min_responses,
-                wait_time_after_min_received=wait_time_after_min_received,
-                fl_ctx=self.fl_ctx,
-            )
+        pass
 
     def _prepare_task(
         self,
@@ -202,98 +125,26 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         callback: Callable,
     ):
         # Create task
-        data_shareable = self._build_shareable(data)
-
-        operator = {
-            TaskOperatorKey.OP_ID: task_name,
-            TaskOperatorKey.METHOD: OperatorMethod.BROADCAST,
-            TaskOperatorKey.TIMEOUT: timeout,
-        }
-
-        task = Task(
-            name=task_name,
-            data=data_shareable,
-            operator=operator,
-            props={AppConstants.TASK_PROP_CALLBACK: callback, AppConstants.META_DATA: data.meta},
-            timeout=timeout,
-            before_task_sent_cb=self._prepare_task_data,
-            result_received_cb=self._process_result,
-        )
-
-        return task
+        pass
 
     def _prepare_task_data(self, client_task: ClientTask, fl_ctx: FLContext) -> None:
-        self.fire_event_with_data(
-            AppEventType.BEFORE_TRAIN_TASK, fl_ctx, AppConstants.TRAIN_SHAREABLE, client_task.task.data
-        )
+        pass
 
     @staticmethod
     def _set_ctx_prop_preserving_attrs(
         fl_ctx: FLContext, key: str, value, default_private: bool = True, default_sticky: bool = False
     ) -> None:
-        detail = fl_ctx.get_prop_detail(key)
-        if detail is not None:
-            fl_ctx.set_prop(key, value, private=detail["private"], sticky=detail["sticky"])
-        else:
-            fl_ctx.set_prop(key, value, private=default_private, sticky=default_sticky)
+        pass
 
     def _process_result(self, client_task: ClientTask, fl_ctx: FLContext) -> None:
-        self.fl_ctx = fl_ctx
-        result = client_task.result
-        client_name = client_task.client.name
-
-        # Make round available on callback fl_ctx before contribution-accept handlers run.
-        current_round = client_task.task.data.get_header(AppConstants.CURRENT_ROUND, None)
-        if current_round is None:
-            current_round = result.get_header(AppConstants.CURRENT_ROUND, None)
-        if current_round is not None:
-            self._set_ctx_prop_preserving_attrs(fl_ctx, AppConstants.CURRENT_ROUND, current_round)
-
-        # Check return code and handle errors first
-        self.event(AppEventType.BEFORE_CONTRIBUTION_ACCEPT)
-        accepted = self._accept_train_result(client_name=client_name, result=result, fl_ctx=fl_ctx)
-        self.event(AppEventType.AFTER_CONTRIBUTION_ACCEPT)
-
-        # If result was rejected (error ignored or panic), skip further processing
-        if not accepted:
-            client_task.result = None
-            return
-
-        # Now try to convert result to FLModel
-        try:
-            result_model = FLModelUtils.from_shareable(result)
-            result_model.meta["props"] = client_task.task.props[AppConstants.META_DATA]
-            result_model.meta["client_name"] = client_name
-        except Exception as e:
-            self.warning(f"Failed to convert result from {client_name} to FLModel: {e}")
-            client_task.result = None
-            return
-
-        callback = client_task.task.get_prop(AppConstants.TASK_PROP_CALLBACK)
-        if callback:
-            try:
-                callback(result_model)
-            except Exception as e:
-                self.error(f"Unsuccessful callback {callback} for task {client_task.task.name}: {e}")
-        else:
-            self._results.append(result_model)
-
-        # Cleanup task result
-        client_task.result = None
+        pass
         # Note: Memory cleanup (gc.collect + malloc_trim) is handled by subclasses
         # via _maybe_cleanup_memory() based on memory_gc_rounds setting
 
     def process_result_of_unknown_task(
         self, client: Client, task_name: str, client_task_id: str, result: Shareable, fl_ctx: FLContext
     ) -> None:
-        if task_name == AppConstants.TASK_TRAIN:
-            accepted = self._accept_train_result(
-                client_name=client.name, result=result, fl_ctx=fl_ctx, is_unknown_task=True
-            )
-            if accepted:
-                self.info(f"Result of unknown task {task_name} sent to aggregator.")
-        else:
-            self.error("Ignoring result from unknown task.")
+        pass
 
     def _accept_train_result(
         self, client_name: str, result: Shareable, fl_ctx: FLContext, is_unknown_task: bool = False
@@ -309,48 +160,7 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         Returns:
             True if the result was accepted, False if it was rejected (error ignored or panic triggered).
         """
-        self.fl_ctx = fl_ctx
-        rc = result.get_return_code()
-
-        current_round = result.get_header(AppConstants.CURRENT_ROUND, None)
-
-        # For unknown/late tasks, always ignore errors (no valid tolerance context)
-        # For normal tasks, use the configured ignore_result_error setting
-        ignore_result_error = True if is_unknown_task else self._ignore_result_error
-
-        # Use empty set for unknown tasks since we don't have valid tracking context
-        failed_clients = set() if is_unknown_task else self._current_failed_clients
-        num_targets = 0 if is_unknown_task else self._current_num_targets
-        min_responses = 0 if is_unknown_task else self._current_min_responses
-
-        # Raise panic if bad peer context or execution exception.
-        if rc and rc != ReturnCode.OK:
-            should_ignore = should_ignore_result_error(
-                ignore_result_error=ignore_result_error,
-                client_name=client_name,
-                failed_clients=failed_clients,
-                num_targets=num_targets,
-                min_responses=min_responses,
-            )
-            msg = get_error_handling_message(
-                ignore_result_error=ignore_result_error,
-                client_name=client_name,
-                error_code=rc,
-                current_round=current_round,
-                controller_name=self.__class__.__name__,
-                failed_clients=failed_clients,
-                num_targets=num_targets,
-                min_responses=min_responses,
-            )
-            if should_ignore:
-                self.warning(msg)
-                return False  # Result rejected - error ignored
-            else:
-                self.panic(msg)
-                return False  # Result rejected - panic triggered
-
-        self.fl_ctx.set_prop(AppConstants.TRAINING_RESULT, result, private=True, sticky=False)
-        return True  # Result accepted
+        pass
 
     @abstractmethod
     def run(self):
@@ -359,102 +169,28 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         Returns: None.
 
         """
-        raise NotImplementedError
+        pass
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext) -> None:
-        self.fl_ctx = fl_ctx
-        self.abort_signal = abort_signal
-        try:
-            self.info("Beginning model controller run.")
-            self.event(AppEventType.TRAINING_STARTED)
-
-            self.run()
-        except Exception as e:
-            error_msg = f"Exception in model controller run: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
+        pass
 
     def load_model(self):
         # initialize global model
-        model = None
-        if self.persistor:
-            self.info("loading initial model from persistor")
-            global_weights = self.persistor.load(self.fl_ctx)
-
-            if not isinstance(global_weights, ModelLearnable):
-                self.panic(
-                    f"Expected global weights to be of type `ModelLearnable` but received {type(global_weights)}"
-                )
-                return
-
-            if global_weights.is_empty():
-                if not self._allow_empty_global_weights:
-                    # if empty not allowed, further check whether it is available from fl_ctx
-                    global_weights = self.fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-
-            if not global_weights.is_empty():
-                model = FLModel(
-                    params_type=ParamsType.FULL,
-                    params=global_weights[ModelLearnableKey.WEIGHTS],
-                    meta=global_weights[ModelLearnableKey.META],
-                )
-            elif self._allow_empty_global_weights:
-                model = FLModel(params_type=ParamsType.FULL, params={})
-            else:
-                self.panic(
-                    f"Neither `persistor` {self._persistor_id} or `fl_ctx` returned a global model! If this was intended, set `self._allow_empty_global_weights` to `True`."
-                )
-                return
-        else:
-            self.info("persistor not configured, creating empty initial FLModel")
-            model = FLModel(params_type=ParamsType.FULL, params={})
-
-        # persistor uses Learnable format to save model
-        ml = make_model_learnable(weights=model.params, meta_props=model.meta)
-        self.fl_ctx.set_prop(AppConstants.GLOBAL_MODEL, ml, private=True, sticky=True)
-        self.event(AppEventType.INITIAL_MODEL_LOADED)
-
-        return model
+        pass
 
     def get_run_dir(self):
         """Get current run directory."""
-        return self.engine.get_workspace().get_run_dir(self.fl_ctx.get_job_id())
+        pass
 
     def get_app_dir(self):
         """Get current app directory."""
-        return self.engine.get_workspace().get_app_dir(self.fl_ctx.get_job_id())
+        pass
 
     def save_model(self, model):
-        if self.persistor:
-            self.info("Start persist model on server.")
-            self.event(AppEventType.BEFORE_LEARNABLE_PERSIST)
-            # persistor uses Learnable format to save model
-            ml = make_model_learnable(weights=model.params, meta_props=model.meta)
-            self.persistor.save(ml, self.fl_ctx)
-            self.event(AppEventType.AFTER_LEARNABLE_PERSIST)
-            self.info("End persist model on server.")
-        else:
-            self.error("persistor not configured, model will not be saved")
+        pass
 
     def sample_clients(self, num_clients: int = None) -> List[str]:
-        clients = [client.name for client in self.engine.get_clients()]
-
-        if num_clients:
-            check_positive_int("num_clients", num_clients)
-            if num_clients < len(clients):
-                random.shuffle(clients)
-                clients = clients[0:num_clients]
-                self.info(
-                    f"num_clients ({num_clients}) is less than the number of available clients. Returning a random subset of ({num_clients}) clients."
-                )
-            elif num_clients > len(clients):
-                self.error(
-                    f"num_clients ({num_clients}) is greater than the number of available clients. Returning all ({len(clients)}) available clients."
-                )
-
-        self.info(f"Sampled clients: {clients}")
-
-        return clients
+        pass
 
     def set_fl_context(self, data: FLModel):
         """Set fl_ctx CURRENT_ROUND and NUM_ROUNDS from FLModel so they stay current each round.
@@ -464,19 +200,13 @@ class BaseModelController(Controller, FLComponentWrapper, ABC):
         for flows like FedAvg that do not set CURRENT_ROUND in fl_ctx before send; downstream
         (e.g. aggregators) rely on it.
         """
-        if not data:
-            return
-        if data.current_round is not None:
-            self._set_ctx_prop_preserving_attrs(self.fl_ctx, AppConstants.CURRENT_ROUND, data.current_round)
-        if data.total_rounds is not None:
-            self._set_ctx_prop_preserving_attrs(self.fl_ctx, AppConstants.NUM_ROUNDS, data.total_rounds)
+        pass
 
     def get_component(self, component_id: str):
-        return self.engine.get_component(component_id)
+        pass
 
     def build_component(self, config_dict: dict):
-        return self.engine.build_component(config_dict)
+        pass
 
     def stop_controller(self, fl_ctx: FLContext):
-        self.fl_ctx = fl_ctx
-        self.finalize()
+        pass

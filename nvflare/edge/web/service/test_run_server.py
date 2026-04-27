@@ -37,57 +37,24 @@ class TestQueryHandler(QueryHandler):
         self.logger = get_obj_logger(self)
 
     def handle_job_request(self, request: JobRequest) -> JobResponse:
-        device_id = request.get_device_id()
-        self.logger.info(f"received job request from device {device_id}")
-        time.sleep(5.0)
-        return JobResponse(status=EdgeApiStatus.OK, job_id=str(uuid.uuid4()), job_name="test")
+        pass
 
     def handle_task_request(self, request: TaskRequest) -> TaskResponse:
-        cookie = {
-            CookieKey.MODEL_VERSION: 1,
-            CookieKey.DEVICE_SELECTION_ID: 12,
-        }
-        return TaskResponse(
-            status=EdgeApiStatus.RETRY,
-            job_id=request.job_id,
-            cookie=cookie,
-        )
+        pass
 
     def handle_result_report(self, request: ResultReport) -> ResultResponse:
-        return ResultResponse(
-            status=EdgeApiStatus.OK,
-            message="got it",
-            task_id=request.task_id,
-            task_name=request.task_name,
-        )
+        pass
 
     def handle_selection_request(self, request: SelectionRequest) -> SelectionResponse:
-        return SelectionResponse(
-            status=EdgeApiStatus.OK,
-            job_id=request.job_id,
-            selection={
-                "aaaaa": 2,
-                "bbbbb": 10,
-            },
-        )
+        pass
 
 
 def shutdown_server(server):
-    run_duration = 60
-    print(f"NOTE: server will only run for {run_duration} seconds!")
-    time.sleep(run_duration)
-    print(f"stopping server after {run_duration} seconds")
-    server.shutdown()
-    print("stopped server")
+    pass
 
 
 def main():
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
-    server = EdgeApiServer(address="127.0.0.1:8009", handler=TestQueryHandler(), max_workers=100)
-    t = threading.Thread(target=shutdown_server, daemon=True, args=(server,))
-    t.start()
-    server.start()
+    pass
 
 
 if __name__ == "__main__":

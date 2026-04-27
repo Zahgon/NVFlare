@@ -162,12 +162,10 @@ class Task(object):
         self.create_time = time.time()
 
     def set_prop(self, key, value):
-        if key.startswith("__"):
-            raise ValueError("Keys start with __ is reserved. Please use other key instead of {}.".format(key))
-        self.props[key] = value
+        pass
 
     def get_prop(self, key):
-        return self.props.get(key)
+        pass
 
 
 class ClientTask(object):
@@ -553,4 +551,4 @@ class ControllerSpec(ABC):
         Returns: time at which the client was deemed disconnected; or None if the client is not disconnected.
 
         """
-        return None
+        pass

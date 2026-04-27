@@ -72,52 +72,16 @@ class TFModel:
         Returns:
             str: persistor_id of component added
         """
-        if self.persistor:
-            persistor = self.persistor
-        elif isinstance(self.model, tf.keras.Model):
-            # Model instance provided
-            persistor = self._create_persistor_for_model()
-        elif isinstance(self.model, dict):
-            # Dict config provided
-            # TODO: Future enhancement - when dict config is used, we currently create a TFModelPersistor
-            # instance that will dynamically instantiate the model at runtime. Consider enhancing Job API to
-            # allow passing dict config directly to job.add_component() without pre-creating the persistor,
-            # which would simplify the internal implementation for dict-based models.
-            persistor = self._create_persistor_for_dict_config()
-        elif self.initial_ckpt:
-            # Checkpoint only (TF can load full model from file)
-            persistor = self._create_persistor_for_checkpoint_only()
-        else:
-            raise ValueError(
-                f"Unsupported model configuration. Provide tf.keras.Model, dict config, "
-                f"or initial_ckpt path. Got model={type(self.model)}."
-            )
-
-        persistor_id = job.add_component(comp_id="persistor", obj=persistor, ctx=ctx)
-        return persistor_id
+        pass
 
     def _create_persistor_for_model(self) -> ModelPersistor:
         """Create persistor for tf.keras.Model."""
-        persistor_kwargs = {"model": self.model}
-
-        if self.initial_ckpt:
-            persistor_kwargs["source_ckpt_file_full_name"] = self.initial_ckpt
-
-        return TFModelPersistor(**persistor_kwargs)
+        pass
 
     def _create_persistor_for_dict_config(self) -> ModelPersistor:
         """Create persistor for dict config model."""
-        # For dict config, pass full dict with path and args (resolved at runtime via instantiate_class)
-        persistor_kwargs = {"model": self.model}  # Pass full dict {"path": "...", "args": {...}}
-
-        if self.initial_ckpt:
-            persistor_kwargs["source_ckpt_file_full_name"] = self.initial_ckpt
-
-        return TFModelPersistor(**persistor_kwargs)
+        pass
 
     def _create_persistor_for_checkpoint_only(self) -> ModelPersistor:
         """Create persistor for checkpoint-only mode (TF can load full model)."""
-        return TFModelPersistor(
-            model=None,
-            source_ckpt_file_full_name=self.initial_ckpt,
-        )
+        pass

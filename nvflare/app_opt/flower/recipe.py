@@ -29,32 +29,11 @@ SUPPORTED_FLWR_SPEC = "flwr>=1.26"
 
 
 def _validate_flwr_version():
-    try:
-        installed_version = get_package_version("flwr")
-    except PackageNotFoundError as ex:
-        raise RuntimeError(
-            f"Flower package 'flwr' is not installed. " f"FlowerRecipe requires '{SUPPORTED_FLWR_SPEC}'."
-        ) from ex
-
-    try:
-        parsed_version = Version(installed_version)
-    except InvalidVersion as ex:
-        raise RuntimeError(
-            f"unable to parse installed flwr version '{installed_version}'. "
-            f"FlowerRecipe requires '{SUPPORTED_FLWR_SPEC}'."
-        ) from ex
-
-    is_supported = parsed_version >= SUPPORTED_FLWR_MIN_VERSION
-    if not is_supported:
-        raise RuntimeError(
-            f"incompatible flwr version '{installed_version}'. " f"FlowerRecipe requires '{SUPPORTED_FLWR_SPEC}'."
-        )
+    pass
 
 
 def _create_flower_job(**kwargs):
-    from nvflare.app_opt.flower.flower_job import FlowerJob
-
-    return FlowerJob(**kwargs)
+    pass
 
 
 class FlowerRecipe(Recipe):

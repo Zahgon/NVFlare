@@ -75,8 +75,7 @@ class HECrossSiteModelEval(CrossSiteModelEval):
         self.tenseal_context_file = tenseal_context_file
 
     def start_controller(self, fl_ctx: FLContext):
-        super().start_controller(fl_ctx)
-        self.tenseal_context = load_tenseal_context_from_workspace(self.tenseal_context_file, fl_ctx)
+        pass
 
     def _save_validation_content(self, name: str, save_dir: str, dxo: DXO, fl_ctx: FLContext) -> str:
         """Saves shareable to given directory within the app_dir.
@@ -90,28 +89,8 @@ class HECrossSiteModelEval(CrossSiteModelEval):
         Returns:
             str: Path to the file saved.
         """
-        # Save the model with name as the filename to shareable directory
-        data_filename = os.path.join(save_dir, name)
-
-        try:
-            serialize_nested_dict(dxo.data)
-            dxo.to_file(data_filename)
-        except Exception as e:
-            raise ValueError(f"Unable to save shareable contents: {secure_format_exception(e)}")
-
-        self.log_debug(fl_ctx, f"Saved cross validation model with name: {name}.")
-
-        return data_filename
+        pass
 
     def _load_validation_content(self, name: str, load_dir: str, fl_ctx: FLContext) -> Union[DXO, None]:
         # Load shareable from disk
-        shareable_filename = os.path.join(load_dir, name)
-
-        # load shareable
-        try:
-            dxo: DXO = from_file(shareable_filename)
-            self.log_debug(fl_ctx, f"Loading cross validation shareable content with name: {name}.")
-        except Exception as e:
-            raise ValueError(f"Exception in loading shareable content for {name}: {secure_format_exception(e)}")
-
-        return dxo
+        pass

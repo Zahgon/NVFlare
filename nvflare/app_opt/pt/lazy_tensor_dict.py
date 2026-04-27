@@ -32,12 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 def _cleanup_temp_dir(path: str) -> None:
-    try:
-        shutil.rmtree(path)
-    except FileNotFoundError:
-        return
-    except Exception as e:
-        logger.warning("failed to cleanup tensor offload temp dir '%s': %s", path, e)
+    pass
 
 
 class _TempDirRef:
@@ -52,9 +47,7 @@ class _TempDirRef:
         self._deleted = False
 
     def cleanup(self):
-        if not self._deleted:
-            self._deleted = True
-            _cleanup_temp_dir(self.path)
+        pass
 
     def __del__(self):
         self.cleanup()
@@ -76,8 +69,7 @@ class _LazyRef:
 
     def materialize(self):
         """Load tensor from safetensors file. Opens mmap, copies data out, closes mmap."""
-        with safe_open(self.file_path, framework="pt") as f:
-            return f.get_tensor(self.key)
+        pass
 
     def __repr__(self):
         return f"_LazyRef({self.file_path!r}, key={self.key!r})"
@@ -100,24 +92,19 @@ class LazyTensorDict:
             return f.get_tensor(st_key)
 
     def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
+        pass
 
     def keys(self):
-        return self._key_to_file.keys()
+        pass
 
     def __iter__(self):
         return iter(self._key_to_file)
 
     def items(self):
-        for key in self._key_to_file:
-            yield key, self[key]
+        pass
 
     def values(self):
-        for key in self._key_to_file:
-            yield self[key]
+        pass
 
     def __len__(self):
         return len(self._key_to_file)
@@ -126,8 +113,7 @@ class LazyTensorDict:
         return key in self._key_to_file
 
     def make_lazy_ref(self, key) -> "_LazyRef":
-        file_path, st_key = self._key_to_file[key]
-        return _LazyRef(file_path=file_path, key=st_key, temp_ref=self._temp_ref)
+        pass
 
     def cleanup(self):
-        self._temp_ref.cleanup()
+        pass

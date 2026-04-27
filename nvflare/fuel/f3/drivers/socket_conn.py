@@ -42,179 +42,50 @@ class SocketConnection(Connection):
         self.send_timeout = CommConfigurator().get_streaming_send_timeout(30.0)
 
     def get_conn_properties(self) -> dict:
-        return self.conn_props
+        pass
 
     def close(self):
-        self.closing = True
-
-        if self.sock:
-            try:
-                self.sock.shutdown(socket.SHUT_RDWR)
-            except OSError as error:
-                log.debug(f"Connection {self} is already closed: {error}")
-
-            self.sock.close()
+        pass
 
     def send_frame(self, frame: BytesAlike):
-        try:
-            self._send_with_timeout(frame, self.send_timeout)
-        except CommError as error:
-            if not self.closing:
-                # A send timeout may occur after partial bytes are already written to the stream.
-                # Close the connection to avoid frame-boundary desync on subsequent sends.
-                if error.code == CommError.TIMEOUT:
-                    self.close()
-                raise
-        except Exception as ex:
-            if not self.closing:
-                if self._is_timeout_exception(ex):
-                    self.close()
-                    raise CommError(
-                        CommError.TIMEOUT,
-                        f"send_frame timeout on conn {self}: {secure_format_exception(ex)}",
-                    )
-                if self._is_closed_socket_exception(ex):
-                    raise CommError(
-                        CommError.CLOSED,
-                        f"Connection {self.name} is closed while sending: {secure_format_exception(ex)}",
-                    )
-                raise CommError(CommError.ERROR, f"Error sending frame on conn {self}: {secure_format_exception(ex)}")
+        pass
 
     @staticmethod
     def _is_timeout_exception(ex: Exception) -> bool:
-        return isinstance(ex, (TimeoutError, socket.timeout))
+        pass
 
     @staticmethod
     def _is_closed_socket_exception(ex: Exception) -> bool:
-        if isinstance(ex, (BrokenPipeError, ConnectionResetError, ConnectionAbortedError)):
-            return True
-
-        if isinstance(ex, OSError):
-            return ex.errno in {
-                errno.EPIPE,
-                errno.ECONNRESET,
-                errno.ENOTCONN,
-                errno.ECONNABORTED,
-                errno.EBADF,
-                errno.ESHUTDOWN,
-            }
-
-        return False
+        pass
 
     def _send_with_timeout(self, frame: BytesAlike, timeout_sec: float):
-        view = frame if isinstance(frame, memoryview) else memoryview(frame)
-        deadline = time.monotonic() + timeout_sec
-        while view:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise CommError(CommError.TIMEOUT, f"send_frame timeout after {timeout_sec} seconds on {self.name}")
-
-            _, writable, _ = select.select([], [self.sock], [], remaining)
-            if not writable:
-                raise CommError(CommError.TIMEOUT, f"send_frame timeout after {timeout_sec} seconds on {self.name}")
-
-            sent = self.sock.send(view)
-            if sent <= 0:
-                raise CommError(CommError.CLOSED, f"Connection {self.name} is closed while sending")
-
-            view = view[sent:]
+        pass
 
     def read_loop(self):
-        try:
-            self.read_frame_loop()
-        except CommError as error:
-            if error.code == CommError.CLOSED:
-                log.debug(f"Connection {self.name} is closed by peer")
-            else:
-                log.debug(f"Connection {self.name} is closed due to error: {error}")
-        except Exception as ex:
-            if self.closing:
-                log.debug(f"Connection {self.name} is closed")
-            else:
-                log.debug(f"Connection {self.name} is closed due to error: {secure_format_exception(ex)}")
+        pass
 
     def read_frame_loop(self):
         # read_frame throws exception on stale/bad connection so this is not a dead loop
-        while not self.closing:
-            frame = self.read_frame()
-            self.process_frame(frame)
+        pass
 
     def read_frame(self) -> BytesAlike:
 
-        prefix_buf = bytearray(PREFIX_LEN)
-        self.read_into(prefix_buf, 0, PREFIX_LEN)
-        prefix = Prefix.from_bytes(prefix_buf)
-
-        if prefix.length == PREFIX_LEN:
-            return prefix_buf
-
-        if prefix.length > MAX_FRAME_SIZE:
-            raise CommError(CommError.BAD_DATA, f"Frame exceeds limit ({prefix.length} > {MAX_FRAME_SIZE}")
-
-        frame = bytearray(prefix.length)
-        frame[0:PREFIX_LEN] = prefix_buf
-        self.read_into(frame, PREFIX_LEN, prefix.length - PREFIX_LEN)
-
-        return frame
+        pass
 
     def read_into(self, buffer: BytesAlike, offset: int, length: int):
-        view = buffer if isinstance(buffer, memoryview) else memoryview(buffer)
-        if offset:
-            view = view[offset:]
-
-        remaining = length
-        while remaining:
-            n = self.sock.recv_into(view, remaining)
-            if n == 0:
-                raise CommError(CommError.CLOSED, f"Connection {self.name} is closed by peer")
-            view = view[n:]
-            remaining -= n
+        pass
 
     @staticmethod
     def _format_address(addr: Union[str, tuple], fileno: int) -> str:
 
-        if isinstance(addr, tuple):
-            result = f"{addr[0]}:{addr[1]}"
-        else:
-            result = f"{addr}:{fileno}"
-
-        return result
+        pass
 
     def _get_socket_properties(self) -> dict:
-        conn_props = {}
-
-        try:
-            peer = self.sock.getpeername()
-            fileno = self.sock.fileno()
-        except OSError as ex:
-            peer = "N/A"
-            fileno = 0
-            log.debug(f"getpeername() error: {secure_format_exception(ex)}")
-
-        conn_props[DriverParams.PEER_ADDR.value] = self._format_address(peer, fileno)
-
-        local = self.sock.getsockname()
-        conn_props[DriverParams.LOCAL_ADDR.value] = self._format_address(local, fileno)
-
-        if self.secure:
-            cert = self.sock.getpeercert()
-            if cert:
-                cn = get_certificate_common_name(cert)
-            else:
-                cn = "N/A"
-            conn_props[DriverParams.PEER_CN.value] = cn
-
-        return conn_props
+        pass
 
 
 class ConnectionHandler(BaseRequestHandler):
     def handle(self):
 
         # noinspection PyUnresolvedReferences
-        connection = SocketConnection(self.request, self.server.connector, self.server.ssl_context)
-        # noinspection PyUnresolvedReferences
-        driver = self.server.driver
-
-        driver.add_connection(connection)
-        connection.read_loop()
-        driver.close_connection(connection)
+        pass

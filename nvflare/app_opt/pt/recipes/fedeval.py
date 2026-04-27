@@ -32,8 +32,7 @@ class _FedEvalValidator(BaseModel):
     @classmethod
     def validate_eval_ckpt(cls, v):
         # eval_ckpt is required for evaluation, validate it
-        validate_ckpt(v)
-        return v
+        pass
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -44,12 +43,7 @@ class EvalController(ModelController):
         self.timeout = timeout
 
     def run(self):
-        model = self.load_model()
-        self.info("Sending model for evaluation")
-        results = self.send_model_and_wait(targets=None, data=model, task_name="validate", timeout=self.timeout)
-        self.info(f"Got {len(results)} results")
-        for r in results:
-            self.info(f"Metrics: {r.metrics}")
+        pass
 
 
 class FedEvalRecipe(Recipe):

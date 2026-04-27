@@ -30,15 +30,12 @@ logger = logging.getLogger(__name__)
 
 def _split_image(docker_image: str):
     """Split ``'repo:tag'`` into ``(repo, tag)``.  Returns ``('repo', '')`` when no tag."""
-    if ":" in docker_image:
-        repo, tag = docker_image.rsplit(":", 1)
-        return repo, tag
-    return docker_image, ""
+    pass
 
 
 def _helm_src(role: str, filename: str) -> str:
     """Return the absolute path of a Helm template file shipped with this package."""
-    return os.path.join(_HELM_TEMPLATES_DIR, role, filename)
+    pass
 
 
 class HelmChartBuilder(Builder):
@@ -92,251 +89,43 @@ class HelmChartBuilder(Builder):
 
     def build(self, project: Project, ctx: ProvisionContext):
         """Generate the server Helm chart and one chart per client."""
-        self._build_server_chart(project, ctx)
-        self._build_client_charts(project, ctx)
+        pass
 
     # ------------------------------------------------------------------
     # Server chart
     # ------------------------------------------------------------------
 
     def _build_server_chart(self, project: Project, ctx: ProvisionContext):
-        server = project.get_server()
-        if not server:
-            return
-
-        chart_dir = os.path.join(ctx.get_ws_dir(server), ProvFileName.HELM_CHART)
-        templates_dir = os.path.join(chart_dir, "templates")
-        os.makedirs(templates_dir, exist_ok=True)
-
-        fed_learn_port = ctx.get(CtxKey.FED_LEARN_PORT, 8002)
-        admin_port = ctx.get(CtxKey.ADMIN_PORT, 8003)
-
-        # Align comm_config.json with the chart so that internal jobs can reach the
-        # parent at <nvflare-server>:<parent_port> within the cluster namespace.
-        comm_config_args = server.get_prop(PropKey.COMM_CONFIG_ARGS)
-        if comm_config_args is not None:
-            comm_config_args.update(
-                {
-                    CommConfigArg.HOST: "nvflare-server",
-                    CommConfigArg.PORT: self.parent_port,
-                    CommConfigArg.SCHEME: "tcp",
-                    CommConfigArg.CONN_SEC: ConnSecurity.CLEAR,
-                }
-            )
-
-        self._write_server_chart_yaml(chart_dir, server)
-        self._write_server_values_yaml(chart_dir, server, fed_learn_port, admin_port)
-        self._write_server_template_files(templates_dir)
-
-        # Repoint job-store and snapshot-storage at the workspace PVC mount.
-        # Defaults in master_template.yml put them under /tmp/nvflare/... which
-        # is the container's ephemeral root FS and disappears on pod restart.
-        self._relocate_storage_to_workspace_pvc(ctx, server)
+        pass
 
     def _write_server_chart_yaml(self, chart_dir: str, server: Participant):
-        _, tag = _split_image(self.docker_image)
-        chart = {
-            "apiVersion": "v2",
-            "name": "nvflare-server",
-            "description": f"NVFlare federated learning server for {server.name}",
-            "type": "application",
-            "version": "0.1.0",
-            "appVersion": tag or "latest",
-            "keywords": ["nvflare", "federated-learning"],
-            "maintainers": [],
-        }
-        with open(os.path.join(chart_dir, ProvFileName.CHART_YAML), "wt") as f:
-            yaml.dump(chart, f, default_flow_style=False)
+        pass
 
     def _write_server_values_yaml(self, chart_dir: str, server: Participant, fed_learn_port: int, admin_port: int):
-        repo, tag = _split_image(self.docker_image)
-        args = [
-            "-u",
-            "-m",
-            "nvflare.private.fed.app.server.server_train",
-            "-m",
-            self.workspace_mount_path,
-            "-s",
-            "fed_server.json",
-            "--set",
-            "secure_train=true",
-            "config_folder=config",
-            f"org={server.org}",
-        ]
-        values = {
-            "name": server.name,
-            "image": {
-                "repository": repo,
-                "tag": tag,
-                "pullPolicy": "IfNotPresent",
-            },
-            "serviceAccount": {
-                "create": True,
-                "annotations": {},
-                "automountServiceAccountToken": True,
-            },
-            "rbac": {
-                "create": True,
-            },
-            "persistence": {
-                "workspace": {
-                    "claimName": self.workspace_pvc,
-                    "friendlyName": self.workspace_pvc,
-                    "mountPath": self.workspace_mount_path,
-                },
-            },
-            "fedLearnPort": fed_learn_port,
-            "adminPort": admin_port if admin_port != fed_learn_port else None,
-            "parentPort": self.parent_port,
-            "resources": {
-                "requests": {
-                    "cpu": "2",
-                    "memory": "8Gi",
-                },
-            },
-            "securityContext": {},
-            "hostPortEnabled": False,
-            "tcpConfigMapEnabled": False,
-            "service": {
-                "type": "ClusterIP",
-                "loadBalancerIP": None,
-                "annotations": {},
-            },
-            "command": ["/usr/local/bin/python3"],
-            "args": args,
-        }
-        with open(os.path.join(chart_dir, ProvFileName.VALUES_YAML), "wt") as f:
-            yaml.dump(values, f, default_flow_style=False)
+        pass
 
     def _write_server_template_files(self, templates_dir: str):
-        for src, dst in [
-            (_helm_src("server", "_helpers.tpl"), "_helpers.tpl"),
-            (_helm_src("server", "deployment.yaml"), "server-deployment.yaml"),
-            (_helm_src("server", "service.yaml"), "server-service.yaml"),
-            (_helm_src("server", "tcp-services.yaml"), "server-tcp-services.yaml"),
-            (_helm_src("server", "serviceaccount.yaml"), "serviceaccount.yaml"),
-            (_helm_src("server", "role.yaml"), "role.yaml"),
-        ]:
-            shutil.copy(src, os.path.join(templates_dir, dst))
+        pass
 
     # ------------------------------------------------------------------
     # Client charts
     # ------------------------------------------------------------------
 
     def _build_client_charts(self, project: Project, ctx: ProvisionContext):
-        server = project.get_server()
-        if not server:
-            raise ValueError("project has no server; cannot build client Helm charts")
-
-        for client in project.get_clients():
-            self._build_one_client_chart(client, ctx)
+        pass
 
     def _build_one_client_chart(self, client: Participant, ctx: ProvisionContext):
-        chart_dir = os.path.join(ctx.get_ws_dir(client), ProvFileName.HELM_CHART)
-        templates_dir = os.path.join(chart_dir, "templates")
-        os.makedirs(templates_dir, exist_ok=True)
-
-        # Align comm_config.json with the chart so that job pods can reach
-        # the client at <client.name>:<parent_port> within the cluster namespace.
-        comm_config_args = client.get_prop(PropKey.COMM_CONFIG_ARGS)
-        if comm_config_args is not None:
-            comm_config_args.update(
-                {
-                    CommConfigArg.HOST: client.name,
-                    CommConfigArg.PORT: self.parent_port,
-                    CommConfigArg.SCHEME: "tcp",
-                    CommConfigArg.CONN_SEC: ConnSecurity.CLEAR,
-                }
-            )
-
-        self._write_client_chart_yaml(chart_dir, client)
-        self._write_client_values_yaml(chart_dir, client)
-        self._write_client_template_files(templates_dir)
+        pass
 
     def _write_client_chart_yaml(self, chart_dir: str, client: Participant):
-        _, tag = _split_image(self.docker_image)
-        chart = {
-            "apiVersion": "v2",
-            "name": "nvflare-client",
-            "description": f"NVFlare federated learning client deployment and service for {client.name}",
-            "type": "application",
-            "version": "0.1.0",
-            "appVersion": tag or "latest",
-            "keywords": ["nvflare", "federated-learning"],
-            "maintainers": [],
-        }
-        with open(os.path.join(chart_dir, ProvFileName.CHART_YAML), "wt") as f:
-            yaml.dump(chart, f, default_flow_style=False)
+        pass
 
     def _write_client_values_yaml(self, chart_dir: str, client: Participant):
-        repo, tag = _split_image(self.docker_image)
-        args = [
-            "-u",
-            "-m",
-            "nvflare.private.fed.app.client.client_train",
-            "-m",
-            self.workspace_mount_path,
-            "-s",
-            "fed_client.json",
-            "--set",
-            "secure_train=true",
-            "config_folder=config",
-            f"org={client.org}",
-        ]
-        values = {
-            "name": client.name,
-            "image": {
-                "repository": repo,
-                "tag": tag,
-                "pullPolicy": "Always",
-            },
-            "serviceAccount": {
-                "create": True,
-                "annotations": {},
-                "automountServiceAccountToken": True,
-            },
-            "rbac": {
-                "create": True,
-            },
-            "persistence": {
-                "workspace": {
-                    "claimName": self.workspace_pvc,
-                    "friendlyName": self.workspace_pvc,
-                    "mountPath": self.workspace_mount_path,
-                },
-            },
-            "port": self.parent_port,
-            "service": {
-                "annotations": {},
-            },
-            "securityContext": {},
-            "resources": {
-                "requests": {
-                    "cpu": "2",
-                    "memory": "8Gi",
-                },
-            },
-            "command": ["/usr/local/bin/python3"],
-            "args": args,
-        }
-        with open(os.path.join(chart_dir, ProvFileName.VALUES_YAML), "wt") as f:
-            yaml.dump(values, f, default_flow_style=False)
+        pass
 
     def _write_client_template_files(self, templates_dir: str):
-        for src, dst in [
-            (_helm_src("client", "_helpers.tpl"), "_helpers.tpl"),
-            (_helm_src("client", "deployment.yaml"), "client-deployment.yaml"),
-            (_helm_src("client", "service.yaml"), "service.yaml"),
-            (_helm_src("client", "serviceaccount.yaml"), "serviceaccount.yaml"),
-            (_helm_src("client", "role.yaml"), "role.yaml"),
-        ]:
-            shutil.copy(src, os.path.join(templates_dir, dst))
+        pass
 
     def _relocate_storage_to_workspace_pvc(self, ctx: ProvisionContext, participant: Participant):
         """Rewrite server resources so job and snapshot state live on the workspace PVC."""
-        local_dir = os.path.join(ctx.get_ws_dir(participant), "local")
-        default_resource = os.path.join(local_dir, "resources.json.default")
-        if not os.path.exists(default_resource):
-            logger.warning("resources.json.default not found at %s; skipping storage relocation.", local_dir)
-            return
-        update_storage_locations(local_dir=local_dir, workspace=self.workspace_mount_path)
+        pass

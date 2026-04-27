@@ -39,17 +39,7 @@ SHELL_CMD_VALIDATORS = {
 
 class ShellCommandProcessor(RequestProcessor):
     def get_topics(self) -> List[str]:
-        return [SysCommandTopic.SHELL]
+        pass
 
     def process(self, req: Message, app_ctx) -> Message:
-        shell_cmd_args = shlex.split(req.body)
-        validator = SHELL_CMD_VALIDATORS.get(shell_cmd_args[0], None)
-        if not validator:
-            output = f"Error: {req.body} is not a supported shell command"
-        else:
-            err, _ = validator.validate(shell_cmd_args[1:])
-            if len(err) > 0:
-                output = f"Error: {err}"
-            else:
-                output = execute_command_directly(shell_cmd_args)
-        return Message(topic="reply_" + req.topic, body=output)
+        pass

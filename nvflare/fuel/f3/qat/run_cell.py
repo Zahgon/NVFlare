@@ -24,40 +24,7 @@ def main():
     """
     Script to launch the admin client to issue admin commands to the server.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config_dir", "-c", type=str, help="config folder", required=False, default=".")
-    parser.add_argument(
-        "--config_file", "-f", type=str, help="config file name", required=False, default="net_config.json"
-    )
-    parser.add_argument("--name", "-n", type=str, help="my cell name", required=True)
-    parser.add_argument("--parent_fqcn", "-pn", type=str, help="parent cell name", required=False, default="")
-    parser.add_argument("--parent_url", "-pu", type=str, help="parent cell url", required=False, default="")
-    parser.add_argument("--log_level", "-l", type=str, help="log level", required=False, default="info")
-
-    parser.add_argument("--self_only", "-s", help="self only - don't start subs", default=False, action="store_true")
-
-    args = parser.parse_args()
-
-    logging.basicConfig()
-    log_level = logging.INFO
-    if args.log_level in ["debug", "d"]:
-        log_level = logging.DEBUG
-    elif args.log_level in ["error", "err", "e"]:
-        log_level = logging.ERROR
-    logging.getLogger().setLevel(log_level)
-
-    ConfigService.initialize(section_files={}, config_path=[args.config_dir])
-    runner = CellRunner(
-        config_path=args.config_dir,
-        config_file=args.config_file,
-        my_name=args.name,
-        parent_url=args.parent_url,
-        parent_fqcn=args.parent_fqcn,
-        log_level=args.log_level,
-    )
-    start_all = not args.self_only
-    runner.start(start_all)
-    runner.run()
+    pass
 
 
 if __name__ == "__main__":

@@ -41,9 +41,7 @@ class StatisticsExecutor(ErrorHandlingExecutor):
         self.precision = precision
 
     def get_data_kind(self) -> str:
-        return DataKind.STATISTICS
+        pass
 
     def get_task_handler(self, fl_ctx: FLContext):
-        task_handler = StatisticsTaskHandler(self.generator_id, self.precision)
-        task_handler.initialize(fl_ctx)
-        return task_handler
+        pass

@@ -34,30 +34,4 @@ def generate_random_network(
         BaseConfig: The generated configuration.
         np.ndarray: The weighted adjacency matrix of the network.
     """
-    np.random.seed(seed=seed)
-
-    while True:
-        graph = nx.gnp_random_graph(num_clients, p=connection_probability)
-        if nx.is_connected(graph):
-            break
-    adjacency_matrix = nx.adjacency_matrix(graph) + np.eye(num_clients)
-    weighted_adjacency_matrix = doubly_stochastic_adjacency(graph)
-
-    network = []
-    for j in range(num_clients):
-        in_neighbors = np.nonzero(adjacency_matrix[:, j])[0].tolist()
-        in_weights = weighted_adjacency_matrix[:, j].tolist()
-
-        neighbors = [Neighbor(id=f"site-{i + 1}", weight=in_weights[i]) for i in in_neighbors if i != j]
-
-        network.append(
-            Node(
-                id=f"site-{j + 1}",
-                neighbors=neighbors,
-            )
-        )
-
-    config = Network(
-        nodes=network,
-    )
-    return config, weighted_adjacency_matrix
+    pass

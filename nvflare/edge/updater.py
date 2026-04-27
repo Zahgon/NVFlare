@@ -35,8 +35,7 @@ class Updater(FLComponent, ABC):
         Returns: initialized task data
 
         """
-        self.current_state = task_data
-        return task_data
+        pass
 
     def get_current_state(self, fl_ctx: FLContext) -> Any:
         """Get the current state of the updater, which will be used as the value of the "task" in TaskInfo
@@ -48,7 +47,7 @@ class Updater(FLComponent, ABC):
         Returns: the current state of the updater
 
         """
-        return self.current_state
+        pass
 
     @abstractmethod
     def prepare_update_for_parent(self, fl_ctx: FLContext) -> Optional[Shareable]:
@@ -99,4 +98,4 @@ class Updater(FLComponent, ABC):
         Returns: None
 
         """
-        self.current_state = None
+        pass

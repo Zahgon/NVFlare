@@ -47,58 +47,22 @@ class FSM(object):
         self.error = None
 
     def set_prop(self, name, value):
-        self.props[name] = value
+        pass
 
     def get_prop(self, name, default=None):
-        return self.props.get(name, default=default)
+        pass
 
     def add_state(self, state: State):
-        if not isinstance(state, State):
-            raise TypeError(f"state must be State but got {type(state)}")
-        if state.name in self.states:
-            raise RuntimeError(f"can't add duplicate state '{state.name}'")
-        state.fsm = self
-        self.states[state.name] = state
+        pass
 
     def set_current_state(self, name: str):
-        s = self.states.get(name)
-        if s is None:
-            raise RuntimeError(f'FSM has no such state "{name}"')
-        self.current_state = s
+        pass
 
     def get_current_state(self):
-        return self.current_state
+        pass
 
     def execute(self, **kwargs) -> State:
-        try:
-            self.current_state = self._try_execute(**kwargs)
-        except Exception as e:
-            self.error = f"exception occurred in state execution: {secure_format_exception(e)}"
-            self.current_state = None
-        return self.current_state
+        pass
 
     def _try_execute(self, **kwargs) -> State:
-        if self.current_state is None:
-            raise RuntimeError("FSM has no current state")
-        next_state_name = self.current_state.execute(**kwargs)
-        if next_state_name:
-            if next_state_name == FSM.STATE_NAME_EXIT:
-                # go to the end
-                return None
-
-            # enter next state
-            next_state = self.states.get(next_state_name, None)
-            if next_state is None:
-                raise RuntimeError(f'FSM has no such state "{next_state_name}"')
-
-            # leave current state
-            self.current_state.leave()
-
-            # enter the next state
-            next_state.enter()
-
-            # change to the new state
-            return next_state
-        else:
-            # stay in current state!
-            return self.current_state
+        pass

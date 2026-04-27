@@ -30,15 +30,7 @@ def msg_container_to_shareable(msg: pb2.MessageContainer) -> Shareable:
     Returns: a Shareable object
 
     """
-    s = Shareable()
-    headers = msg.metadata
-    if headers is not None:
-        # must convert msg.metadata to dict; otherwise it is not serializable.
-        headers = dict(msg.metadata)
-    s[Constant.PARAM_KEY_CONTENT] = msg.grpc_message_content
-    s[Constant.PARAM_KEY_HEADERS] = headers
-    s[Constant.PARAM_KEY_MSG_NAME] = msg.grpc_message_name
-    return s
+    pass
 
 
 def shareable_to_msg_container(s: Shareable) -> pb2.MessageContainer:
@@ -53,16 +45,8 @@ def shareable_to_msg_container(s: Shareable) -> pb2.MessageContainer:
     Returns: a MessageContainer object
 
     """
-    m = pb2.MessageContainer(
-        grpc_message_name=s.get(Constant.PARAM_KEY_MSG_NAME),
-        grpc_message_content=s.get(Constant.PARAM_KEY_CONTENT),
-    )
-    headers = s.get(Constant.PARAM_KEY_HEADERS)
-    if headers:
-        # Note: headers is a dict, but m.metadata is Google defined MapContainer, which is subclass of dict.
-        m.metadata.update(headers)
-    return m
+    pass
 
 
 def reply_should_exit() -> pb2.MessageContainer:
-    return pb2.MessageContainer(metadata={"should-exit": "true"})
+    pass

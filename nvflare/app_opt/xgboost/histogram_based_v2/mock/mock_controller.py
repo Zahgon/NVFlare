@@ -57,11 +57,4 @@ class MockXGBController(XGBController):
         self.in_process = in_process
 
     def get_adaptor(self, fl_ctx: FLContext):
-        runner = MockServerRunner(aggr_timeout=self.aggr_timeout)
-        runner.initialize(fl_ctx)
-        adaptor = GrpcServerAdaptor(
-            int_client_grpc_options=self.int_client_grpc_options,
-            in_process=self.in_process,
-        )
-        adaptor.set_runner(runner)
-        return adaptor
+        pass

@@ -25,33 +25,15 @@ SERVER_SCRIPT = "nvflare.private.fed.app.server.server_train"
 
 
 def _get_server_fed_config(package_path: str):
-    startup = os.path.join(package_path, "startup")
-    fed_config_file = os.path.join(startup, NVFlareConfig.SERVER)
-    with open(fed_config_file, "r") as f:
-        fed_config = json.load(f)
-    return fed_config
+    pass
 
 
 def _get_snapshot_storage_root(package_path: str) -> str:
-    fed_config = _get_server_fed_config(package_path)
-    snapshot_storage_root = ""
-    if (
-        fed_config.get("snapshot_persistor", {}).get("path")
-        == "nvflare.app_common.state_persistors.storage_state_persistor.StorageStatePersistor"
-    ):
-        storage = fed_config["snapshot_persistor"].get("args", {}).get("storage")
-        if storage["path"] == "nvflare.app_common.storages.filesystem_storage.FilesystemStorage":
-            snapshot_storage_root = storage["args"]["root_dir"]
-    return snapshot_storage_root
+    pass
 
 
 def _get_job_storage_root(package_path: str) -> str:
-    fed_config = _get_server_fed_config(package_path)
-    job_storage_root = ""
-    for c in fed_config.get("components", []):
-        if c.get("path") == "nvflare.apis.impl.job_def_manager.SimpleJobDefManager":
-            job_storage_root = c["args"]["uri_root"]
-    return job_storage_root
+    pass
 
 
 def _get_fl_host_and_port(package_path: str) -> (str, int):
@@ -59,18 +41,11 @@ def _get_fl_host_and_port(package_path: str) -> (str, int):
 
     This is the main communication port for FL, which could use GRPC, TCP, or HTTP scheme.
     """
-    fed_config = _get_server_fed_config(package_path)
-    server_conf = fed_config["servers"][0]
-    service_config = server_conf["service"]
-    target_address = service_config["target"]
-    _, port = target_address.split(":")
-    return "localhost", int(port)
+    pass
 
 
 def _get_admin_host_and_port(package_path: str) -> (str, int):
-    fed_config = _get_server_fed_config(package_path)
-    server_conf = fed_config["servers"][0]
-    return "localhost", int(server_conf["admin_port"])
+    pass
 
 
 class ServerPackageChecker(PackageChecker):
@@ -80,46 +55,13 @@ class ServerPackageChecker(PackageChecker):
         self.job_storage_root = None
 
     def init_rules(self, package_path):
-        self.dry_run_timeout = 3
-
-        # Determine the communication scheme
-        scheme = get_communication_scheme(package_path, NVFlareConfig.SERVER)
-
-        supported_schemes = ["grpc", "agrpc", "http", "https", "tcp", "stcp"]
-        if scheme not in supported_schemes:
-            raise RuntimeError(
-                f"Communication scheme '{scheme}' is not supported. "
-                f"Supported schemes: {', '.join(supported_schemes)}"
-            )
-
-        self.rules = [
-            CheckAddressBinding(name="Check FL port binding", get_host_and_port_from_package=_get_fl_host_and_port),
-            CheckAddressBinding(
-                name="Check admin port binding", get_host_and_port_from_package=_get_admin_host_and_port
-            ),
-            CheckWriting(name="Check snapshot storage writable", get_filename_from_package=_get_snapshot_storage_root),
-            CheckWriting(name="Check job storage writable", get_filename_from_package=_get_job_storage_root),
-        ]
+        pass
 
     def should_be_checked(self) -> bool:
-        startup = os.path.join(self.package_path, "startup")
-        if os.path.exists(os.path.join(startup, NVFlareConfig.SERVER)):
-            return True
-        return False
+        pass
 
     def get_dry_run_command(self) -> str:
-        command = (
-            f"{sys.executable} -m {SERVER_SCRIPT}"
-            f" -m {self.package_path} -s {NVFlareConfig.SERVER}"
-            " --set secure_train=true config_folder=config"
-        )
-        self.snapshot_storage_root = _get_snapshot_storage_root(self.package_path)
-        self.job_storage_root = _get_job_storage_root(self.package_path)
-        return command
+        pass
 
     def stop_dry_run(self, force=True):
-        super().stop_dry_run(force=force)
-        if os.path.exists(self.snapshot_storage_root):
-            shutil.rmtree(self.snapshot_storage_root)
-        if os.path.exists(self.job_storage_root):
-            shutil.rmtree(self.job_storage_root)
+        pass

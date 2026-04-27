@@ -29,23 +29,7 @@ class NumDevice(SimulatedDevice):
         self.max_train_time = max_train_time
 
     def do_task(self, task: TaskResponse) -> dict:
-        task_data = task.task_data
-        assert isinstance(task_data, dict)
-        model = from_dict(task_data)
-        if not isinstance(model, DXO):
-            self.logger.error(f"expect model to be DXO but got {type(model)}")
-            raise ValueError("bad model data")
-
-        if model.data_kind != "number":
-            self.logger.error(f"expect model data kind to be 'number' but got {model.data_kind}")
-            raise ValueError("bad model data kind")
-
-        value = model.data.get("value", 0)
-        result = value + 1
-        result_dxo = DXO(data_kind="number", data={"value": result})
-        delay = random.uniform(self.min_train_time, self.max_train_time)
-        time.sleep(delay)
-        return result_dxo.to_dict()
+        pass
 
 
 class NumDeviceFactory(DeviceFactory):
@@ -56,7 +40,7 @@ class NumDeviceFactory(DeviceFactory):
         self.max_train_time = max_train_time
 
     def make_device(self, device_id: str) -> SimulatedDevice:
-        return NumDevice(device_id, self.min_train_time, self.max_train_time)
+        pass
 
 
 class NumProcessor(DeviceTaskProcessor):
@@ -73,20 +57,4 @@ class NumProcessor(DeviceTaskProcessor):
         pass
 
     def process_task(self, task: TaskResponse) -> dict:
-        task_data = task.task_data
-        assert isinstance(task_data, dict)
-        model = from_dict(task_data)
-        if not isinstance(model, DXO):
-            self.logger.error(f"expect model to be DXO but got {type(model)}")
-            raise ValueError("bad model data")
-
-        if model.data_kind != "number":
-            self.logger.error(f"expect model data kind to be 'number' but got {model.data_kind}")
-            raise ValueError("bad model data kind")
-
-        value = model.data.get("value", 0)
-        result = value + 1
-        result_dxo = DXO(data_kind="number", data={"value": result})
-        delay = random.uniform(self.min_train_time, self.max_train_time)
-        time.sleep(delay)
-        return result_dxo.to_dict()
+        pass

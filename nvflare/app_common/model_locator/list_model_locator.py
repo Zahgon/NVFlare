@@ -38,16 +38,10 @@ class ListModelLocator(ModelLocator):
         self.model_list = model_list
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._initialize(fl_ctx)
+        pass
 
     def _initialize(self, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        self.model_persistor: ModelPersistor = engine.get_component(self.persistor_id)
-        if self.model_persistor is None or not isinstance(self.model_persistor, ModelPersistor):
-            raise ValueError(
-                f"persistor_id component must be PTFileModelPersistor. " f"But got: {type(self.model_persistor)}"
-            )
+        pass
 
     def get_model_names(self, fl_ctx: FLContext) -> List[str]:
         """Returns the list of model names that should be included from server in cross site validation.add().
@@ -58,7 +52,7 @@ class ListModelLocator(ModelLocator):
         Returns:
             List[str]: List of model names.
         """
-        return list(self.model_list.keys())
+        pass
 
     def locate_model(self, model_name, fl_ctx: FLContext) -> DXO:
         """Call to locate and load the model weights of model_name.
@@ -70,11 +64,4 @@ class ListModelLocator(ModelLocator):
         Returns: model_weight DXO
 
         """
-        if model_name not in list(self.model_list.keys()):
-            raise ValueError(f"model inventory does not contain: {model_name}")
-
-        location = self.model_list[model_name]
-        model_learnable = self.model_persistor.get_model_from_location(location, fl_ctx)
-        dxo = model_learnable_to_dxo(model_learnable)
-
-        return dxo
+        pass

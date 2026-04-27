@@ -46,14 +46,7 @@ class _CrossSiteEvalValidator(BaseModel):
     @field_validator("initial_ckpt")
     @classmethod
     def validate_initial_ckpt(cls, v):
-        if v is not None:
-            if not os.path.isabs(v):
-                raise ValueError(
-                    f"initial_ckpt must be an absolute path for NumpyCrossSiteEvalRecipe, got: {v}. "
-                    "Relative path support for this recipe is planned for a future release."
-                )
-            validate_ckpt(v)
-        return v
+        pass
 
 
 class NumpyCrossSiteEvalRecipe(Recipe):

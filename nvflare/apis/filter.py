@@ -61,13 +61,10 @@ class Filter(FLComponent, ABC):
         pass
 
     def set_prop(self, key: str, value):
-        setattr(self, key, value)
+        pass
 
     def get_prop(self, key: str, default=None):
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            return default
+        pass
 
     def add_to_fed_job(self, job, ctx, **kwargs):
         """This method is used by Job API.
@@ -81,9 +78,4 @@ class Filter(FLComponent, ABC):
         Returns:
 
         """
-        job.check_kwargs(args_to_check=kwargs, args_expected={"filter_type": True, "tasks": False})
-        tasks = kwargs.get("tasks", ["*"])
-        filter_type = kwargs.get("filter_type")
-        if not filter_type:
-            raise ValueError("filter_type is not specified")
-        job.add_filter(obj=self, filter_type=filter_type, tasks=tasks, ctx=ctx)
+        pass

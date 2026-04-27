@@ -16,19 +16,16 @@ from nvflare.fuel.data_event.data_bus import DataBus
 
 
 def _make_topic(base_topic: str, msg_root_id: str) -> str:
-    return f"{base_topic}_{msg_root_id}"
+    pass
 
 
 def delete_msg_root(msg_root_id: str):
-    topic = _make_topic(ReservedTopic.MSG_ROOT_DELETED, msg_root_id)
-    DataBus().publish([topic], datum=msg_root_id)
+    pass
 
 
 def subscribe_to_msg_root(msg_root_id: str, cb, **cb_kwargs):
-    topic = _make_topic(ReservedTopic.MSG_ROOT_DELETED, msg_root_id)
-    DataBus().subscribe(topics=[topic], callback=_msg_root_deleted, app_cb=cb, **cb_kwargs)
+    pass
 
 
 def _msg_root_deleted(topic: str, msg_root_id: str, db: DataBus, app_cb, **cb_kwargs):
-    app_cb(msg_root_id, **cb_kwargs)
-    db.unsubscribe(topic)
+    pass

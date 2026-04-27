@@ -25,27 +25,15 @@ event = threading.Event()
 
 
 def request_cb(message: Message):
-    size = len(message.payload)
-    start_time = message.get_header(TIMESTAMP)
-    log.info(f"Receiver received buffer with size: {size} Time: {time.time() - start_time} seconds")
-    event.set()
-    return Message({TIMESTAMP: time.time()}, f"Received {size} bytes")
+    pass
 
 
 def create_receiver_cell(url: str):
-    cell = Cell(fqcn=RX_CELL, root_url=url, secure=False, credentials={})
-    log.info(f"Receiver is started on {url}")
-    cell.register_request_cb(channel=TEST_CHANNEL, topic=TEST_TOPIC, cb=request_cb)
-    cell.start()
-    return cell
+    pass
 
 
 def receive_blob(listening_url: str):
-    receiver = create_receiver_cell(listening_url)
-    log.info("Waiting to receive BLOB")
-    event.wait()
-    time.sleep(1)
-    receiver.stop()
+    pass
 
 
 if __name__ == "__main__":

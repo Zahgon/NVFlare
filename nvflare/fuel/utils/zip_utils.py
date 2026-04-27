@@ -24,17 +24,11 @@ def normpath_for_zip(path):
     Args:
         path (str): the path to be normalized
     """
-    path = os.path.normpath(path)
-    path = os.path.splitdrive(path)[1]
-    # ZIP spec requires forward slashes
-    return path.replace("\\", "/")
+    pass
 
 
 def remove_leading_dotdot(path: str) -> str:
-    path = str(Path(path))
-    while path.startswith(f"..{os.path.sep}"):
-        path = path[3:]
-    return path
+    pass
 
 
 def split_path(path: str) -> (str, str):
@@ -48,13 +42,7 @@ def split_path(path: str) -> (str, str):
     Returns:
         A tuple of `(head, tail)`
     """
-    path = str(Path(path))
-    if path.endswith(os.path.sep):
-        full_path = path[:-1]
-    else:
-        full_path = path
-
-    return os.path.split(full_path)
+    pass
 
 
 def get_all_file_paths(directory):
@@ -66,16 +54,7 @@ def get_all_file_paths(directory):
     Returns:
         A list of paths of all the files in the provided directory
     """
-    file_paths = []
-
-    # crawling through directory and subdirectories
-    for root, directories, files in os.walk(directory):
-        for filename in files:
-            file_paths.append(normpath_for_zip(os.path.join(root, filename)))
-        for dir_name in directories:
-            file_paths.append(normpath_for_zip(os.path.join(root, dir_name)))
-
-    return file_paths
+    pass
 
 
 def _zip_directory(root_dir: str, folder_name: str, output_file):
@@ -86,25 +65,7 @@ def _zip_directory(root_dir: str, folder_name: str, output_file):
         folder_name: path to the folder to be zipped, relative to root_dir
         output_file: file to write to
     """
-    dir_name = normpath_for_zip(os.path.join(root_dir, folder_name))
-    if not os.path.exists(dir_name):
-        raise FileNotFoundError(f'source directory "{dir_name}" does not exist')
-
-    if not os.path.isdir(dir_name):
-        raise NotADirectoryError(f'"{dir_name}" is not a valid directory')
-
-    file_paths = get_all_file_paths(dir_name)
-    if folder_name:
-        prefix_len = len(split_path(dir_name)[0]) + 1
-    else:
-        prefix_len = len(dir_name) + 1
-
-    # writing files to a zipfile
-    with ZipFile(output_file, "w") as z:
-        # writing each file one by one
-        for full_path in file_paths:
-            rel_path = full_path[prefix_len:]
-            z.write(full_path, arcname=rel_path)
+    pass
 
 
 def zip_directory_to_bytes(root_dir: str, folder_name: str) -> bytes:
@@ -114,9 +75,7 @@ def zip_directory_to_bytes(root_dir: str, folder_name: str) -> bytes:
         root_dir: root path that contains the folder to be zipped
         folder_name: path to the folder to be zipped, relative to root_dir
     """
-    bio = io.BytesIO()
-    _zip_directory(root_dir, folder_name, bio)
-    return bio.getvalue()
+    pass
 
 
 def zip_directory_to_file(root_dir: str, folder_name: str, output_file):
@@ -127,7 +86,7 @@ def zip_directory_to_file(root_dir: str, folder_name: str, output_file):
         folder_name: path to the folder to be zipped, relative to root_dir
         output_file: path of the output file
     """
-    _zip_directory(root_dir, folder_name, output_file)
+    pass
 
 
 def ls_zip_from_bytes(zip_data: bytes):
@@ -136,8 +95,7 @@ def ls_zip_from_bytes(zip_data: bytes):
     Args:
         zip_data: the input zip data
     """
-    with ZipFile(io.BytesIO(zip_data), "r") as z:
-        return z.infolist()
+    pass
 
 
 def unzip_single_file_from_bytes(zip_data: bytes, output_dir_name: str, file_path: str):
@@ -148,17 +106,7 @@ def unzip_single_file_from_bytes(zip_data: bytes, output_dir_name: str, file_pat
         output_dir_name: the output directory for extracted content
         file_path: file path to file to unzip
     """
-    path_to_file, _ = split_path(file_path)
-    output_dir_name = os.path.join(output_dir_name, path_to_file)
-    os.makedirs(output_dir_name)
-    if not os.path.exists(output_dir_name):
-        raise FileNotFoundError(f'output directory "{output_dir_name}" does not exist')
-
-    if not os.path.isdir(output_dir_name):
-        raise NotADirectoryError(f'"{output_dir_name}" is not a valid directory')
-
-    with ZipFile(io.BytesIO(zip_data), "r") as z:
-        z.extract(file_path, path=output_dir_name)
+    pass
 
 
 def unzip_all_from_bytes(zip_data: bytes, output_dir_name: str):
@@ -168,28 +116,8 @@ def unzip_all_from_bytes(zip_data: bytes, output_dir_name: str):
         zip_data: the input zip data
         output_dir_name: the output directory for extracted content
     """
-    if not os.path.exists(output_dir_name):
-        raise FileNotFoundError(f'output directory "{output_dir_name}" does not exist')
-
-    if not os.path.isdir(output_dir_name):
-        raise NotADirectoryError(f'"{output_dir_name}" is not a valid directory')
-
-    with ZipFile(io.BytesIO(zip_data), "r") as z:
-        z.extractall(output_dir_name)
+    pass
 
 
 def unzip_all_from_file(zip_file_path: str, output_dir_name: str):
-    if not os.path.exists(output_dir_name):
-        raise FileNotFoundError(f'output directory "{output_dir_name}" does not exist')
-
-    if not os.path.isdir(output_dir_name):
-        raise NotADirectoryError(f'"{output_dir_name}" is not a valid directory')
-
-    if not os.path.exists(zip_file_path):
-        raise FileNotFoundError(f'zip file "{zip_file_path}" does not exist')
-
-    if not os.path.isfile(zip_file_path):
-        raise ValueError(f'zip file "{zip_file_path}" is not a valid file')
-
-    with ZipFile(zip_file_path, "r") as z:
-        z.extractall(output_dir_name)
+    pass

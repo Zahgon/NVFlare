@@ -23,32 +23,9 @@ def deprecated(reason):
     as deprecated. It will result in a warning being emitted
     when the function is used.
     """
-
     def decorator(func):
-        fmt = "Call to deprecated {kind} {name}{reason}."
-
-        @functools.wraps(func)
-        def new_func(*args, **kwargs):
-            warnings.simplefilter("always", DeprecationWarning)
-            warnings.warn(
-                fmt.format(
-                    kind="class" if inspect.isclass(func) else "function",
-                    name=func.__name__,
-                    reason=f" ({reason})" if reason else "",
-                ),
-                category=DeprecationWarning,
-                stacklevel=2,
-            )
-            warnings.simplefilter("default", DeprecationWarning)
-            return func(*args, **kwargs)
-
-        return new_func
-
-    if inspect.isclass(reason) or inspect.isfunction(reason):
-        # The @deprecated is used without any 'reason'.
-        return decorator(reason)
-    elif isinstance(reason, str):
-        # The @deprecated is used with a 'reason'.
-        return decorator
-    else:
-        raise TypeError(repr(type(reason)))
+        pass
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        pass
+    pass

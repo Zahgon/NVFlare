@@ -26,12 +26,12 @@ class CommonMixin(object):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def asdict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        pass
 
 
 class Organization(CommonMixin, db.Model):
     def asdict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns if c.name in ("name",)}
+        pass
 
 
 class Role(CommonMixin, db.Model):
@@ -39,11 +39,7 @@ class Role(CommonMixin, db.Model):
 
 
 def _fix_props(obj, table_dict: dict, column: str):
-    value = getattr(obj, column)
-    if value:
-        table_dict[column] = json.loads(value)
-    else:
-        table_dict.pop(column, None)
+    pass
 
 
 class Project(db.Model):
@@ -67,15 +63,7 @@ class Project(db.Model):
     server_props = db.Column(db.String(2048), default="")  # additional server properties - JSON string
 
     def asdict(self):
-        table_dict = {
-            c.name: getattr(self, c.name)
-            for c in self.__table__.columns
-            if c.name not in ["id", "root_cert", "root_key"]
-        }
-        _fix_props(self, table_dict, "project_props")
-        _fix_props(self, table_dict, "server_props")
-
-        return table_dict
+        pass
 
 
 class Client(CommonMixin, db.Model):
@@ -89,15 +77,7 @@ class Client(CommonMixin, db.Model):
     props = db.Column(db.String(2048), default="")  # additional properties - JSON string
 
     def asdict(self):
-        table_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns if "_id" not in c.name}
-        table_dict.update(
-            {
-                "organization": self.organization.name,
-            }
-        )
-        _fix_props(self, table_dict, "props")
-        _fix_props(self, table_dict, "capacity")
-        return table_dict
+        pass
 
 
 class User(CommonMixin, db.Model):
@@ -112,8 +92,4 @@ class User(CommonMixin, db.Model):
     download_count = db.Column(db.Integer, default=0)
 
     def asdict(self):
-        table_dict = {c.name: getattr(self, c.name) for c in self.__table__.columns if "_id" not in c.name}
-        table_dict.update({"organization": self.organization.name, "role": self.role.name})
-        _fix_props(self, table_dict, "props")
-        table_dict.pop("password_hash")
-        return table_dict
+        pass

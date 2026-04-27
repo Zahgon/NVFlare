@@ -14,5 +14,4 @@
 
 
 def check_component_type(comp, t):
-    if not isinstance(comp, t):
-        raise TypeError(f"{type(comp).__name__} must implement `{t}` type. Got: {type(comp)}")
+    pass

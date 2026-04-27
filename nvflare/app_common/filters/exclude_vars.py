@@ -84,27 +84,4 @@ class ExcludeVars(DXOFilter):
 
         Returns: filtered dxo
         """
-        if self.skip:
-            return None
-
-        weights = dxo.data
-        # remove variables
-        n_excluded = 0
-        var_names = list(weights.keys())  # make a copy of keys
-        n_vars = len(var_names)
-
-        for var_name in var_names:
-            if (isinstance(self.exclude_vars, re.Pattern) and self.exclude_vars.search(var_name)) or (
-                isinstance(self.exclude_vars, list) and var_name in self.exclude_vars
-            ):
-                self.log_debug(fl_ctx, f"Excluding {var_name}")
-                weights.pop(var_name, None)
-                n_excluded += 1
-
-        if isinstance(self.exclude_vars, re.Pattern) and n_excluded == 0:
-            self.log_warning(fl_ctx, f"No matching layers found with regex {self.exclude_vars}")
-
-        self.log_debug(fl_ctx, f"Excluded {n_excluded} of {n_vars} variables. {len(weights.keys())} remaining.")
-
-        dxo.data = weights
-        return dxo
+        pass

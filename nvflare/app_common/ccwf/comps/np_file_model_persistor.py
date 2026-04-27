@@ -29,10 +29,7 @@ from nvflare.security.logging import secure_format_exception
 
 
 def _get_run_dir(fl_ctx: FLContext):
-    job_id = fl_ctx.get_job_id()
-    workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-    run_dir = workspace.get_run_dir(job_id)
-    return run_dir
+    pass
 
 
 class NPFileModelPersistor(ModelPersistor):
@@ -69,57 +66,22 @@ class NPFileModelPersistor(ModelPersistor):
         self.default_data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
 
     def load_model(self, fl_ctx: FLContext) -> ModelLearnable:
-        run_dir = _get_run_dir(fl_ctx)
-        model_path = os.path.join(run_dir, self.model_dir, self.model_file_name)
-
-        data = load_numpy_model(
-            fl_ctx=fl_ctx,
-            logger=self,
-            source_ckpt_file_full_name=self.source_ckpt_file_full_name,
-            model_file_path=model_path,
-            get_fallback_data=lambda: self.default_data.copy(),
-        )
-
-        model_learnable = make_model_learnable(weights={NPConstants.NUMPY_KEY: data}, meta_props={})
-        self.log_info(fl_ctx, f"Loaded initial model: {model_learnable}")
-        return model_learnable
+        pass
 
     def save_model(self, model_learnable: ModelLearnable, fl_ctx: FLContext):
-        self._save(fl_ctx, model_learnable, self.last_global_model_file_name)
+        pass
 
     def _save(self, fl_ctx: FLContext, model_learnable: ModelLearnable, file_name: str):
-        run_dir = _get_run_dir(fl_ctx)
-        model_root_dir = os.path.join(run_dir, self.model_dir)
-        if not os.path.exists(model_root_dir):
-            os.makedirs(model_root_dir)
-
-        model_path = os.path.join(model_root_dir, file_name)
-        np.save(model_path, model_learnable[ModelLearnableKey.WEIGHTS][NPConstants.NUMPY_KEY])
-        self.log_info(fl_ctx, f"Saved numpy model to: {model_path}")
-        self.log_info(fl_ctx, f"Model: {model_learnable}")
+        pass
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        if event == AppEventType.GLOBAL_BEST_MODEL_AVAILABLE:
-            # save the current model as the best model!
-            model = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-            self._save(fl_ctx, model, self.best_global_model_file_name)
+        pass
 
     def _model_file_path(self, fl_ctx: FLContext, file_name):
-        run_dir = _get_run_dir(fl_ctx)
-        model_root_dir = os.path.join(run_dir, self.model_dir)
-        return os.path.join(model_root_dir, file_name)
+        pass
 
     def _add_to_inventory(self, inventory: dict, fl_ctx: FLContext, file_name: str):
-        location = self._model_file_path(fl_ctx, file_name)
-        base_name = os.path.basename(location).split(".")[0]
-        if os.path.isfile(location):
-            desc = ModelDescriptor(
-                name=base_name,
-                location=location,
-                model_format="np",
-                props={},
-            )
-            inventory[desc.name] = desc
+        pass
 
     def get_model_inventory(self, fl_ctx: FLContext) -> {str: ModelDescriptor}:
         """Get the model inventory of the ModelPersistor.
@@ -130,32 +92,7 @@ class NPFileModelPersistor(ModelPersistor):
         Returns: { model_kind: ModelDescriptor }
 
         """
-        inventory = {}
-        self._add_to_inventory(inventory, fl_ctx, self.best_global_model_file_name)
-        self._add_to_inventory(inventory, fl_ctx, self.last_global_model_file_name)
-        return inventory
+        pass
 
     def get_model(self, model_file: str, fl_ctx: FLContext) -> ModelLearnable:
-        inventory = self.get_model_inventory(fl_ctx)
-        if not inventory:
-            return None
-
-        desc = inventory.get(model_file)
-        if not desc:
-            return None
-
-        location = desc.location
-        if os.path.isfile(location):
-            try:
-                # try loading previous model
-                data = np.load(location, allow_pickle=False)
-            except Exception as e:
-                self.log_error(fl_ctx, f"Unable to load model from {location}: {secure_format_exception(e)}.")
-                return None
-
-            model_learnable = make_model_learnable(weights={NPConstants.NUMPY_KEY: data}, meta_props={})
-            self.log_info(fl_ctx, f"loaded model from {location}")
-            return model_learnable
-        else:
-            self.log_error(fl_ctx, f"no such model file: {location}")
-            return None
+        pass

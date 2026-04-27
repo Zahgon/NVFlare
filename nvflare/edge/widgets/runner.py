@@ -40,37 +40,13 @@ class SimulationRunner(Widget):
         pass
 
     def _sr_start_run(self, event_type: str, fl_ctx: FLContext):
-        if not fl_ctx.get_prop(ReservedKey.IS_LEAF):
-            # devices are only for leaf nodes
-            return
-
-        self.simulator = self.create_simulator(fl_ctx)
-        self.simulator.set_send_func(self._post_request, engine=fl_ctx.get_engine())
-        runner = threading.Thread(target=self._run, daemon=True)
-        runner.start()
+        pass
 
     def _sr_end_run(self, event_type: str, fl_ctx: FLContext):
-        if self.simulator:
-            self.simulator.stop()
+        pass
 
     def _post_request(self, request, device, engine):
-        with engine.new_context() as fl_ctx:
-            assert isinstance(fl_ctx, FLContext)
-            fl_ctx.set_prop(EdgeContextKey.REQUEST_FROM_EDGE, request, private=True, sticky=False)
-
-            if isinstance(request, TaskRequest):
-                event_type = EdgeEventType.EDGE_TASK_REQUEST_RECEIVED
-            elif isinstance(request, SelectionRequest):
-                event_type = EdgeEventType.EDGE_SELECTION_REQUEST_RECEIVED
-            elif isinstance(request, ResultReport):
-                event_type = EdgeEventType.EDGE_RESULT_REPORT_RECEIVED
-            elif isinstance(request, JobRequest):
-                event_type = EdgeEventType.EDGE_JOB_REQUEST_RECEIVED
-            else:
-                raise RuntimeError(f"invalid request type {type(request)}")
-
-            self.fire_event(event_type, fl_ctx)
-            return fl_ctx.get_prop(EdgeContextKey.REPLY_TO_EDGE)
+        pass
 
     def _run(self):
-        self.simulator.start()
+        pass

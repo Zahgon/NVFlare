@@ -36,57 +36,13 @@ class BaseClientDeployer:
         self.req_processors = ClientRequestProcessors.request_processors
 
     def build(self, build_ctx):
-        self.server_config = build_ctx["server_config"]
-        self.client_config = build_ctx["client_config"]
-        self.secure_train = build_ctx["secure_train"]
-        self.client_name = build_ctx["client_name"]
-        self.host = build_ctx["server_host"]
-        self.overseer_agent = build_ctx["overseer_agent"]
-        self.components = build_ctx["client_components"]
-        self.handlers = build_ctx["client_handlers"]
-
-        relay_config = build_ctx.get("relay_config")
-        if relay_config:
-            self.client_config["relay_config"] = relay_config
+        pass
 
     def create_fed_client(self, args, sp_target=None):
-        if sp_target:
-            for item in self.server_config:
-                service = item["service"]
-                service["target"] = sp_target
-        servers = [{t["name"]: t["service"]} for t in self.server_config]
-        retry_timeout = 30
-        if "retry_timeout" in self.client_config:
-            retry_timeout = self.client_config["retry_timeout"]
-
-        compression = grpc.Compression.NoCompression
-        if "Deflate" == self.client_config.get("compression"):
-            compression = grpc.Compression.Deflate
-        elif "Gzip" == self.client_config.get("compression"):
-            compression = grpc.Compression.Gzip
-
-        for _, processor in self.components.items():
-            if isinstance(processor, RequestProcessor):
-                self.req_processors.append(processor)
-
-        self.federated_client = FederatedClient(
-            client_name=str(self.client_name),
-            # We only deploy the first server right now .....
-            server_args=sorted(servers)[0],
-            client_args=self.client_config,
-            secure_train=self.secure_train,
-            retry_timeout=retry_timeout,
-            executors=self.executors,
-            compression=compression,
-            overseer_agent=self.overseer_agent,
-            args=args,
-            components=self.components,
-            handlers=self.handlers,
-        )
-        return self.federated_client
+        pass
 
     def finalize(self, fl_ctx: FLContext):
-        self.close()
+        pass
 
     def close(self):
         # if self.federated_client:

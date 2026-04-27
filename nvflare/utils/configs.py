@@ -34,21 +34,7 @@ def get_job_config_value(fl_ctx: FLContext, config_file: str, key: str, default:
     Returns:
         The configuration value if found, otherwise the default value.
     """
-    try:
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        config_dir = workspace.get_app_config_dir(fl_ctx.get_job_id())
-        config_file_path = os.path.join(config_dir, config_file)
-
-        if os.path.exists(config_file_path):
-            with open(config_file_path, "r") as f:
-                config_data = json.load(f)
-                return config_data.get(key, default)
-    except Exception:
-        # Silently return default on any error
-        pass
-
-    return default
+    pass
 
 
 def get_client_config_value(fl_ctx: FLContext, key: str, default: Any = None) -> Any:
@@ -74,7 +60,7 @@ def get_client_config_value(fl_ctx: FLContext, key: str, default: Any = None) ->
         timeout = get_client_config_value(fl_ctx, EXTERNAL_PRE_INIT_TIMEOUT, default=300.0)
         ```
     """
-    return get_job_config_value(fl_ctx, JobConstants.CLIENT_JOB_CONFIG, key, default)
+    pass
 
 
 def get_server_config_value(fl_ctx: FLContext, key: str, default: Any = None) -> Any:
@@ -99,4 +85,4 @@ def get_server_config_value(fl_ctx: FLContext, key: str, default: Any = None) ->
         custom_param = get_server_config_value(fl_ctx, "custom_param", default="default_value")
         ```
     """
-    return get_job_config_value(fl_ctx, JobConstants.SERVER_JOB_CONFIG, key, default)
+    pass

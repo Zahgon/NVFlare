@@ -24,21 +24,7 @@ _PATH_KEYWORDS = ("dir", "path", "file", "output")
 def _infer_type(action: argparse.Action) -> str:
     # Stage-1 schema is inferred from argparse only; richer explicit typing can be added later if
     # commands need stronger MCP/tool contracts than these naming heuristics provide.
-    if action.option_strings:
-        name = max(action.option_strings, key=len)
-    else:
-        name = action.dest
-
-    if isinstance(action, (argparse._StoreTrueAction, argparse._StoreFalseAction, argparse._StoreConstAction)):
-        return "boolean"
-    if action.type is int:
-        return "integer"
-    if action.type is float:
-        return "number"
-    name_lower = name.lower()
-    if any(kw in name_lower for kw in _PATH_KEYWORDS):
-        return "path"
-    return "string"
+    pass
 
 
 def parser_to_schema(
@@ -49,55 +35,7 @@ def parser_to_schema(
     deprecated_message: str = "",
 ) -> dict:
     """Serialize an argparse parser to a JSON-compatible schema dict."""
-    # argparse exposes parser structure via the private _actions list; this is the standard
-    # introspection hook available for building a schema from parser definitions.
-    args = []
-    for action in parser._actions:
-        if isinstance(action, (argparse._HelpAction, argparse._SubParsersAction)):
-            continue
-
-        is_positional = not action.option_strings
-        if is_positional:
-            name = action.dest
-            required = action.nargs not in (argparse.OPTIONAL, argparse.ZERO_OR_MORE)
-        else:
-            name = max(action.option_strings, key=len)
-            required = bool(getattr(action, "required", False))
-
-        entry = {
-            "name": name,
-            "type": _infer_type(action),
-            "required": required,
-            "description": action.help or "",
-        }
-
-        if action.default is not None and action.default != argparse.SUPPRESS:
-            entry["default"] = action.default
-        else:
-            entry["default"] = None
-
-        if action.choices is not None:
-            entry["choices"] = list(action.choices)
-
-        if action.option_strings and len(action.option_strings) > 1:
-            entry["aliases"] = action.option_strings[:-1]
-
-        if action.nargs in ("*", "+", "?"):
-            entry["nargs"] = action.nargs
-
-        args.append(entry)
-
-    result = {
-        "schema_version": SCHEMA_VERSION,
-        "command": command,
-        "description": parser.description or "",
-        "args": args,
-        "examples": examples or [],
-    }
-    if deprecated:
-        result["deprecated"] = True
-        result["deprecated_message"] = deprecated_message
-    return result
+    pass
 
 
 def handle_schema_flag(
@@ -113,20 +51,4 @@ def handle_schema_flag(
     This must run before parser.parse_args() because many commands want schema discovery even when
     the rest of the required arguments are absent.
     """
-    if "--schema" in args_list:
-        if parser is None:
-            schema = {
-                "schema_version": SCHEMA_VERSION,
-                "command": command,
-                "args": [],
-                "examples": examples or [],
-            }
-            if deprecated:
-                schema["deprecated"] = True
-                schema["deprecated_message"] = deprecated_message
-        else:
-            schema = parser_to_schema(parser, command, examples, deprecated, deprecated_message)
-        # --schema intentionally bypasses the normal command-output envelope so agent/tool callers
-        # always get the raw schema document.
-        print(json.dumps(schema, indent=2))
-        raise SystemExit(0)
+    pass

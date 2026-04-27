@@ -49,49 +49,40 @@ class _CertState:
                 self.content.update(json.load(f))
 
     def get_root_cert(self):
-        return self.content.get(self.PROP_ROOT_CERT)
+        pass
 
     def set_root_cert(self, cert):
-        self.content[self.PROP_ROOT_CERT] = cert
+        pass
 
     def get_root_pri_key(self):
-        return self.content.get(self.PROP_ROOT_PRI_KEY)
+        pass
 
     def set_root_pri_key(self, key):
-        self.content[self.PROP_ROOT_PRI_KEY] = key
+        pass
 
     def has_subject(self, subject: str):
-        return subject in self.content
+        pass
 
     def _add_subject_prop(self, subject: str, key: str, value):
-        subject_data = self.content.get(subject)
-        if not subject_data:
-            subject_data = {}
-            self.content[subject] = subject_data
-        subject_data[key] = value
+        pass
 
     def _get_subject_prop(self, subject: str, key: str):
-        subject_data = self.content.get(subject)
-        if not subject_data:
-            return None
-        return subject_data.get(key)
+        pass
 
     def add_subject_cert(self, subject: str, cert):
-        self._add_subject_prop(subject, self.PROP_CERT, cert)
+        pass
 
     def get_subject_cert(self, subject: str):
-        return self._get_subject_prop(subject, self.PROP_CERT)
+        pass
 
     def add_subject_pri_key(self, subject: str, pri_key):
-        self._add_subject_prop(subject, self.PROP_PRI_KEY, pri_key)
+        pass
 
     def get_subject_pri_key(self, subject: str):
-        return self._get_subject_prop(subject, self.PROP_PRI_KEY)
+        pass
 
     def persist(self):
-        cert_file = os.path.join(self.state_dir, self.CERT_STATE_FILE)
-        with open(cert_file, "wt") as f:
-            json.dump(self.content, f)
+        pass
 
 
 class CertBuilder(Builder):
@@ -135,104 +126,16 @@ class CertBuilder(Builder):
         Returns:
 
         """
-        original_name = server.name
-        if len(original_name) > MAX_CN_LENGTH:
-            truncated_name = original_name[:MAX_CN_LENGTH]
-
-            # both name and subject of the server must use the truncated name!
-            server.name = truncated_name
-            server.subject = truncated_name
-
-            # also make the original_name the default host
-            default_host = server.get_prop(PropKey.DEFAULT_HOST)
-            if not default_host:
-                # must use the original name as the default host
-                server.set_prop(PropKey.DEFAULT_HOST, original_name)
+        pass
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        self._fix_server_name(project.get_server())
-
-        state_dir = ctx.get_state_dir()
-        self.persistent_state = _CertState(state_dir)
-        state = self.persistent_state
-
-        if project.root_private_key:
-            # using project provided credentials
-            self.serialized_cert = project.serialized_root_cert
-            self.root_cert = x509.load_pem_x509_certificate(self.serialized_cert, default_backend())
-            self.pri_key = project.root_private_key
-            self.pub_key = self.pri_key.public_key()
-            self.subject = self.root_cert.subject
-            self.issuer = self.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-            state.is_available = True
-        elif state.is_available:
-            state_root_cert = state.get_root_cert()
-            self.serialized_cert = state_root_cert.encode("ascii")
-            self.root_cert = x509.load_pem_x509_certificate(self.serialized_cert, default_backend())
-
-            state_pri_key = state.get_root_pri_key()
-            self.pri_key = serialization.load_pem_private_key(
-                state_pri_key.encode("ascii"), password=None, backend=default_backend()
-            )
-
-            self.pub_key = self.pri_key.public_key()
-            self.subject = self.root_cert.subject
-            self.issuer = self.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+        pass
 
     def _build_root(self, subject, subject_org):
-        assert isinstance(self.persistent_state, _CertState)
-        if not self.persistent_state.is_available:
-            pri_key, pub_key = generate_keys()
-            self.issuer = subject
-            self.root_cert = self._generate_cert(subject, subject_org, self.issuer, pri_key, pub_key, ca=True)
-            self.pri_key = pri_key
-            self.pub_key = pub_key
-            self.serialized_cert = serialize_cert(self.root_cert)
-
-            self.persistent_state.set_root_cert(self.serialized_cert.decode("ascii"))
-            self.persistent_state.set_root_pri_key(serialize_pri_key(self.pri_key).decode("ascii"))
+        pass
 
     def _build_write_cert_pair(self, participant: Participant, base_name, ctx: ProvisionContext):
-        assert isinstance(self.persistent_state, _CertState)
-        subject = participant.subject
-        if self.persistent_state.has_subject(subject):
-            subject_cert = self.persistent_state.get_subject_cert(subject)
-            cert = x509.load_pem_x509_certificate(subject_cert.encode("ascii"), default_backend())
-
-            subject_pri_key = self.persistent_state.get_subject_pri_key(subject)
-            pri_key = serialization.load_pem_private_key(
-                subject_pri_key.encode("ascii"), password=None, backend=default_backend()
-            )
-
-            if participant.type == ParticipantType.ADMIN:
-                cn_list = cert.subject.get_attributes_for_oid(NameOID.UNSTRUCTURED_NAME)
-                for cn in cn_list:
-                    role = cn.value
-                    new_role = participant.get_prop(PropKey.ROLE)
-                    if role != new_role:
-                        err_msg = (
-                            f"{participant.name}'s previous role is {role} but is now {new_role}.\n"
-                            + "Please delete existing workspace and provision from scratch."
-                        )
-                        raise RuntimeError(err_msg)
-        else:
-            pri_key, cert = self.get_pri_key_cert(participant)
-            self.persistent_state.add_subject_cert(subject, serialize_cert(cert).decode("ascii"))
-            self.persistent_state.add_subject_pri_key(subject, serialize_pri_key(pri_key).decode("ascii"))
-
-        dest_dir = ctx.get_kit_dir(participant)
-        with open(os.path.join(dest_dir, f"{base_name}.crt"), "wb") as f:
-            f.write(serialize_cert(cert))
-        key_path = os.path.join(dest_dir, f"{base_name}.key")
-        fd = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "wb") as f:
-            f.write(serialize_pri_key(pri_key))
-
-        if participant.type in [ParticipantType.CLIENT, ParticipantType.RELAY]:
-            self._build_internal_listener_cert(participant, ctx)
-
-        with open(os.path.join(dest_dir, "rootCA.pem"), "wb") as f:
-            f.write(self.serialized_cert)
+        pass
 
     def _build_internal_listener_cert(self, participant: Participant, ctx: ProvisionContext):
         """Build server cert if the participant has internal listeners.
@@ -250,73 +153,13 @@ class CertBuilder(Builder):
         Returns: None
 
         """
-        lh = participant.get_listening_host()
-        if not lh:
-            return
-
-        dest_dir = ctx.get_kit_dir(participant)
-        project = ctx.get_project()
-
-        # make a fake/temp server participant to use the get_pri_key_cert() method!
-        tmp_participant = Participant(
-            type=ParticipantType.SERVER,
-            name=participant.name,
-            org=participant.org,
-            project=project,
-            props={
-                PropKey.HOST_NAMES: lh.host_names,
-                PropKey.DEFAULT_HOST: lh.default_host,
-            },
-        )
-        tmp_pri_key, tmp_cert = self.get_pri_key_cert(tmp_participant)
-
-        # The listener cert is a Server Cert.
-        bn = CertFileBasename.SERVER
-        with open(os.path.join(dest_dir, f"{bn}.crt"), "wb") as f:
-            f.write(serialize_cert(tmp_cert))
-        key_path_bn = os.path.join(dest_dir, f"{bn}.key")
-        fd = os.open(key_path_bn, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "wb") as f:
-            f.write(serialize_pri_key(tmp_pri_key))
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
-        self._build_root(project.name, subject_org=None)
-        ctx[CtxKey.ROOT_CERT] = self.root_cert
-        ctx[CtxKey.ROOT_PRI_KEY] = self.pri_key
-
-        server = project.get_server()
-        if server:
-            self._build_write_cert_pair(server, CertFileBasename.SERVER, ctx)
-
-        for client in project.get_clients():
-            self._build_write_cert_pair(client, CertFileBasename.CLIENT, ctx)
-
-        for relay in project.get_relays():
-            self._build_write_cert_pair(relay, CertFileBasename.CLIENT, ctx)
-
-        for admin in project.get_admins():
-            self._build_write_cert_pair(admin, CertFileBasename.CLIENT, ctx)
+        pass
 
     def get_pri_key_cert(self, participant: Participant):
-        pri_key, pub_key = generate_keys()
-        subject = participant.subject
-        subject_org = participant.org
-        if participant.type == ParticipantType.ADMIN:
-            role = participant.get_prop(PropKey.ROLE)
-        else:
-            role = None
-
-        server = participant if participant.type == ParticipantType.SERVER else None
-        cert = self._generate_cert(
-            subject,
-            subject_org,
-            self.issuer,
-            self.pri_key,
-            pub_key,
-            role=role,
-            server=server,
-        )
-        return pri_key, cert
+        pass
 
     @staticmethod
     def _generate_cert(
@@ -330,26 +173,7 @@ class CertBuilder(Builder):
         role=None,
         server: Participant = None,
     ):
-        server_default_host = None
-        server_additional_hosts = None
-
-        if server:
-            # This is to generate a server cert.
-            # Use SubjectAlternativeName for all host names
-            server_default_host = server.get_default_host()
-            server_additional_hosts = server.get_prop(PropKey.HOST_NAMES)
-
-        return generate_cert(
-            subject=Identity(subject, subject_org, role),
-            issuer=Identity(issuer),
-            signing_pri_key=signing_pri_key,
-            subject_pub_key=subject_pub_key,
-            valid_days=valid_days,
-            ca=ca,
-            server_default_host=server_default_host,
-            server_additional_hosts=server_additional_hosts,
-        )
+        pass
 
     def finalize(self, project: Project, ctx: ProvisionContext):
-        assert isinstance(self.persistent_state, _CertState)
-        self.persistent_state.persist()
+        pass

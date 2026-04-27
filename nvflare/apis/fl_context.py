@@ -32,32 +32,19 @@ M = "mask"
 
 
 def is_sticky(mask) -> bool:
-    return mask & MASK_STICKY > 0
+    pass
 
 
 def is_private(mask) -> bool:
-    return mask & MASK_PRIVATE > 0
+    pass
 
 
 def make_mask(private, sticky):
-    mask = 0
-    if private:
-        mask += MASK_PRIVATE
-    if sticky:
-        mask += MASK_STICKY
-    return mask
+    pass
 
 
 def to_string(mask) -> str:
-    if is_private(mask):
-        result = "private:"
-    else:
-        result = "public:"
-
-    if is_sticky(mask):
-        return result + "sticky"
-    else:
-        return result + "non-sticky"
+    pass
 
 
 class FLContext(object):
@@ -79,25 +66,16 @@ class FLContext(object):
         self.logger = get_obj_logger(self)
 
     def get_prop_keys(self) -> List[str]:
-        return list(self.props.keys())
+        pass
 
     def public_key_exists(self, key) -> bool:
-        return key in self.props and not is_private(self.props[key][M])
+        pass
 
     def get_all_public_props(self) -> Dict[str, Any]:
-        result = {}
-        with _update_lock:
-            for k, v in self.props.items():
-                if not is_private(v[M]):
-                    _, result[k] = self._get_prop(k)
-        return result
+        pass
 
     def _get_ctx_manager(self):
-        p = self.props.get(ReservedKey.MANAGER, None)
-        if p:
-            return p[V]
-        else:
-            return None
+        pass
 
     def _get_prop(self, key: str) -> (bool, Any):
         """
@@ -110,103 +88,25 @@ class FLContext(object):
         Returns: tuple: whether the property exists, and the value of the prop if exists.
 
         """
-        # check local first
-        p = self.props.get(key)
-        if p:
-            mask = p[M]
-            if not is_sticky(mask):
-                return True, p[V]
-
-        # either the prop does not exist locally or it is sticky
-        # check with the ctx manager
-        ctx_manager = self._get_ctx_manager()
-        if ctx_manager:
-            assert isinstance(ctx_manager, FLContextManager)
-            exists, value, mask = ctx_manager.check_sticker(key)
-            if exists:
-                self.props[key] = {V: value, M: mask}
-
-        if key in self.props:
-            return True, self.props[key][V]
-        else:
-            return False, None
+        pass
 
     def set_prop(self, key: str, value, private=True, sticky=True):
-        if not isinstance(key, str):
-            raise ValueError("prop key must be str, but got {}".format(type(key)))
-
-        with _update_lock:
-            mask = make_mask(private, sticky)
-
-            # see whether a prop with the same key is already defined locally in this ctx
-            if key in self.props:
-                existing_mask = self.props[key][M]
-                if mask != existing_mask:
-                    self.logger.warning(
-                        f"property '{key}' already exists with attributes "
-                        f"{to_string(existing_mask)}, cannot change to {to_string(mask)}"
-                    )
-                    return False
-
-            # if the prop is sticky, also check with ctx manager to make sure it is consistent with existing mask
-            if sticky:
-                # check attributes
-                ctx_manager = self._get_ctx_manager()
-                if ctx_manager:
-                    assert isinstance(ctx_manager, FLContextManager)
-                    exists, _, existing_mask = ctx_manager.check_sticker(key)
-                    if exists and mask != existing_mask:
-                        self.logger.warning(
-                            f"property '{key}' already exists with attributes "
-                            f"{to_string(existing_mask)}, cannot change to {to_string(mask)}"
-                        )
-                        return False
-                    ctx_manager.update_sticker(key, value, mask)
-
-            self.props[key] = {V: value, M: mask}
-            return True
+        pass
 
     def get_prop(self, key, default=None):
-        with _update_lock:
-            exists, value = self._get_prop(key)
-            if exists:
-                return value
-            else:
-                return default
+        pass
 
     def get_custom_prop(self, key: str, default=None):
-        props = self.get_prop(ReservedKey.CUSTOM_PROPS)
-        if not props:
-            return default
-        return props.get(key, default)
+        pass
 
     def set_custom_prop(self, key: str, value):
-        props = self.get_prop(ReservedKey.CUSTOM_PROPS)
-        if not props:
-            props = {}
-            self.set_prop(ReservedKey.CUSTOM_PROPS, props, sticky=False, private=True)
-        props[key] = value
+        pass
 
     def get_prop_detail(self, key):
-        with _update_lock:
-            if key in self.props:
-                prop = self.props.get(key)
-                mask = prop[M]
-                _, value = self._get_prop(key)
-                return {V: value, "private": is_private(mask), "sticky": is_sticky(mask)}
-            else:
-                return None
+        pass
 
     def remove_prop(self, key: str, force_removal=False):
-        if not isinstance(key, str):
-            return
-
-        if key.startswith("__") and not force_removal:
-            # do not allow removal of reserved props unless forced!
-            return
-
-        with _update_lock:
-            self.props.pop(key, None)
+        pass
 
     def __str__(self):
         raw_list = [f"{k}: {type(v[V])}" for k, v in self.props.items()]
@@ -214,48 +114,41 @@ class FLContext(object):
 
     # some convenience methods
     def _simple_get(self, key: str, default=None):
-        p = self.props.get(key)
-        return p[V] if p else default
+        pass
 
     def get_engine(self, default=None):
-        return self._simple_get(ReservedKey.ENGINE, default)
+        pass
 
     def get_workspace(self):
-        engine = self.get_engine()
-        if not engine:
-            raise RuntimeError("missing engine from context")
-        return engine.get_workspace()
+        pass
 
     def get_process_type(self, default=None):
-        return self._simple_get(ReservedKey.PROCESS_TYPE, default)
+        pass
 
     def get_job_id(self, default=None):
-        return self._simple_get(ReservedKey.RUN_NUM, default)
+        pass
 
     def get_identity_name(self, default=""):
-        return self._simple_get(ReservedKey.IDENTITY_NAME, default=default)
+        pass
 
     def set_job_is_unsafe(self, value: bool = True):
-        self.set_prop(ReservedKey.JOB_IS_UNSAFE, value, private=True, sticky=True)
+        pass
 
     def is_job_unsafe(self):
-        return self.get_prop(ReservedKey.JOB_IS_UNSAFE, False)
+        pass
 
     def get_run_abort_signal(self):
-        return self._simple_get(key=ReservedKey.RUN_ABORT_SIGNAL, default=None)
+        pass
 
     def set_peer_context(self, ctx):
-        self.put(key=ReservedKey.PEER_CTX, value=ctx, private=True, sticky=False)
+        pass
 
     def get_peer_context(self):
-        return self._simple_get(key=ReservedKey.PEER_CTX, default=None)
+        pass
 
     def set_public_props(self, metadata: dict):
         # remove all public props
-        self.props = {k: v for k, v in self.props.items() if is_private(v[M] or is_sticky(v[M]))}
-
-        for key, value in metadata.items():
-            self.set_prop(key, value, private=False, sticky=False)
+        pass
 
     def sync_sticky(self):
         # no longer needed since sticky props are always synced
@@ -273,7 +166,7 @@ class FLContext(object):
         Returns:
 
         """
-        self.props[key] = {V: value, M: make_mask(private, sticky)}
+        pass
 
     def clone(self):
         """Make a copy from self.
@@ -281,12 +174,7 @@ class FLContext(object):
         Returns: a new FLContext object
 
         """
-        with _update_lock:
-            new_ctx = FLContext()
-            new_ctx.model = self.model
-            new_ctx.logger = self.logger
-            new_ctx.props = copy.copy(self.props)  # shallow copy
-            return new_ctx
+        pass
 
     # implement Context Manager protocol
     def __enter__(self):
@@ -338,23 +226,7 @@ class FLContextManager(object):
         Returns: a FLContext object
 
         """
-        ctx = FLContext()
-        ctx.put(key=ReservedKey.MANAGER, value=self, private=True, sticky=False)
-
-        # set permanent props
-        ctx.put(key=ReservedKey.ENGINE, value=self.engine, private=True, sticky=False)
-        ctx.put(key=ReservedKey.RUN_NUM, value=self.job_id, private=False, sticky=True)
-
-        if self.identity_name:
-            ctx.put(key=ReservedKey.IDENTITY_NAME, value=self.identity_name, private=False, sticky=False)
-
-        with self._update_lock:
-            for k, v in self.public_stickers.items():
-                ctx.put(key=k, value=v, sticky=True, private=False)
-
-            for k, v in self.private_stickers.items():
-                ctx.put(key=k, value=v, sticky=True, private=True)
-        return ctx
+        pass
 
     @staticmethod
     def _get_sticker(stickers, key) -> (bool, Any):
@@ -368,10 +240,7 @@ class FLContextManager(object):
         Returns: tuple: whether the sticker exists, value of the sticker if exists
 
         """
-        if key in stickers:
-            return True, stickers[key]
-        else:
-            return False, None
+        pass
 
     def check_sticker(self, key: str) -> (bool, Any, int):
         """
@@ -383,14 +252,7 @@ class FLContextManager(object):
         Returns: tuple: whether the sticker exists, its value and mask if it exists
 
         """
-        with self._update_lock:
-            exists, value = self._get_sticker(self.private_stickers, key)
-            if exists:
-                return exists, value, make_mask(True, True)
-            exists, value = self._get_sticker(self.public_stickers, key)
-            if exists:
-                return exists, value, make_mask(False, True)
-            return False, None, 0
+        pass
 
     def update_sticker(self, key: str, value, mask):
         """
@@ -404,9 +266,4 @@ class FLContextManager(object):
         Returns:
 
         """
-        with self._update_lock:
-            if is_private(mask):
-                stickers = self.private_stickers
-            else:
-                stickers = self.public_stickers
-            stickers[key] = value
+        pass

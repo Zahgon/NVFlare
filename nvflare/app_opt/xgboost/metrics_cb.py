@@ -25,14 +25,4 @@ class MetricsCallback(xgboost.callback.TrainingCallback):
         self.writer = writer
 
     def after_iteration(self, model, epoch: int, evals_log: xgboost.callback.TrainingCallback.EvalsLog):
-        if not evals_log:
-            return False
-
-        data_type = self.writer.get_default_metric_data_type()
-        for data, metric in evals_log.items():
-            record = {}
-            for metric_name, log in metric.items():
-                score = log[-1][0] if isinstance(log[-1], tuple) else log[-1]
-                record[metric_name] = score
-            self.writer.write(tag=f"{data}_metrics", value=record, data_type=data_type, global_step=epoch)
-        return False
+        pass

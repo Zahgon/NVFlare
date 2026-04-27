@@ -147,84 +147,10 @@ class ClientAPILauncherExecutor(LauncherExecutor):
         self._pass_through_channel = None  # channel name registered in decode_pass_through_channels
 
     def finalize(self, fl_ctx: FLContext) -> None:
-        if self._cell_with_pass_through is not None and self._pass_through_channel is not None:
-            self._cell_with_pass_through.decode_pass_through_channels.discard(self._pass_through_channel)
-            self.log_info(
-                fl_ctx,
-                f"Receiver-side PASS_THROUGH disabled on CJ cell for channel '{self._pass_through_channel}'",
-            )
-            self._cell_with_pass_through = None
-            self._pass_through_channel = None
-        super().finalize(fl_ctx)
+        pass
 
     def initialize(self, fl_ctx: FLContext) -> None:
-        self.prepare_config_for_launch(fl_ctx)
-        super().initialize(fl_ctx)
-
-        from nvflare.fuel.f3.cellnet.defs import CellChannel as _CellChannel
-        from nvflare.fuel.utils.pipe.cell_pipe import CellPipe as _CellPipe
-
-        if isinstance(self.pipe, _CellPipe):
-            engine = fl_ctx.get_engine()
-            get_cell_fn = getattr(engine, "get_cell", None)
-            if not get_cell_fn:
-                self.log_warning(
-                    fl_ctx,
-                    "engine.get_cell() is not available — receiver-side PASS_THROUGH "
-                    "cannot be enabled. Tensors will be fully materialised inside the CJ "
-                    "instead of being downloaded directly by the subprocess.",
-                )
-            else:
-                cell = get_cell_fn()
-                if cell is None:
-                    self.log_warning(
-                        fl_ctx,
-                        "engine.get_cell() returned None — receiver-side PASS_THROUGH "
-                        "cannot be enabled. Tensors will be fully materialised inside the CJ "
-                        "instead of being downloaded directly by the subprocess.",
-                    )
-                else:
-                    channel_name = _CellChannel.SERVER_COMMAND
-                    cell.decode_pass_through_channels.add(channel_name)
-                    self._cell_with_pass_through = cell
-                    self._pass_through_channel = channel_name
-                    self.log_info(
-                        fl_ctx,
-                        f"Receiver-side PASS_THROUGH enabled on CJ cell for channel '{channel_name}'",
-                    )
-
-        # Check for top-level config override for external_pre_init_timeout
-        # This allows jobs to configure timeout via add_client_config()
-        config_timeout = get_client_config_value(fl_ctx, EXTERNAL_PRE_INIT_TIMEOUT)
-        if config_timeout is not None:
-            timeout_value = float(config_timeout)
-            if timeout_value <= 0:
-                self.log_error(fl_ctx, f"Invalid EXTERNAL_PRE_INIT_TIMEOUT: {timeout_value}s (must be positive)")
-                raise ValueError(f"EXTERNAL_PRE_INIT_TIMEOUT must be positive, got {timeout_value}")
-            self.log_info(
-                fl_ctx,
-                f"Overriding external_pre_init_timeout from config: {self._external_pre_init_timeout}s -> {timeout_value}s",
-            )
-            self._external_pre_init_timeout = timeout_value
-
-        # Check for top-level config override for peer_read_timeout.
-        # peer_read_timeout (CJ side) and submit_result_timeout (subprocess side) must be
-        # configured together so the system behaves consistently under large-model transfers.
-        # Placing both overrides in config_fed_client.json (via add_client_config()) lets
-        # operators tune them in one place without touching executor component parameters.
-        config_peer_timeout = get_client_config_value(fl_ctx, PEER_READ_TIMEOUT)
-        if config_peer_timeout is not None:
-            peer_timeout_value = float(config_peer_timeout)
-            if peer_timeout_value <= 0:
-                self.log_error(fl_ctx, f"Invalid PEER_READ_TIMEOUT: {peer_timeout_value}s (must be positive)")
-                raise ValueError(f"PEER_READ_TIMEOUT must be positive, got {peer_timeout_value}")
-            self.log_info(
-                fl_ctx,
-                f"Overriding peer_read_timeout from config: {self.peer_read_timeout}s -> {peer_timeout_value}s",
-            )
-            self.peer_read_timeout = peer_timeout_value
-
-        self._validate_timeout_config(fl_ctx)
+        pass
 
     def _decomposer_prefix(self) -> str:
         """Return the config-var prefix for the active decomposer type.
@@ -237,7 +163,7 @@ class ClientAPILauncherExecutor(LauncherExecutor):
         override this method to return their decomposer's prefix (e.g. "tensor_"),
         keeping this base class free of framework-specific knowledge.
         """
-        return "np_"
+        pass
 
     def _validate_timeout_config(self, fl_ctx: FLContext):
         """Warn at job start if timeout parameters are inconsistent.
@@ -246,55 +172,10 @@ class ClientAPILauncherExecutor(LauncherExecutor):
         can still run — the messages give the operator actionable guidance
         before the first download attempt.
         """
-        try:
-            import nvflare.fuel.utils.app_config_utils as acu
-            from nvflare.apis.fl_constant import ConfigVarName
-        except ImportError as e:
-            self.log_warning(fl_ctx, f"_validate_timeout_config skipped: {e}")
-            return
-
-        prefix = self._decomposer_prefix()
-        per_req = acu.get_positive_float_var(f"{prefix}{ConfigVarName.STREAMING_PER_REQUEST_TIMEOUT}", 600.0)
-        min_dl = acu.get_positive_float_var(
-            f"{prefix}{ConfigVarName.MIN_DOWNLOAD_TIMEOUT}", MIN_DOWNLOAD_TIMEOUT_DEFAULT
-        )
-
-        if min_dl < per_req:
-            self.log_warning(
-                fl_ctx,
-                f"Timeout inconsistency: {prefix}min_download_timeout ({min_dl}s) < "
-                f"{prefix}streaming_per_request_timeout ({per_req}s). "
-                f"Transactions may be killed mid-download. "
-                f"Set {prefix}min_download_timeout >= {per_req}s in job config.",
-            )
-
-        if self._submit_result_timeout > min_dl:
-            self.log_warning(
-                fl_ctx,
-                f"Timeout inconsistency: submit_result_timeout ({self._submit_result_timeout}s) > "
-                f"{prefix}min_download_timeout ({min_dl}s). "
-                f"Each send attempt may expire the download transaction before the next retry. "
-                f"Fix: set {prefix}min_download_timeout >= {self._submit_result_timeout}s in job config "
-                f'(e.g. recipe.add_client_config({{"{prefix}min_download_timeout": {int(self._submit_result_timeout)}}})).',
-            )
-
-        if self._max_resends is None:
-            self.log_warning(
-                fl_ctx,
-                "max_resends is None (unbounded). This risks OOM on large model transfers. "
-                "Set max_resends to a bounded value (e.g. 3) in job config.",
-            )
+        pass
 
     def check_output_shareable(self, task_name: str, shareable: Shareable, fl_ctx: FLContext) -> bool:
-        ok = super().check_output_shareable(task_name, shareable, fl_ctx)
-        if not ok:
-            return False
-        from nvflare.fuel.utils.mem_utils import log_rss
-
-        site_name = fl_ctx.get_identity_name()
-        log_rss(f"CJ s={site_name} t={task_name} r={shareable.get_header(AppConstants.CURRENT_ROUND)} relay")
-        self._maybe_cleanup_cj_memory(fl_ctx)
-        return True
+        pass
 
     def _maybe_cleanup_cj_memory(self, fl_ctx: FLContext):
         """Call cleanup_memory() every memory_gc_rounds rounds on the client job process.
@@ -305,14 +186,7 @@ class ClientAPILauncherExecutor(LauncherExecutor):
         it referenced are no longer needed, making this the right moment to
         force a GC cycle.
         """
-        if self._memory_gc_rounds <= 0:
-            return
-        self._cj_round_count += 1
-        if self._cj_round_count % self._memory_gc_rounds == 0:
-            from nvflare.fuel.utils.memory_utils import cleanup_memory
-
-            cleanup_memory(cuda_empty_cache=self._cuda_empty_cache)
-            self.log_info(fl_ctx, f"Client job memory cleanup performed at round {self._cj_round_count}.")
+        pass
 
     def _resolve_launch_once(self, fl_ctx: FLContext) -> bool:
         """Return True if the subprocess is launched once for the whole job.
@@ -321,49 +195,10 @@ class ClientAPILauncherExecutor(LauncherExecutor):
         initialize() (before _initialize_external_execution() assigns it), so we
         fetch the launcher component directly from the engine.
         """
-        launcher = self.launcher
-        if launcher is None and self._launcher_id:
-            engine = fl_ctx.get_engine()
-            launcher = engine.get_component(self._launcher_id)
-        if launcher is None:
-            return False  # safe default: treat as per-round (direct os._exit path)
-        return not launcher.needs_deferred_stop()
+        pass
 
     def prepare_config_for_launch(self, fl_ctx: FLContext):
-        pipe_export_class, pipe_export_args = self.pipe.export(ExportMode.PEER)
-        task_exchange_attributes = {
-            ConfigKey.TRAIN_WITH_EVAL: self._train_with_evaluation,
-            ConfigKey.EXCHANGE_FORMAT: self._params_exchange_format,
-            ConfigKey.SERVER_EXPECTED_FORMAT: self._server_expected_format,
-            ConfigKey.TRANSFER_TYPE: self._params_transfer_type,
-            ConfigKey.TRAIN_TASK_NAME: self._train_task_name,
-            ConfigKey.EVAL_TASK_NAME: self._evaluate_task_name,
-            ConfigKey.SUBMIT_MODEL_TASK_NAME: self._submit_model_task_name,
-            ConfigKey.PIPE_CHANNEL_NAME: self.get_pipe_channel_name(),
-            ConfigKey.PIPE: {
-                ConfigKey.CLASS_NAME: pipe_export_class,
-                ConfigKey.ARG: pipe_export_args,
-            },
-            ConfigKey.HEARTBEAT_TIMEOUT: self.heartbeat_timeout,
-            ConfigKey.MEMORY_GC_ROUNDS: self._memory_gc_rounds,
-            ConfigKey.CUDA_EMPTY_CACHE: self._cuda_empty_cache,
-            ConfigKey.SUBMIT_RESULT_TIMEOUT: self._submit_result_timeout,
-            ConfigKey.MAX_RESENDS: self._max_resends,
-            ConfigKey.DOWNLOAD_COMPLETE_TIMEOUT: self._download_complete_timeout,
-            ConfigKey.LAUNCH_ONCE: self._resolve_launch_once(fl_ctx),
-        }
-
-        config_data = {
-            ConfigKey.TASK_EXCHANGE: task_exchange_attributes,
-        }
-
-        update_export_props(config_data, fl_ctx)
-        config_file_path = self._get_external_config_file_path(fl_ctx)
-        write_config_to_file(config_data=config_data, config_file_path=config_file_path)
+        pass
 
     def _get_external_config_file_path(self, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        app_config_directory = workspace.get_app_config_dir(fl_ctx.get_job_id())
-        config_file_path = os.path.join(app_config_directory, self._config_file_name)
-        return config_file_path
+        pass

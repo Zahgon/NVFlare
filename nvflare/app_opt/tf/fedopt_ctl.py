@@ -68,30 +68,7 @@ class FedOpt(FedAvg):
         Override run method to add set-up for FedOpt specific optimizer
         and LR scheduler.
         """
-        # set up optimizer
-        try:
-            if "args" not in self.optimizer_args:
-                self.optimizer_args["args"] = {}
-            self.optimizer = self.build_component(self.optimizer_args)
-        except Exception as e:
-            error_msg = f"Exception while constructing optimizer: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
-            return
-
-        # set up lr scheduler
-        try:
-            if "args" not in self.lr_scheduler_args:
-                self.lr_scheduler_args["args"] = {}
-            self.lr_scheduler = self.build_component(self.lr_scheduler_args)
-            self.optimizer.learning_rate = self.lr_scheduler
-        except Exception as e:
-            error_msg = f"Exception while constructing lr_scheduler: {secure_format_exception(e)}"
-            self.exception(error_msg)
-            self.panic(error_msg)
-            return
-
-        super().run()
+        pass
 
     def _to_tf_params_list(self, params: Dict, negate: bool = False):
         """
@@ -99,12 +76,7 @@ class FedOpt(FedAvg):
         Optionally negate the values of weights, needed
         to apply gradients.
         """
-        tf_params_list = []
-        for k, v in params.items():
-            if negate:
-                v = -1 * v
-            tf_params_list.append(tf.Variable(v))
-        return tf_params_list
+        pass
 
     def update_model(self, global_model: FLModel, aggr_result: FLModel):
         """
@@ -118,64 +90,4 @@ class FedOpt(FedAvg):
         specific set of Variables.
 
         """
-        # Get the Keras model stored in memory in persistor.
-        global_model_tf = self.persistor.model
-        global_params = global_model_tf.trainable_weights
-        num_trainable_weights = len(global_params)
-
-        # Compute model diff: need to use model diffs as
-        # gradients to be applied by the optimizer.
-        model_diff_params = {}
-
-        w_idx = 0
-
-        for key, param in global_model.params.items():
-            if w_idx >= num_trainable_weights:
-                break
-
-            if param.shape == global_params[w_idx].shape:
-                model_diff_params[key] = (
-                    aggr_result.params[key] - param
-                    if aggr_result.params_type == ParamsType.FULL
-                    else aggr_result.params[key]
-                )
-                w_idx += 1
-
-        model_diff = self._to_tf_params_list(model_diff_params, negate=True)
-
-        # Apply model diffs as gradients, using the optimizer.
-        start = time.time()
-
-        self.optimizer.apply_gradients(zip(model_diff, global_params))
-        secs = time.time() - start
-
-        # Convert updated global model weights to
-        # numpy format for FLModel.
-        start = time.time()
-        weights = global_model_tf.get_weights()
-
-        new_weights = {}
-        for w_idx, key in enumerate(global_model.params):
-            if key in model_diff_params:
-                new_weights[key] = weights[w_idx]
-
-            else:
-
-                new_weights[key] = (
-                    aggr_result.params[key]
-                    if aggr_result.params_type == ParamsType.FULL
-                    else global_model.params[key] + aggr_result.params[key]
-                )
-        secs_detach = time.time() - start
-        self.info(
-            f"FedOpt ({type(self.optimizer)}) server model update "
-            f"round {self.current_round}, "
-            f"{type(self.lr_scheduler)} "
-            f"lr: {self.optimizer.learning_rate.numpy()}, "
-            f"update: {secs} secs., detach: {secs_detach} secs.",
-        )
-
-        global_model.params = new_weights
-        global_model.meta = aggr_result.meta
-
-        return global_model
+        pass

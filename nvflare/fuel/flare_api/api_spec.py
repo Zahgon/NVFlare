@@ -692,8 +692,7 @@ class SessionSpec(ABC):
         should continue. If False, this method ends.
 
         """
-        rc, _ = self.monitor_job_and_return_job_meta(job_id, timeout, poll_interval, cb, *cb_args, **cb_kwargs)
-        return rc
+        pass
 
     @abstractmethod
     def register_study(

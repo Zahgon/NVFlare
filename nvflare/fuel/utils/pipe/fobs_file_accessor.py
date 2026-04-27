@@ -28,7 +28,7 @@ class FobsFileAccessor(FileAccessor):
         Returns:
 
         """
-        return fobs.loadf(file_path)
+        pass
 
     def write(self, data: Any, file_path) -> None:
         """Write the data as binary file.
@@ -40,4 +40,4 @@ class FobsFileAccessor(FileAccessor):
         Returns:
 
         """
-        fobs.dumpf(data, file_path)
+        pass

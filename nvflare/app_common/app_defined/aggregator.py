@@ -34,13 +34,7 @@ class AppDefinedAggregator(Aggregator, ComponentBase, ABC):
         self.base_model_obj = None
 
     def handle_event(self, event_type, fl_ctx: FLContext):
-        if event_type == AppEventType.ROUND_STARTED:
-            self.fl_ctx = fl_ctx
-            self.current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-            base_model_learnable = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-            if isinstance(base_model_learnable, dict):
-                self.base_model_obj = base_model_learnable.get(ModelLearnableKey.WEIGHTS)
-            self.reset()
+        pass
 
     @abstractmethod
     def reset(self):
@@ -55,21 +49,7 @@ class AppDefinedAggregator(Aggregator, ComponentBase, ABC):
         pass
 
     def accept(self, shareable: Shareable, fl_ctx: FLContext) -> bool:
-        dxo = from_shareable(shareable)
-        trained_weights = dxo.data
-        trained_meta = dxo.meta
-        self.fl_ctx = fl_ctx
-        peer_ctx = fl_ctx.get_peer_context()
-        client_name = peer_ctx.get_identity_name()
-        return self.processing_training_result(client_name, trained_weights, trained_meta)
+        pass
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
-        self.fl_ctx = fl_ctx
-        aggregated_result, aggregated_meta = self.aggregate_training_result()
-        dxo = DXO(
-            data_kind=DataKind.APP_DEFINED,
-            data=aggregated_result,
-            meta=aggregated_meta,
-        )
-        self.debug(f"learnable_to_shareable: {dxo.data}")
-        return dxo.to_shareable()
+        pass

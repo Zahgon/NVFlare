@@ -41,46 +41,23 @@ class TwoHeader:
         self.agent2 = NetAgent(self.cell2, agent_closed_cb=self._agent2_closed)
 
     def _agent1_closed(self):
-        print("cell1 stopped")
-        self.cell1.stop()
-        self.cell1_stopped = True
-        self.stop()
+        pass
 
     def _agent2_closed(self):
-        print("cell2 stopped")
-        self.cell2.stop()
-        self.cell2_stopped = True
-        self.stop()
+        pass
 
     def start(self):
-        self.cell1.start()
-        self.cell2.start()
+        pass
 
     def stop(self):
-        if self.cell1_stopped and self.cell2_stopped:
-            print("Both stopped!")
-            self.waiter.set()
+        pass
 
     def run(self):
-        self.waiter.wait()
+        pass
 
 
 def main():
-    root1 = "grpc://localhost:8002"
-    name1 = "h1"
-
-    root2 = "grpc://localhost:9002"
-    name2 = "h2"
-
-    h = TwoHeader(
-        root1=root1,
-        name1=name1,
-        root2=root2,
-        name2=name2,
-    )
-
-    h.start()
-    h.run()
+    pass
 
 
 if __name__ == "__main__":

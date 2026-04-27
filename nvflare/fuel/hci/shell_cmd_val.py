@@ -27,11 +27,10 @@ class ShellCommandValidator(object):
         self.arg_validator = arg_validator
 
     def validate(self, args: List[str]):
-        self.arg_validator.err = ""
-        return self.arg_validator.validate(args)
+        pass
 
     def get_usage(self):
-        return self.arg_validator.get_usage()
+        pass
 
 
 class PwdValidator(ShellCommandValidator):

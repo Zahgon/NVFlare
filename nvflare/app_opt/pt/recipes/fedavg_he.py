@@ -316,9 +316,4 @@ class FedAvgRecipeWithHE(Recipe):
         Recipe.__init__(self, job)
 
     def process_env(self, env: ExecEnv):
-        from nvflare.recipe.sim_env import SimEnv
-
-        if isinstance(env, SimEnv):
-            raise ValueError(HE_SIM_ENV_NOT_SUPPORTED_ERROR)
-
-        super().process_env(env)
+        pass

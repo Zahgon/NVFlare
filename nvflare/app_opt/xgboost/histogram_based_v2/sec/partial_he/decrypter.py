@@ -31,27 +31,8 @@ class Decrypter:
         Returns: list of lists of decrypted numbers
 
         """
-        items = [None] * len(encrypted_number_groups)
-
-        for i, g in enumerate(encrypted_number_groups):
-            items[i] = (self.private_key, g)
-
-        chunk_size = int((len(items) - 1) / self.max_workers) + 1
-
-        results = self.exe.map(_do_decrypt, items, chunksize=chunk_size)
-        rl = []
-        for r in results:
-            rl.append(r)
-        return rl
+        pass
 
 
 def _do_decrypt(item):
-    private_key, numbers = item
-    ev = [None] * len(numbers)
-    for i, v in enumerate(numbers):
-        if isinstance(v, int):
-            d = v
-        else:
-            d = private_key.decrypt(v)
-        ev[i] = d
-    return ev
+    pass

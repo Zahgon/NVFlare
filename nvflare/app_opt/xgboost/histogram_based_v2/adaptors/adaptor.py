@@ -58,24 +58,7 @@ class _RunnerStarter:
         Returns:
 
         """
-        try:
-            if not self.in_process:
-                # enable logging
-                configure_logging(self.workspace, job_id=self.job_id, file_prefix=self.app_name)
-            self.runner.run(ctx)
-            self.stopped = True
-        except Exception as e:
-            self.error = f"Exception starting {self.app_name} runner: {secure_format_exception(e)}"
-            self.logger.error(self.error)
-            # XGBoost already prints a traceback
-            if not isinstance(e, XGBoostError):
-                secure_log_traceback()
-            self.started = False
-            self.exit_code = Constant.EXIT_CODE_CANT_START
-            self.stopped = True
-            if not self.in_process:
-                # this is a separate process
-                sys.exit(self.exit_code)
+        pass
 
 
 class AppAdaptor(ABC, FLComponent):
@@ -107,9 +90,7 @@ class AppAdaptor(ABC, FLComponent):
         Returns: None
 
         """
-        if not isinstance(runner, AppRunner):
-            raise TypeError(f"runner must be AppRunner but got {type(runner)}")
-        self.app_runner = runner
+        pass
 
     def set_abort_signal(self, abort_signal: Signal):
         """Called by XGB Controller/Executor to set the abort_signal.
@@ -123,8 +104,7 @@ class AppAdaptor(ABC, FLComponent):
         Returns: None
 
         """
-        check_object_type("abort_signal", abort_signal, Signal)
-        self.abort_signal = abort_signal
+        pass
 
     def initialize(self, fl_ctx: FLContext):
         """Called by the Controller/Executor to initialize the adaptor.
@@ -190,19 +170,7 @@ class AppAdaptor(ABC, FLComponent):
         pass
 
     def _monitor(self, fl_ctx: FLContext, target_stopped_cb):
-        while True:
-            if self.abort_signal.triggered:
-                # asked to abort
-                self.stop(fl_ctx)
-                return
-
-            stopped, rc = self._is_stopped()
-            if stopped:
-                # target already stopped - notify the caller
-                target_stopped_cb(rc, fl_ctx)
-                return
-
-            time.sleep(0.1)
+        pass
 
     def monitor_target(self, fl_ctx: FLContext, target_stopped_cb):
         """Called by XGB Controller/Executor to monitor the health of the target.
@@ -220,71 +188,13 @@ class AppAdaptor(ABC, FLComponent):
         Returns: None
 
         """
-        if not callable(target_stopped_cb):
-            raise RuntimeError(f"target_stopped_cb must be callable but got {type(target_stopped_cb)}")
-
-        # start the monitor in a separate daemon thread!
-        t = threading.Thread(target=self._monitor, args=(fl_ctx, target_stopped_cb), daemon=True)
-        t.start()
+        pass
 
     def start_runner(self, run_ctx: dict, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        job_id = fl_ctx.get_job_id()
-        starter = _RunnerStarter(self.app_name, self.app_runner, self.in_process, workspace, job_id)
-        if self.in_process:
-            self.logger.info(f"starting {self.app_name} Server in another thread")
-            t = threading.Thread(
-                target=starter.start,
-                args=(run_ctx,),
-                daemon=True,
-                name=f"{self.app_name}_server_thread_runner",
-            )
-            t.start()
-            if not starter.started:
-                self.logger.error(f"cannot start {self.app_name} server: {starter.error}")
-                raise RuntimeError(starter.error)
-            self.starter = starter
-        else:
-            # start as a separate local process
-            self.logger.info(f"starting {self.app_name} server in another process")
-            self.process = multiprocessing.Process(
-                target=starter.start,
-                args=(run_ctx,),
-                daemon=True,
-                name=f"{self.app_name}_server_process_runner",
-            )
-            self.process.start()
+        pass
 
     def stop_runner(self):
-        if self.in_process:
-            runner = self.app_runner
-            self.app_runner = None
-            if runner:
-                runner.stop()
-        else:
-            p = self.process
-            self.process = None
-            if p:
-                p.kill()
+        pass
 
     def is_runner_stopped(self) -> Tuple[bool, int]:
-        if self.in_process:
-            if self.starter:
-                if self.starter.stopped:
-                    return True, self.starter.exit_code
-
-            if self.app_runner:
-                return self.app_runner.is_stopped()
-            else:
-                return True, 0
-        else:
-            if self.process:
-                assert isinstance(self.process, multiprocessing.Process)
-                ec = self.process.exitcode
-                if ec is None:
-                    return False, 0
-                else:
-                    return True, ec
-            else:
-                return True, 0
+        pass

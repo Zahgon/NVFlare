@@ -54,27 +54,17 @@ class Shareable(dict):
         self[ReservedHeaderKey.HEADERS] = {}
 
     def set_header(self, key: str, value):
-        header = self.get(ReservedHeaderKey.HEADERS, None)
-        if not header:
-            header = {}
-            self[ReservedHeaderKey.HEADERS] = header
-        header[key] = value
+        pass
 
     def get_header(self, key: str, default=None):
-        header = self.get(ReservedHeaderKey.HEADERS, None)
-        if not header:
-            return default
-        else:
-            if not isinstance(header, dict):
-                raise ValueError("header object must be a dict, but got {}".format(type(header)))
-            return header.get(key, default)
+        pass
 
     # some convenience methods
     def get_return_code(self, default=ReturnCode.OK):
-        return self.get_header(ReservedHeaderKey.RC, default)
+        pass
 
     def set_return_code(self, rc):
-        self.set_header(ReservedHeaderKey.RC, rc)
+        pass
 
     def add_cookie(self, name: str, data):
         """Add a cookie that is to be sent to the client and echoed back in response.
@@ -86,41 +76,31 @@ class Shareable(dict):
             data: the data of the cookie, which must be serializable
 
         """
-        cookie_jar = self.get_cookie_jar()
-        if not cookie_jar:
-            cookie_jar = {}
-            self.set_header(key=ReservedHeaderKey.COOKIE_JAR, value=cookie_jar)
-        cookie_jar[name] = data
+        pass
 
     def get_cookie_jar(self):
-        return self.get_header(key=ReservedHeaderKey.COOKIE_JAR, default=None)
+        pass
 
     def set_cookie_jar(self, jar):
-        self.set_header(key=ReservedHeaderKey.COOKIE_JAR, value=jar)
+        pass
 
     def get_cookie(self, name: str, default=None):
-        jar = self.get_cookie_jar()
-        if not jar:
-            return default
-        return jar.get(name, default)
+        pass
 
     def set_peer_props(self, props: dict):
-        self.set_header(ReservedHeaderKey.PEER_PROPS, props)
+        pass
 
     def get_peer_props(self):
-        return self.get_header(ReservedHeaderKey.PEER_PROPS, None)
+        pass
 
     def get_peer_prop(self, key: str, default):
-        props = self.get_peer_props()
-        if not isinstance(props, dict):
-            return default
-        return props.get(key, default)
+        pass
 
     def set_peer_context(self, peer_ctx):
-        self.set_header(ReservedHeaderKey.PEER_CTX, peer_ctx)
+        pass
 
     def get_peer_context(self):
-        return self.get_header(ReservedHeaderKey.PEER_CTX)
+        pass
 
     def to_bytes(self) -> bytes:
         """Serialize the Model object into bytes.
@@ -129,7 +109,7 @@ class Shareable(dict):
             object serialized in bytes.
 
         """
-        return fobs.dumps(self)
+        pass
 
     @classmethod
     def from_bytes(cls, data: bytes):
@@ -142,17 +122,12 @@ class Shareable(dict):
             an object loaded by FOBS from data
 
         """
-        return fobs.loads(data)
+        pass
 
 
 # some convenience functions
 def make_reply(rc, headers=None) -> Shareable:
-    reply = Shareable()
-    reply.set_return_code(rc)
-    if headers and isinstance(headers, dict):
-        for k, v in headers.items():
-            reply.set_header(k, v)
-    return reply
+    pass
 
 
 def make_copy(source: Shareable, exclude_headers: list = None) -> Shareable:
@@ -160,15 +135,4 @@ def make_copy(source: Shareable, exclude_headers: list = None) -> Shareable:
     Make a copy from the source.
     The content (non-headers) will be kept intact. Headers will be deep-copied into the new instance.
     """
-    assert isinstance(source, Shareable)
-    c = copy.copy(source)
-    headers = source.get(ReservedHeaderKey.HEADERS)
-    if headers:
-        new_headers = copy.deepcopy(headers)
-        if exclude_headers:
-            for k in exclude_headers:
-                new_headers.pop(k, None)
-    else:
-        new_headers = {}
-    c[ReservedHeaderKey.HEADERS] = new_headers
-    return c
+    pass

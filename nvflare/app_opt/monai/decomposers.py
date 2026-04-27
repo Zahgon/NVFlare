@@ -47,5 +47,4 @@ MONAI_ENUM_TYPES: set[str] = {
 
 def register_monai_types() -> None:
     """Allow MONAI enum-like types to be deserialized by FOBS."""
-    for monai_type in MONAI_ENUM_TYPES:
-        fobs.add_type_name_whitelist(monai_type)
+    pass

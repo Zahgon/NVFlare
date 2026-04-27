@@ -74,32 +74,13 @@ class InProcessClientAPI(APISpec):
             rank (str): local rank of the process.
                 It is only useful when the training script has multiple worker processes. (for example multi GPU)
         """
-
-        self.rank = rank
-        if rank is None:
-            self.rank = os.environ.get("RANK", "0")
-
-        config = {} if config is None else config
-        self.prepare_client_config(config)
-
-        for k, v in self.client_config.config.items():
-            if k in SYS_ATTRS:
-                self.sys_info[k] = v
+        pass
 
     def prepare_client_config(self, config):
-        if isinstance(config, dict):
-            client_config = ClientConfig(config=config)
-        else:
-            raise ValueError(f"config should be a dictionary, but got {type(config)}")
-
-        if client_config.config:
-            client_config.config.update(self.meta)
-        else:
-            client_config.config = self.meta
-        self.client_config = client_config
+        pass
 
     def set_meta(self, meta: dict):
-        self.meta = meta
+        pass
 
     def configure_memory_management(self, gc_rounds: int = 0, cuda_empty_cache: bool = False):
         """Configure memory management settings.
@@ -108,167 +89,62 @@ class InProcessClientAPI(APISpec):
             gc_rounds: Cleanup every N rounds. 0 = disabled.
             cuda_empty_cache: If True, call torch.cuda.empty_cache() on cleanup.
         """
-        self._memory_gc_rounds = gc_rounds
-        self._cuda_empty_cache = cuda_empty_cache
-        if gc_rounds > 0:
-            self.logger.info(f"Memory management enabled: cleanup every {gc_rounds} round(s)")
+        pass
 
     def receive(self, timeout: Optional[float] = None) -> Optional[FLModel]:
-        result = self.__receive()
-        self.receive_called = True
-        if result is not None:
-            self._mem_round = result.current_round
-            self._mem_site = self.get_site_name()
-            log_rss(f"CA s={self._mem_site} r={result.current_round} recv")
-        return result
+        pass
 
     def __receive(self) -> Optional[FLModel]:
-        if self.fl_model:
-            return self.fl_model
-
-        while True:
-            if not self.__continue_job():
-                break
-
-            if self.fl_model is None:
-                self.logger.debug(f"no result global message available, sleep {self.result_check_interval} sec")
-                time.sleep(self.result_check_interval)
-            else:
-                break
-
-        return self.fl_model
+        pass
 
     def send(self, model: FLModel, clear_cache: bool = True) -> None:
-        if self.__continue_job():
-            self.logger.info("Try to send local model back to peer ")
-
-        if not self.receive_called:
-            raise RuntimeError('"receive" needs to be called before sending model!')
-
-        if self.client_config.get_transfer_type() == TransferType.DIFF:
-            model = self._prepare_param_diff(model)
-
-        if model.params is None and model.metrics is None:
-            raise RuntimeError("the model to send does not have either params or metrics")
-
-        shareable = FLModelUtils.to_shareable(model)
-        self.event_manager.fire_event(TOPIC_LOCAL_RESULT, shareable)
-
-        if clear_cache:
-            # Serialization is complete. Release the sent model's params and the
-            # received model's params — both are dead weight after flare.send().
-            # NOTE: model.params and input_model.params will be None after this.
-            model.params = None
-            model.optimizer_params = None
-            # Keep a local reference so we can clear input_model params before
-            # dropping self.fl_model.
-            received_model = self.fl_model
-            self.fl_model = None
-            if received_model:
-                received_model.params = None
-                received_model.optimizer_params = None
-            self.receive_called = False
-
-        self._maybe_cleanup_memory()
-        log_rss(f"CA s={getattr(self, '_mem_site', '?')} r={getattr(self, '_mem_round', None)} send")
+        pass
 
     def system_info(self) -> Dict:
-        return self.sys_info
+        pass
 
     def get_config(self) -> Dict:
-        return self.client_config.get_config()
+        pass
 
     def get_job_id(self) -> str:
-        return self.meta[FLMetaKey.JOB_ID]
+        pass
 
     def get_site_name(self) -> str:
-        return self.meta[FLMetaKey.SITE_NAME]
+        pass
 
     def get_task_name(self) -> str:
-        if self.rank != "0":
-            raise RuntimeError("only rank 0 can call get_task_name!")
-
-        return self.meta[ConfigKey.TASK_NAME]
+        pass
 
     def is_running(self) -> bool:
-        if not self.__continue_job():
-            return False
-        else:
-            self.__receive()
-
-        return self.fl_model is not None
+        pass
 
     def is_train(self) -> bool:
-        if self.rank != "0":
-            raise RuntimeError("only rank 0 can call is_train!")
-        return self.meta.get(ConfigKey.TASK_NAME) == self.client_config.get_train_task()
+        pass
 
     def is_evaluate(self) -> bool:
-        if self.rank != "0":
-            raise RuntimeError("only rank 0 can call is_evaluate!")
-        return self.meta.get(ConfigKey.TASK_NAME) == self.client_config.get_eval_task()
+        pass
 
     def is_submit_model(self) -> bool:
-        if self.rank != "0":
-            raise RuntimeError("only rank 0 can call is_submit_model!")
-        return self.meta.get(ConfigKey.TASK_NAME) == self.client_config.get_submit_model_task()
+        pass
 
     def log(self, key: str, value: Any, data_type: AnalyticsDataType, **kwargs):
-        if self.rank != "0":
-            raise RuntimeError("only rank 0 can call log!")
-        msg = dict(key=key, value=value, data_type=data_type, **kwargs)
-        self.event_manager.fire_event(TOPIC_LOG_DATA, msg)
+        pass
 
     def clear(self):
-        self.fl_model = None
+        pass
 
     def _prepare_param_diff(self, model: FLModel) -> FLModel:
-        exchange_format = self.client_config.get_exchange_format()
-        diff_func = DIFF_FUNCS.get(exchange_format, None)
-
-        if diff_func is None:
-            raise RuntimeError(f"no default params diff function for {exchange_format}")
-        elif self.fl_model is None:
-            raise RuntimeError("no received model")
-        elif self.fl_model.params is not None:
-            if model.params_type == ParamsType.FULL:
-                try:
-                    model.params = diff_func(original=self.fl_model.params, new=model.params)
-                    model.params_type = ParamsType.DIFF
-                except Exception as e:
-                    raise RuntimeError(f"params diff function failed: {e}")
-
-        return model
+        pass
 
     def __receive_callback(self, topic, data, databus):
 
-        if topic == TOPIC_GLOBAL_RESULT and not isinstance(data, Shareable):
-            raise ValueError(f"expecting a Shareable, but got '{type(data)}'")
-
-        fl_model = FLModelUtils.from_shareable(data)
-        self.fl_model = fl_model
+        pass
 
     def __ask_to_abort(self, topic, msg, databus):
-        if topic == TOPIC_ABORT:
-            self.abort = True
-            self.abort_reason = msg
-            self.logger.error(f"ask to abort job: reason: {msg}")
-        elif topic == TOPIC_STOP:
-            self.stop = True
-            self.stop_reason = msg
-            self.logger.warning(f"ask to stop job: reason: {msg}")
+        pass
 
     def __continue_job(self) -> bool:
-        if self.abort:
-            raise RuntimeError(f"request to abort the job for reason {self.abort_reason}")
-        if self.stop:
-            self.logger.warning(f"request to stop the job for reason {self.stop_reason}")
-            self.fl_model = None
-            return False
-
-        return True
+        pass
 
     def shutdown(self):
-        self.stop = True
-        self.event_manager.fire_event(TOPIC_STOP)
-        self.stop_reason = "API shutdown called."
+        pass

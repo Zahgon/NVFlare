@@ -44,20 +44,4 @@ class FedXGBEvalExecutor(XGBExecutor):
 
     def get_adaptor(self, fl_ctx: FLContext):
 
-        engine = fl_ctx.get_engine()
-        handler = ClientSecurityHandler()
-        engine.add_component(str(uuid.uuid4()), handler)
-
-        runner = XGBEvalRunner(
-            data_loader_id=self.data_loader_id,
-            train_workspace_path=self.train_workspace_path,
-        )
-        runner.initialize(fl_ctx)
-        adaptor = GrpcClientAdaptor(
-            int_server_grpc_options=self.int_server_grpc_options,
-            in_process=self.in_process,
-            per_msg_timeout=self.per_msg_timeout,
-            tx_timeout=self.tx_timeout,
-        )
-        adaptor.set_runner(runner)
-        return adaptor
+        pass

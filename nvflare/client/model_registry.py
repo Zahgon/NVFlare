@@ -36,12 +36,7 @@ class ModelRegistry(TaskRegistry):
         Returns:
             None if flare agent is None; or an FLModel object if a task is available within timeout.
         """
-        task = self.get_task(timeout)
-        if task is not None and task.data is not None:
-            if not isinstance(task.data, FLModel):
-                raise RuntimeError("task.data is not FLModel.")
-            return task.data
-        return None
+        pass
 
     def submit_model(self, model: FLModel) -> None:
         """Submits a model to FLARE client.
@@ -49,15 +44,7 @@ class ModelRegistry(TaskRegistry):
         Args:
             model (FLModel): Trained local model to be submitted.
         """
-        if not self.flare_agent:
-            return None
-        if self.config.get_transfer_type() == TransferType.DIFF:
-            model = self._prepare_param_diff(model)
-
-        if model.params is None and model.metrics is None:
-            raise RuntimeError("the model to send does not have either params or metrics")
-
-        self.submit_task(model)
+        pass
 
     def release_params(self, sent_model: FLModel) -> None:
         """Release large parameter arrays after serialization is complete.
@@ -73,29 +60,7 @@ class ModelRegistry(TaskRegistry):
         Args:
             sent_model: The FLModel that was just submitted.
         """
-        sent_model.params = None
-        sent_model.optimizer_params = None
-        if self.received_task and self.received_task.data:
-            self.received_task.data.params = None
-            self.received_task.data.optimizer_params = None
+        pass
 
     def _prepare_param_diff(self, model: FLModel) -> FLModel:
-        exchange_format = self.config.get_exchange_format()
-        diff_func = DIFF_FUNCS.get(exchange_format, None)
-        if diff_func is None:
-            raise RuntimeError(f"no default params diff function for {exchange_format}")
-        elif self.received_task is None:
-            raise RuntimeError("no received task")
-        elif self.received_task.data is None:
-            raise RuntimeError("no received model")
-        elif not isinstance(self.received_task.data, FLModel):
-            raise RuntimeError("received_task.data is not FLModel.")
-        elif model.params is not None:
-            if model.params_type == ParamsType.FULL:
-                try:
-                    model.params = diff_func(original=self.received_task.data.params, new=model.params)
-                    model.params_type = ParamsType.DIFF
-                except Exception as e:
-                    raise RuntimeError(f"params diff function failed: {e}")
-
-        return model
+        pass

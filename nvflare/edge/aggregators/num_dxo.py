@@ -25,15 +25,7 @@ class NumDXOAggregator(Aggregator):
         self.count = 0
 
     def accept(self, shareable: Shareable, fl_ctx: FLContext) -> bool:
-        dxo = from_shareable(shareable)
-        if dxo.data_kind != "number":
-            raise ValueError(f"data_kind must be 'number' but got {dxo.data_kind}")
-        value = dxo.data.get("value", 0)
-        count = dxo.data.get("count", 1)
-        self.value += value
-        self.count += count
-        return True
+        pass
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
-        dxo = DXO(data_kind="number", data={"value": self.value, "count": self.count})
-        return dxo.to_shareable()
+        pass

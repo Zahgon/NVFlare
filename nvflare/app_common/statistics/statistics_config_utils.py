@@ -18,24 +18,8 @@ from nvflare.app_common.app_constant import StatisticsConstants as StC
 
 
 def get_feature_bin_range(feature_name: str, hist_config: dict) -> Optional[List[float]]:
-    bin_range = None
-    if feature_name in hist_config:
-        if StC.STATS_BIN_RANGE in hist_config[feature_name]:
-            bin_range = hist_config[feature_name][StC.STATS_BIN_RANGE]
-    elif "*" in hist_config:
-        default_config = hist_config["*"]
-        if StC.STATS_BIN_RANGE in default_config:
-            bin_range = default_config[StC.STATS_BIN_RANGE]
-
-    return bin_range
+    pass
 
 
 def get_target_quantiles(percentile_config: dict, feature_name: str) -> list:
-    if feature_name in percentile_config:
-        percents = percentile_config.get(feature_name)
-    elif "*" in percentile_config:
-        percents = percentile_config.get("*")
-    else:
-        percents = []
-
-    return percents
+    pass

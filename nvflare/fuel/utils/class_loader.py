@@ -27,10 +27,7 @@ def get_class_name(cls: Type) -> str:
         Returns:
             The canonical name
     """
-    module = cls.__module__
-    if module == "builtins":
-        return cls.__qualname__
-    return module + "." + cls.__qualname__
+    pass
 
 
 def load_class(class_path):
@@ -41,13 +38,4 @@ def load_class(class_path):
     Returns:
         The class type
     """
-
-    try:
-        if "." in class_path:
-            module_name, class_name = class_path.rsplit(".", 1)
-            module = importlib.import_module(module_name)
-            return getattr(module, class_name)
-        else:
-            return getattr(builtins, class_path)
-    except Exception as ex:
-        raise TypeError(f"Can't load class {class_path}: {ex}")
+    pass

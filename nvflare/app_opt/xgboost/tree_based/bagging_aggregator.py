@@ -49,59 +49,7 @@ class XGBBaggingAggregator(Aggregator):
             The first boolean indicates if this shareable is accepted.
             The second boolean indicates if aggregate can be called.
         """
-        try:
-            dxo = from_shareable(shareable)
-        except Exception:
-            self.log_exception(fl_ctx, "shareable data is not a valid DXO")
-            return False
-
-        contributor_name = shareable.get_peer_prop(key=ReservedKey.IDENTITY_NAME, default="?")
-        contribution_round = shareable.get_cookie(AppConstants.CONTRIBUTION_ROUND)
-
-        rc = shareable.get_return_code()
-        if rc and rc != ReturnCode.OK:
-            self.log_warning(fl_ctx, f"Contributor {contributor_name} returned rc: {rc}. Disregarding contribution.")
-            return False
-
-        if dxo.data_kind != self.expected_data_kind:
-            self.log_error(fl_ctx, "expected {} but got {}".format(self.expected_data_kind, dxo.data_kind))
-            return False
-
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        self.log_debug(fl_ctx, f"current_round: {current_round}")
-        if contribution_round != current_round:
-            self.log_warning(
-                fl_ctx,
-                f"discarding DXO from {contributor_name} at round: "
-                f"{contribution_round}. Current round is: {current_round}",
-            )
-            return False
-
-        for item in self.history:
-            if contributor_name == item["contributor_name"]:
-                prev_round = item["round"]
-                self.log_warning(
-                    fl_ctx,
-                    f"discarding DXO from {contributor_name} at round: "
-                    f"{contribution_round} as {prev_round} accepted already",
-                )
-                return False
-
-        data = dxo.data
-        if data is None:
-            self.log_error(fl_ctx, "no data to aggregate")
-            return False
-        else:
-            self.local_models.append(data["model_data"])
-            self.local_models_as_dict.append(json.loads(data["model_data"]))
-
-            self.history.append(
-                {
-                    "contributor_name": contributor_name,
-                    "round": contribution_round,
-                }
-            )
-        return True
+        pass
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
         """Called when workflow determines to generate shareable to send back to contributors
@@ -112,21 +60,4 @@ class XGBBaggingAggregator(Aggregator):
         Returns:
             Shareable: the weighted mean of accepted shareables from contributors
         """
-
-        self.log_debug(fl_ctx, "Start aggregation")
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        site_num = len(self.history)
-
-        self.log_info(fl_ctx, f"aggregating {site_num} update(s) at round {current_round}")
-
-        self.history = []
-        self.log_debug(fl_ctx, "End aggregation")
-        local_updates = self.local_models
-        local_updates_as_dict = self.local_models_as_dict
-        self.local_models = []
-        self.local_models_as_dict = []
-        dxo = DXO(
-            data_kind=self.expected_data_kind,
-            data={"model_data": local_updates, "model_data_dict": local_updates_as_dict},
-        )
-        return dxo.to_shareable()
+        pass

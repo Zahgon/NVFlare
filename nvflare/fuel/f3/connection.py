@@ -28,10 +28,7 @@ BytesAlike = Union[bytes, bytearray, memoryview, list]
 
 
 def create_connection_name():
-    global lock, conn_count
-    with lock:
-        conn_count += 1
-    return "CN%05d" % conn_count
+    pass
 
 
 class ConnState(Enum):
@@ -99,7 +96,7 @@ class Connection(ABC):
         Args:
             receiver: The frame receiver
         """
-        self.frame_receiver = receiver
+        pass
 
     def process_frame(self, frame: BytesAlike):
         """A convenience function to call frame receiver
@@ -110,11 +107,7 @@ class Connection(ABC):
         Raises:
             CommError: If any error happens while processing the frame
         """
-
-        if self.frame_receiver:
-            self.frame_receiver.process_frame(frame)
-        else:
-            log.error(f"Frame receiver not registered for {self}")
+        pass
 
     def __str__(self):
 

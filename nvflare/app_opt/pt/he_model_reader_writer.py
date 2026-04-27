@@ -39,30 +39,4 @@ class HEPTModelReaderWriter(PTModelReaderWriter):
         Returns:
             list: a list of parameters been processed
         """
-        try:
-            # net = self.fitter.net
-            net = network
-            # if self.fitter.multi_gpu:
-            if multi_processes:
-                net = net.module
-
-            # reshape decrypted parameters
-            local_var_dict = net.state_dict()
-            for var_name in local_var_dict:
-                if var_name in model_params:
-                    try:
-                        self.logger.debug(
-                            f"Reshaping {var_name}: {np.shape(model_params[var_name])} to"
-                            f" {local_var_dict[var_name].shape}",
-                        )
-                        model_params[var_name] = np.reshape(model_params[var_name], local_var_dict[var_name].shape)
-                    except Exception as e:
-                        raise RuntimeError(f"{self._name} reshaping Exception: {secure_format_exception(e)}")
-
-            assign_ops, updated_local_model = feed_vars(net, model_params)
-            self.logger.debug(f"assign_ops: {len(assign_ops)}")
-            self.logger.debug(f"updated_local_model: {len(updated_local_model)}")
-            net.load_state_dict(updated_local_model)
-            return assign_ops
-        except Exception as e:
-            raise RuntimeError(f"{self._name} apply_model Exception: {secure_format_exception(e)}")
+        pass

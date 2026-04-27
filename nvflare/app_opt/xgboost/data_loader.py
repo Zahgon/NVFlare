@@ -42,21 +42,19 @@ class XGBDataLoader(ABC):
             each client will receive different values for these parameters at runtime, enabling
             client-specific data loading.
         """
-        self._client_id = client_id
-        self._rank = rank
-        self._data_split_mode = data_split_mode
+        pass
 
     @property
     def client_id(self):
-        return self._client_id
+        pass
 
     @property
     def rank(self):
-        return self._rank
+        pass
 
     @property
     def data_split_mode(self):
-        return self._data_split_mode
+        pass
 
     @abstractmethod
     def load_data(self) -> Tuple[xgb.DMatrix, xgb.DMatrix]:

@@ -28,86 +28,80 @@ from nvflare.fuel.utils.fobs.datum import DatumManager
 
 class StatisticConfigDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[Any]:
-        return StatisticConfig
+        pass
 
     def decompose(self, statistic_config: StatisticConfig, manager: DatumManager = None) -> Any:
-        return [statistic_config.name, statistic_config.config]
+        pass
 
     def recompose(self, data: list, manager: DatumManager = None) -> StatisticConfig:
-        return StatisticConfig(data[0], data[1])
+        pass
 
 
 class FeatureDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[Any]:
-        return Feature
+        pass
 
     def decompose(self, f: Feature, manager: DatumManager = None) -> Any:
-        return [f.feature_name, f.data_type]
+        pass
 
     def recompose(self, data: list, manager: DatumManager = None) -> Feature:
-        return Feature(data[0], data[1])
+        pass
 
 
 class BinDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[Any]:
-        return Bin
+        pass
 
     def decompose(self, b: Bin, manager: DatumManager = None) -> Any:
-        return [b.low_value, b.high_value, b.sample_count]
+        pass
 
     def recompose(self, data: list, manager: DatumManager = None) -> Bin:
-        return Bin(data[0], data[1], data[2])
+        pass
 
 
 class BinRangeDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[Any]:
-        return BinRange
+        pass
 
     def decompose(self, b: BinRange, manager: DatumManager = None) -> Any:
-        return [b.min_value, b.max_value]
+        pass
 
     def recompose(self, data: list, manager: DatumManager = None) -> BinRange:
-        return BinRange(data[0], data[1])
+        pass
 
 
 class HistogramDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[Any]:
-        return Histogram
+        pass
 
     def decompose(self, b: Histogram, manager: DatumManager = None) -> Any:
-        return [b.hist_type, b.bins, b.hist_name]
+        pass
 
     def recompose(self, data: list, manager: DatumManager = None) -> Histogram:
-        return Histogram(data[0], data[1], data[2])
+        pass
 
 
 class HistogramTypeDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[HistogramType]:
-        return HistogramType
+        pass
 
     def decompose(self, target: HistogramType, manager: DatumManager = None) -> Any:
-        return target.value
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> HistogramType:
-        return HistogramType(data)
+        pass
 
 
 class DataTypeDecomposer(fobs.Decomposer):
     def supported_type(self) -> Type[DataType]:
-        return DataType
+        pass
 
     def decompose(self, target: DataType, manager: DatumManager = None) -> Any:
-        return target.value
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> DataType:
-        return DataType(data)
+        pass
 
 
 def fobs_registration():
-    fobs.register(StatisticConfigDecomposer)
-    fobs.register(FeatureDecomposer)
-    fobs.register(HistogramDecomposer)
-    fobs.register(BinDecomposer)
-    fobs.register(BinRangeDecomposer)
-    fobs.register(HistogramTypeDecomposer)
-    fobs.register(DataTypeDecomposer)
+    pass

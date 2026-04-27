@@ -26,25 +26,10 @@ class AZCVMAuthorizer(CCAuthorizer):
         self.maa_endpoint = maa_endpoint
 
     def generate(self):
-        cmd = ["sudo", self.attester_binary, "-a", f"https://{self.maa_endpoint}/", "-o", "token"]
-        result = subprocess.run(cmd, capture_output=True, check=False)
-        if result.returncode != 0:
-            return ""
-        token = result.stdout.decode().strip()
-        return token
+        pass
 
     def verify(self, token):
-        try:
-            header = jwt.get_unverified_header(token)
-            alg = header.get("alg")
-            jwks_client = jwt.PyJWKClient(f"https://{self.maa_endpoint}/certs")
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
-            claims = jwt.decode(token, signing_key.key, algorithms=[alg])
-            if claims:
-                return True
-        except (jwt.PyJWTError, Exception):
-            return False
-        return False
+        pass
 
     def get_namespace(self) -> str:
-        return AZ_CVM_NAMESPACE
+        pass

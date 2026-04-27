@@ -66,15 +66,4 @@ class XGBFedController(XGBController):
 
     def get_adaptor(self, fl_ctx: FLContext):
 
-        engine = fl_ctx.get_engine()
-        handler = ServerSecurityHandler()
-        engine.add_component(str(uuid.uuid4()), handler)
-
-        runner = XGBServerRunner()
-        runner.initialize(fl_ctx)
-        adaptor = GrpcServerAdaptor(
-            int_client_grpc_options=self.int_client_grpc_options,
-            in_process=self.in_process,
-        )
-        adaptor.set_runner(runner)
-        return adaptor
+        pass

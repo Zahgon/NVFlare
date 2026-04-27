@@ -51,21 +51,7 @@ class Prefix:
 
     @staticmethod
     def from_bytes(buffer: bytes) -> "Prefix":
-        if len(buffer) < PREFIX_LEN:
-            raise CommError(CommError.BAD_DATA, "Prefix too short")
-
-        return Prefix(*PREFIX_STRUCT.unpack_from(buffer, 0))
+        pass
 
     def to_buffer(self, buffer: BytesAlike, offset: int):
-        PREFIX_STRUCT.pack_into(
-            buffer,
-            offset,
-            self.length,
-            self.header_len,
-            self.type,
-            self.reserved,
-            self.flags,
-            self.app_id,
-            self.stream_id,
-            self.sequence,
-        )
+        pass

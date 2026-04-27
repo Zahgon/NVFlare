@@ -37,9 +37,7 @@ class _FileSender(HCIRequester):
         self.file_name = file_name
 
     def send_request(self, api, conn, cmd_ctx):
-        result = api.upload_file(self.file_name, conn)
-        os.remove(self.file_name)
-        return result
+        pass
 
 
 class _FileReceiver(HCIRequester):
@@ -50,14 +48,7 @@ class _FileReceiver(HCIRequester):
         self.num_bytes_received = 0
 
     def send_request(self, api, conn, cmd_ctx):
-        self.num_bytes_received = api.download_file(self.source_fqcn, self.ref_id, self.file_name)
-        if self.num_bytes_received is not None:
-            cmd_ctx.set_command_result({ProtoKey.STATUS: APIStatus.SUCCESS, ProtoKey.DETAILS: "OK"})
-        else:
-            cmd_ctx.set_command_result(
-                {ProtoKey.STATUS: APIStatus.ERROR_RUNTIME, ProtoKey.DETAILS: "error receiving file"}
-            )
-        return None
+        pass
 
 
 class FileTransferModule(CommandModule):
@@ -82,31 +73,7 @@ class FileTransferModule(CommandModule):
         }
 
     def get_spec(self):
-        return CommandModuleSpec(
-            name="file_transfer",
-            cmd_specs=[
-                CommandSpec(
-                    name=self.PULL_BINARY_FILE_CMD,
-                    description="download one binary files in the download_dir",
-                    usage="pull_binary source_fqcn tx_id ref_id folder_name file_name",
-                    handler_func=self.pull_binary_file,
-                    visible=False,
-                ),
-                CommandSpec(
-                    name="push_folder",
-                    description="Submit application to the server",
-                    usage="submit_job job_folder",
-                    handler_func=self.push_folder,
-                    visible=False,
-                ),
-                CommandSpec(
-                    name="info",
-                    description="show folder setup info",
-                    usage="info",
-                    handler_func=self.info,
-                ),
-            ],
-        )
+        pass
 
     def generate_module_spec(self, server_cmd_spec: CommandSpec):
         """
@@ -118,213 +85,32 @@ class FileTransferModule(CommandModule):
         Returns:
 
         """
-        # print('generating cmd module for {}'.format(server_cmd_spec.client_cmd))
-        if not server_cmd_spec.client_cmd:
-            return None
-
-        handler = self.cmd_handlers.get(server_cmd_spec.client_cmd)
-        if handler is None:
-            _print_hci_message("no cmd handler found for {}".format(server_cmd_spec.client_cmd))
-            return None
-
-        return CommandModuleSpec(
-            name=server_cmd_spec.scope_name,
-            cmd_specs=[
-                CommandSpec(
-                    name=server_cmd_spec.name,
-                    description=server_cmd_spec.description,
-                    usage=server_cmd_spec.usage,
-                    handler_func=handler,
-                    visible=server_cmd_spec.visible,
-                )
-            ],
-        )
+        pass
 
     def _tx_path(self, tx_id: str, folder_name: str):
-        return os.path.join(self.download_dir, f"{folder_name}__{tx_id}")
+        pass
 
     def pull_binary_file(self, args, ctx: CommandContext):
         """
         Args: cmd_name, source_fqcn, tx_id, ref_id, folder_name, file_name, [end]
         """
-        cmd_entry = ctx.get_command_entry()
-        if len(args) < 6 or len(args) > 7:
-            return {ProtoKey.STATUS: APIStatus.ERROR_SYNTAX, ProtoKey.DETAILS: "usage: {}".format(cmd_entry.usage)}
-        source_fqcn = args[1]
-        tx_id = args[2]
-        ref_id = args[3]
-        folder_name = args[4]
-        file_name = args[5]
-        tx_path = self._tx_path(tx_id, folder_name)
-        file_path = os.path.join(tx_path, file_name)
-        api = ctx.get_api()
-        receiver = _FileReceiver(source_fqcn, ref_id, file_path)
-        api.fire_session_event(EventType.BEFORE_DOWNLOAD_FILE, f"downloading {file_name} ...")
-        ctx.set_requester(receiver)
-        download_start = time.time()
-        result = api.server_execute(ctx.get_command(), cmd_ctx=ctx)
-        if result.get(ProtoKey.STATUS) != APIStatus.SUCCESS:
-            return result
-        download_end = time.time()
-        api.fire_session_event(
-            EventType.AFTER_DOWNLOAD_FILE,
-            f"downloaded {file_name} ({receiver.num_bytes_received} bytes) in {download_end - download_start} seconds",
-        )
-
-        dir_name, ext = os.path.splitext(file_path)
-        if ext == ".zip":
-            # Do not unzip the file here since it could take a long time for large file, which could delay the
-            # downloading of other files in the same transaction.
-            # We'll keep info here and unzip the file after all files are downloaded.
-            result[ProtoKey.APP_DATA] = file_path
-        return result
+        pass
 
     @staticmethod
     def _unzip_file(api, file_path):
         # unzip the file
-        start = time.time()
-        base_name = os.path.basename(file_path)
-        dir_name, _ = os.path.splitext(file_path)
-        api.debug(f"unzipping file {file_path} to {dir_name}")
-        os.makedirs(dir_name, exist_ok=True)
-        unzip_all_from_file(file_path, dir_name)
-
-        # remove the zip file
-        os.remove(file_path)
-        api.fire_session_event(
-            EventType.AFTER_DOWNLOAD_FILE,
-            f"unzipped {base_name} in {time.time() - start} seconds",
-        )
+        pass
 
     def pull_folder(self, args, ctx: CommandContext):
-        cmd_entry = ctx.get_command_entry()
-        if len(args) < 2:
-            return {ProtoKey.STATUS: APIStatus.ERROR_SYNTAX, ProtoKey.DETAILS: "usage: {}".format(cmd_entry.usage)}
-        folder_name = args[1]
-        destination_name = folder_name
-        if len(args) > 2:
-            destination_name = args[2]
-
-        parts = [cmd_entry.full_command_name(), folder_name]
-        command = join_args(parts)
-        api = ctx.get_api()
-        result = api.server_execute(command)
-        if result.get(ProtoKey.STATUS) != APIStatus.SUCCESS:
-            return result
-
-        meta = result.get(ProtoKey.META)
-        if not meta:
-            return result
-
-        files = meta.get(MetaKey.FILES)
-        tx_id = meta.get(MetaKey.TX_ID)
-        source_fqcn = meta.get(MetaKey.SOURCE_FQCN)
-        api.debug(f"received tx_id {tx_id}, file names: {files}")
-        if not files:
-            return result
-
-        cmd_name = self.PULL_BINARY_FILE_CMD
-        error = None
-        files_to_unzip = []
-        for i, f in enumerate(files):
-            file_name = f[0]
-            ref_id = f[1]
-            parts = [cmd_name, source_fqcn, tx_id, ref_id, folder_name, file_name]
-            if i == len(files) - 1:
-                # this is the last file
-                parts.append("end")
-
-            command = join_args(parts)
-            reply = api.do_command(command)
-            if reply.get(ProtoKey.STATUS) != APIStatus.SUCCESS:
-                error = reply
-                break
-            else:
-                file_to_unzip = reply.get(ProtoKey.APP_DATA)
-                if file_to_unzip:
-                    files_to_unzip.append(file_to_unzip)
-
-        if not error:
-            # unzip downloaded zip files
-            for f in files_to_unzip:
-                try:
-                    self._unzip_file(api, f)
-                except Exception as ex:
-                    # Clean up temp folder on failure
-                    shutil.rmtree(self._tx_path(tx_id, folder_name), ignore_errors=True)
-                    return {
-                        ProtoKey.STATUS: APIStatus.ERROR_RUNTIME,
-                        ProtoKey.DETAILS: f"failed to unzip file '{f}': {ex}",
-                    }
-
-            tx_path = self._tx_path(tx_id, folder_name)
-            destination_path = os.path.join(self.download_dir, destination_name)
-            location = self._rename_folder(tx_path, destination_path)
-            return {
-                ProtoKey.STATUS: APIStatus.SUCCESS,
-                ProtoKey.DETAILS: f"content downloaded to {location}",
-                ProtoKey.META: {MetaKey.LOCATION: location},
-            }
-        else:
-            return error
+        pass
 
     @staticmethod
     def _rename_folder(src: str, destination: str):
-        max_tries = 1000
-        for i in range(max_tries):
-            if i == 0:
-                d = destination
-            else:
-                d = f"{destination}__{i}"
-            try:
-                os.rename(src, d)
-                return d
-            except:
-                # try next
-                pass
-
-        # all rename attempts have failed - keep the original destination name
-        return destination
+        pass
 
     def info(self, args, ctx: CommandContext):
-        msg = f"Local Upload Source: {self.upload_dir}\n"
-        msg += f"Local Download Destination: {self.download_dir}\n"
-        return {"status": "ok", "details": msg}
+        pass
 
     def push_folder(self, args, ctx: CommandContext):
         # upload with binary protocol
-        cmd_entry = ctx.get_command_entry()
-        assert isinstance(cmd_entry, CommandEntry)
-        if len(args) != 2:
-            return {"status": APIStatus.ERROR_SYNTAX, "details": "usage: {}".format(cmd_entry.usage)}
-
-        folder_name = args[1]
-        if folder_name.endswith("/"):
-            folder_name = folder_name.rstrip("/")
-
-        full_path = os.path.join(self.upload_dir, folder_name)
-        if not os.path.isdir(full_path):
-            return {"status": APIStatus.ERROR_RUNTIME, "details": f"'{full_path}' is not a valid folder."}
-
-        # sign folders and files (skip gracefully when key is absent — e.g. simulator)
-        api = ctx.get_api()
-        client_key_file_path = api.client_key
-        if client_key_file_path and os.path.exists(client_key_file_path) and api.client_cert:
-            try:
-                private_key = load_private_key_file(client_key_file_path)
-                sign_folders(full_path, private_key, api.client_cert)
-            except Exception as e:
-                return {"status": APIStatus.ERROR_RUNTIME, "details": f"Failed to sign job folder: {e}"}
-        else:
-            self.logger.warning("job folder '%s' submitted without signing — no client key available", folder_name)
-
-        # zip the data
-        out_file = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
-        zip_directory_to_file(self.upload_dir, folder_name, out_file)
-
-        folder_name = split_path(full_path)[1]
-        parts = [cmd_entry.full_command_name(), folder_name]
-        command = join_args(parts)
-        sender = _FileSender(out_file)
-        ctx.set_requester(sender)
-        return api.server_execute(command, cmd_ctx=ctx)
+        pass

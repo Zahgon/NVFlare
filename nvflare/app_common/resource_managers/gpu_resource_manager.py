@@ -24,7 +24,7 @@ class GPUResource:
         self.memory = gpu_memory
 
     def to_dict(self):
-        return {"gpu_id": self.id, "memory": self.memory}
+        pass
 
 
 class GPUResourceManager(AutoCleanResourceManager):
@@ -89,53 +89,13 @@ class GPUResourceManager(AutoCleanResourceManager):
         super().__init__(resources=resources, expiration_period=expiration_period)
 
     def _deallocate(self, resources: dict):
-        for k, v in resources.items():
-            self.resources[k].memory += v
+        pass
 
     def _check_required_resource_available(self, resource_requirement: dict) -> bool:
-        if not resource_requirement:
-            return True
-
-        if self.num_gpu_key not in resource_requirement:
-            raise ValueError(f"resource_requirement is missing num_gpu_key {self.num_gpu_key}.")
-
-        is_resource_enough = False
-        num_gpu = resource_requirement[self.num_gpu_key]
-        gpu_mem = resource_requirement.get(self.gpu_mem_key, 0)
-
-        satisfied = 0
-        for k in self.resources:
-            r: GPUResource = self.resources[k]
-            if r.memory >= gpu_mem:
-                satisfied += 1
-            if satisfied >= num_gpu:
-                is_resource_enough = True
-                break
-        return is_resource_enough
+        pass
 
     def _reserve_resource(self, resource_requirement: dict) -> dict:
-        if not resource_requirement:
-            return {}
-
-        if self.num_gpu_key not in resource_requirement:
-            raise ValueError(f"resource_requirement is missing num_gpu_key {self.num_gpu_key}.")
-
-        reserved_resources = {}
-        num_gpu = resource_requirement[self.num_gpu_key]
-        gpu_mem = resource_requirement.get(self.gpu_mem_key, 0)
-        reserved = 0
-        for k in self.resources:
-            r: GPUResource = self.resources[k]
-            if r.memory >= gpu_mem:
-                r.memory -= gpu_mem
-                reserved_resources[k] = gpu_mem
-                reserved += 1
-            if reserved == num_gpu:
-                break
-        return reserved_resources
+        pass
 
     def _resource_to_dict(self) -> dict:
-        return {
-            "resources": [self.resources[k].to_dict() for k in self.resources],
-            "reserved_resources": self.reserved_resources,
-        }
+        pass

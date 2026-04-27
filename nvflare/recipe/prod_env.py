@@ -40,13 +40,7 @@ class _ProdEnvValidator(BaseModel):
 
     @model_validator(mode="after")
     def check_startup_kit_location_exists(self) -> "_ProdEnvValidator":
-        if not os.path.exists(self.startup_kit_location):
-            raise ValueError(f"startup_kit_location path does not exist: {self.startup_kit_location}")
-        if name_check(self.study, "study")[0]:
-            raise ValueError(
-                f"study name '{self.study}' contains unsupported characters. Use only lowercase letters, numbers, underscores, and hyphens."
-            )
-        return self
+        pass
 
 
 class ProdEnv(ExecEnv):
@@ -85,36 +79,18 @@ class ProdEnv(ExecEnv):
         self._session_manager = None  # Lazy initialization
 
     def get_job_status(self, job_id: str) -> Optional[str]:
-        return self._get_session_manager().get_job_status(job_id)
+        pass
 
     def abort_job(self, job_id: str) -> None:
-        self._get_session_manager().abort_job(job_id)
+        pass
 
     def get_job_result(self, job_id: str, timeout: float = 0.0) -> Optional[str]:
-        return self._get_session_manager().get_job_result(job_id, timeout)
+        pass
 
     def deploy(self, job: FedJob) -> str:
         """Deploy a job using SessionManager."""
-        # Log warnings for non-local scripts (assumed pre-installed on production)
-        non_local_scripts = collect_non_local_scripts(job)
-        for script in non_local_scripts:
-            logger.warning(
-                f"Script '{script}' not found locally. " f"Assuming it is pre-installed on the production system."
-            )
-
-        try:
-            return self._get_session_manager().submit_job(job)
-        except Exception as e:
-            raise RuntimeError(f"Failed to submit job via Flare API: {e}") from e
+        pass
 
     def _get_session_manager(self):
         """Get or create SessionManager with lazy initialization."""
-        if self._session_manager is None:
-            session_params = {
-                "username": self.username,
-                "startup_kit_location": self.startup_kit_location,
-                "timeout": self.login_timeout,
-                "study": self.study,
-            }
-            self._session_manager = SessionManager(session_params)
-        return self._session_manager
+        pass

@@ -37,10 +37,10 @@ class Assembler(FLComponent, ABC):
 
     @property
     def collection(self):
-        return self._collection
+        pass
 
     def get_expected_data_kind(self):
-        return self.expected_data_kind
+        pass
 
     @abstractmethod
     def get_model_params(self, dxo: DXO) -> dict:
@@ -49,7 +49,7 @@ class Assembler(FLComponent, ABC):
         Return:
             A dict of parameters needed for further assembling
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def assemble(self, data: Dict[str, dict], fl_ctx: FLContext) -> DXO:
@@ -61,10 +61,10 @@ class Assembler(FLComponent, ABC):
         Return:
             A DXO containing all information ready to be returned to clients
         """
-        raise NotImplementedError
+        pass
 
     def reset(self) -> None:
         # Reset parameters for next round,
         # This will be performed at the end of each aggregation round,
         # it can include, but not limited to, clearing the _collection
-        self._collection = {}
+        pass

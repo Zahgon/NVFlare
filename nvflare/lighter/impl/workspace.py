@@ -50,36 +50,10 @@ class WorkspaceBuilder(Builder):
 
     def initialize(self, project: Project, ctx: ProvisionContext):
         # be backward compatible: load template files if specified.
-        ctx.load_templates(self.template_files)
-
-        workspace_dir = ctx.get_workspace()
-        prod_dirs = [_ for _ in os.listdir(workspace_dir) if _.startswith("prod_")]
-        last = -1
-        for d in prod_dirs:
-            stage = int(d.split("_")[-1])
-            if stage > last:
-                last = stage
-        ctx[CtxKey.LAST_PROD_STAGE] = last
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
-        participants = project.get_all_participants()
-        dirs = [ctx.get_kit_dir(p) for p in participants]
-        make_dirs(dirs)
-
-        dirs = [ctx.get_transfer_dir(p) for p in participants]
-        make_dirs(dirs)
-
-        dirs = [ctx.get_local_dir(p) for p in participants]
-        make_dirs(dirs)
+        pass
 
     def finalize(self, project: Project, ctx: ProvisionContext):
-        if ctx[CtxKey.LAST_PROD_STAGE] >= 99:
-            ctx.info(f"Please clean up {ctx['workspace']} by removing prod_N folders")
-            ctx.info("After clean-up, rerun the provision command.")
-        else:
-            current_prod_stage = str(ctx[CtxKey.LAST_PROD_STAGE] + 1).zfill(2)
-            current_prod_dir = os.path.join(ctx.get_workspace(), f"prod_{current_prod_stage}")
-            shutil.move(ctx.get_wip_dir(), current_prod_dir)
-            ctx.pop(CtxKey.WIP, None)
-            ctx.info(f"Generated results can be found under {current_prod_dir}. ")
-            ctx[CtxKey.CURRENT_PROD_DIR] = current_prod_dir
+        pass

@@ -25,11 +25,4 @@ def new_cli_session(
     debug: bool = False,
 ) -> Session:
     """Compatibility wrapper for CLI callers around the shared secure session factory."""
-    return new_secure_session(
-        username=username,
-        startup_kit_location=startup_kit_location,
-        debug=debug,
-        study=study,
-        timeout=timeout,
-        auto_login_max_tries=1,
-    )
+    pass

@@ -102,9 +102,7 @@ class PTFedAvg(FedAvg):
 
     def run(self) -> None:
         """Run FedAvg workflow with PyTorch tensor serialization support."""
-        # Register TensorDecomposer for FOBS serialization of PyTorch tensors
-        fobs.register(TensorDecomposer)
-        super().run()
+        pass
 
     def save_model_file(self, model: FLModel, filepath: str) -> None:
         """Save model using PyTorch's torch.save.
@@ -115,16 +113,7 @@ class PTFedAvg(FedAvg):
             model (FLModel): model to save
             filepath (str): path to save the model
         """
-        # Save parameters with torch.save
-        torch.save(model.params, filepath)
-
-        # Save FLModel metadata (metrics, params_type, etc.) separately
-        params = model.params
-        try:
-            model.params = {}  # Temporarily remove params to save only metadata
-            fobs.dumpf(model, f"{filepath}.metadata")
-        finally:
-            model.params = params  # Restore params
+        pass
 
     def load_model_file(self, filepath: str) -> FLModel:
         """Load model using PyTorch's torch.load.
@@ -137,20 +126,7 @@ class PTFedAvg(FedAvg):
         Returns:
             FLModel: loaded model with params and metadata
         """
-        import os
-
-        # Load parameters with torch.load
-        params = torch.load(filepath, weights_only=True)
-
-        # Load FLModel metadata if exists
-        metadata_path = f"{filepath}.metadata"
-        if os.path.exists(metadata_path):
-            model: FLModel = fobs.loadf(metadata_path)
-            model.params = params
-        else:
-            model = FLModel(params=params)
-
-        return model
+        pass
 
 
 # Backward compatibility alias

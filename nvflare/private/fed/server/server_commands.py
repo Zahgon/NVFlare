@@ -91,7 +91,7 @@ class AbortCommand(CommandProcessor):
         Returns: AdminCommandNames.ABORT
 
         """
-        return AdminCommandNames.ABORT
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -103,35 +103,17 @@ class AbortCommand(CommandProcessor):
         Returns: abort command message
 
         """
-        server_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        # for HA server switch over
-        turn_to_cold = data.get_header(ServerCommandKey.TURN_TO_COLD, False)
-        if server_runner:
-            server_runner.abort(fl_ctx=fl_ctx, turn_to_cold=turn_to_cold)
-            # wait for the runner process gracefully abort the run.
-            engine = fl_ctx.get_engine()
-            start_time = time.time()
-            while engine.engine_info.status != MachineStatus.STOPPED:
-                time.sleep(1.0)
-                if time.time() - start_time > 30.0:
-                    break
-        return "Aborted the run"
+        pass
 
 
 class GetRunInfoCommand(CommandProcessor):
     """Implements the GET_RUN_INFO command."""
 
     def get_command_name(self) -> str:
-        return ServerCommandNames.GET_RUN_INFO
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
-        engine = fl_ctx.get_engine()
-        if not engine:
-            return NO_OP_REPLY
-        run_info = engine.get_run_info()
-        if run_info:
-            return run_info
-        return NO_OP_REPLY
+        pass
 
 
 class GetTaskCommand(CommandProcessor, ServerStateCheck):
@@ -143,7 +125,7 @@ class GetTaskCommand(CommandProcessor, ServerStateCheck):
         Returns: ServerCommandNames.GET_TASK
 
         """
-        return ServerCommandNames.GET_TASK
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the GetTask command.
@@ -155,56 +137,10 @@ class GetTaskCommand(CommandProcessor, ServerStateCheck):
         Returns: task data
 
         """
-
-        start_time = time.time()
-        shared_fl_ctx = data.get_peer_context()
-        data.set_peer_context(FLContext())
-        client = data.get_header(ServerCommandKey.FL_CLIENT)
-        self.logger.debug(f"Got the GET_TASK request from client: {client.name}")
-        fl_ctx.set_peer_context(shared_fl_ctx)
-        server_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        if not server_runner:
-            # this is possible only when the client request is received before the
-            # server_app_runner.start_server_app is called in runner_process.py
-            # We ask the client to try again later.
-            taskname = SpecialTaskName.TRY_AGAIN
-            task_id = ""
-            shareable = Shareable()
-            shareable.set_header(TaskConstant.WAIT_TIME, 1.0)
-        else:
-            taskname, task_id, shareable = server_runner.process_task_request(client, fl_ctx)
-
-        # we need TASK_ID back as a cookie
-        if not shareable:
-            shareable = Shareable()
-        shareable.add_cookie(name=FLContextKey.TASK_ID, data=task_id)
-
-        # we also need to make TASK_ID available to the client
-        shareable.set_header(key=FLContextKey.TASK_ID, value=task_id)
-
-        shareable.set_header(key=ServerCommandKey.TASK_NAME, value=taskname)
-
-        # If tensor streaming is active, communicate the minimum required get_task_timeout to client
-        # Read from FLContextKey (internal storage) and map to ServerCommandKey (wire header)
-        min_get_task_timeout = fl_ctx.get_prop(FLContextKey.MIN_GET_TASK_TIMEOUT)
-        if min_get_task_timeout is not None:
-            shareable.set_header(key=ServerCommandKey.MIN_GET_TASK_TIMEOUT, value=min_get_task_timeout)
-
-        shared_fl_ctx = gen_new_peer_ctx(fl_ctx)
-        shareable.set_peer_context(shared_fl_ctx)
-
-        if taskname != SpecialTaskName.TRY_AGAIN:
-            self.logger.info(
-                f"return task to client.  client_name: {client.name}  task_name: {taskname}   task_id: {task_id}  "
-                f"sharable_header_task_id: {shareable.get_header(key=FLContextKey.TASK_ID)}"
-            )
-        self.logger.debug(f"Get_task processing time: {time.time() - start_time} for client: {client.name}")
-        return shareable
+        pass
 
     def get_state_check(self, fl_ctx: FLContext) -> dict:
-        engine = fl_ctx.get_engine()
-        server_state = engine.server.server_state
-        return server_state.get_task(fl_ctx)
+        pass
 
 
 class SubmitUpdateCommand(CommandProcessor, ServerStateCheck):
@@ -216,7 +152,7 @@ class SubmitUpdateCommand(CommandProcessor, ServerStateCheck):
         Returns: ServerCommandNames.SUBMIT_UPDATE
 
         """
-        return ServerCommandNames.SUBMIT_UPDATE
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -228,27 +164,10 @@ class SubmitUpdateCommand(CommandProcessor, ServerStateCheck):
         Returns:
 
         """
-
-        start_time = time.time()
-        shared_fl_ctx = data.get_peer_context()
-        data.set_peer_context(FLContext())
-        shared_fl_ctx.set_prop(FLContextKey.SHAREABLE, data, private=True, sticky=True)
-
-        client = data.get_header(ServerCommandKey.FL_CLIENT)
-        fl_ctx.set_peer_context(shared_fl_ctx)
-        contribution_task_name = data.get_header(FLContextKey.TASK_NAME)
-        task_id = data.get_cookie(FLContextKey.TASK_ID)
-        server_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        server_runner.process_submission(client, contribution_task_name, task_id, data, fl_ctx)
-        self.logger.info(f"submit_update process. client_name:{client.name}   task_id:{task_id}")
-
-        self.logger.debug(f"Submit_result processing time: {time.time() - start_time} for client: {client.name}")
-        return ""
+        pass
 
     def get_state_check(self, fl_ctx: FLContext) -> dict:
-        engine = fl_ctx.get_engine()
-        server_state = engine.server.server_state
-        return server_state.submit_result(fl_ctx)
+        pass
 
 
 class HandleDeadJobCommand(CommandProcessor):
@@ -260,7 +179,7 @@ class HandleDeadJobCommand(CommandProcessor):
         Returns: ServerCommandNames.SUBMIT_UPDATE
 
         """
-        return ServerCommandNames.HANDLE_DEAD_JOB
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the HandleDeadJob command.
@@ -272,13 +191,7 @@ class HandleDeadJobCommand(CommandProcessor):
         Returns:
 
         """
-        client_name = data.get_header(ServerCommandKey.FL_CLIENT)
-        reason = data.get_header(ServerCommandKey.REASON)
-        self.logger.warning(f"received dead job notification: {reason=}")
-        server_runner = fl_ctx.get_prop(FLContextKey.RUNNER)
-        if server_runner:
-            server_runner.handle_dead_job(client_name, fl_ctx)
-        return ""
+        pass
 
 
 class ShowStatsCommand(CommandProcessor):
@@ -290,7 +203,7 @@ class ShowStatsCommand(CommandProcessor):
         Returns: ServerCommandNames.SHOW_STATS
 
         """
-        return ServerCommandNames.SHOW_STATS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -302,9 +215,7 @@ class ShowStatsCommand(CommandProcessor):
         Returns: Engine run_info
 
         """
-        engine = fl_ctx.get_engine()
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        return collector.get_run_stats()
+        pass
 
 
 class GetErrorsCommand(CommandProcessor):
@@ -316,7 +227,7 @@ class GetErrorsCommand(CommandProcessor):
         Returns: ServerCommandNames.GET_ERRORS
 
         """
-        return ServerCommandNames.GET_ERRORS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -328,12 +239,7 @@ class GetErrorsCommand(CommandProcessor):
         Returns: Engine run_info
 
         """
-        engine = fl_ctx.get_engine()
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        errors = collector.get_errors()
-        if not errors:
-            errors = "No Error"
-        return errors
+        pass
 
 
 class ResetErrorsCommand(CommandProcessor):
@@ -345,7 +251,7 @@ class ResetErrorsCommand(CommandProcessor):
         Returns: ServerCommandNames.GET_ERRORS
 
         """
-        return ServerCommandNames.RESET_ERRORS
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the abort command.
@@ -355,10 +261,7 @@ class ResetErrorsCommand(CommandProcessor):
             fl_ctx: FLContext
 
         """
-        engine = fl_ctx.get_engine()
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        collector.reset_errors()
-        return None
+        pass
 
 
 class ByeCommand(CommandProcessor):
@@ -370,7 +273,7 @@ class ByeCommand(CommandProcessor):
         Returns: AdminCommandNames.SHUTDOWN
 
         """
-        return AdminCommandNames.SHUTDOWN
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the Shutdown command.
@@ -382,7 +285,7 @@ class ByeCommand(CommandProcessor):
         Returns: Shutdown command message
 
         """
-        return None
+        pass
 
 
 class HeartbeatCommand(CommandProcessor):
@@ -394,7 +297,7 @@ class HeartbeatCommand(CommandProcessor):
         Returns: AdminCommandNames.HEARTBEAT
 
         """
-        return ServerCommandNames.HEARTBEAT
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the HEARTBEAT command.
@@ -404,7 +307,7 @@ class HeartbeatCommand(CommandProcessor):
             fl_ctx: FLContext
 
         """
-        return None
+        pass
 
 
 class ServerStateCommand(CommandProcessor):
@@ -416,7 +319,7 @@ class ServerStateCommand(CommandProcessor):
         Returns: AdminCommandNames.SERVER_STATE
 
         """
-        return ServerCommandNames.SERVER_STATE
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the SERVER_STATE command.
@@ -426,9 +329,7 @@ class ServerStateCommand(CommandProcessor):
             fl_ctx: FLContext
 
         """
-        engine = fl_ctx.get_engine()
-        engine.server.server_state = data
-        return "Success"
+        pass
 
 
 class ConfigureJobLogCommand(CommandProcessor):
@@ -440,7 +341,7 @@ class ConfigureJobLogCommand(CommandProcessor):
         Returns: AdminCommandNames.CONFIGURE_JOB_LOG
 
         """
-        return AdminCommandNames.CONFIGURE_JOB_LOG
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
         """Called to process the configure_job_log command.
@@ -450,16 +351,7 @@ class ConfigureJobLogCommand(CommandProcessor):
             fl_ctx: FLContext
 
         """
-        engine = fl_ctx.get_engine()
-        workspace = engine.get_workspace()
-        try:
-            dynamic_log_config(
-                config=data,
-                dir_path=workspace.get_run_dir(fl_ctx.get_job_id()),
-                reload_path=workspace.get_log_config_file_path(),
-            )
-        except Exception as e:
-            return secure_format_exception(e)
+        pass
 
 
 class AppCommandProcessor(CommandProcessor):
@@ -469,39 +361,10 @@ class AppCommandProcessor(CommandProcessor):
         Returns: AdminCommandNames.SERVER_STATE
 
         """
-        return ServerCommandNames.APP_COMMAND
+        pass
 
     def process(self, data: Shareable, fl_ctx: FLContext):
-        topic = data.get(ServerCommandKey.TOPIC)
-        if not topic:
-            return make_reply(ReturnCode.BAD_REQUEST_DATA, headers={ServerCommandKey.REASON: "no topic"})
-
-        reg = ServerCommands.get_app_command(topic)
-        if reg is None:
-            self.logger.error(f"no app command func for topic {topic}")
-            return make_reply(
-                ReturnCode.BAD_REQUEST_DATA, headers={ServerCommandKey.REASON: f"no app command func for topic {topic}"}
-            )
-
-        cmd_func, cmd_args, cmd_kwargs = reg
-        cmd_data = data.get(ServerCommandKey.DATA)
-        try:
-            result = cmd_func(topic, cmd_data, fl_ctx, *cmd_args, **cmd_kwargs)
-        except Exception as ex:
-            self.logger.error(f"exception processing app command '{topic}': {secure_format_traceback()}")
-            return make_reply(
-                ReturnCode.EXECUTION_EXCEPTION, headers={ServerCommandKey.REASON: {secure_format_exception(ex)}}
-            )
-
-        if not isinstance(result, dict):
-            self.logger.error(f"bad result from app command '{topic}': expect dict but got {type(result)}")
-            return make_reply(
-                ReturnCode.EXECUTION_EXCEPTION, headers={ServerCommandKey.REASON: f"bad result type {type(result)}"}
-            )
-
-        reply = Shareable()
-        reply[ServerCommandKey.DATA] = result
-        return reply
+        pass
 
 
 class ServerCommands(object):
@@ -540,10 +403,7 @@ class ServerCommands(object):
         Returns: AdminCommand object
 
         """
-        for command in cls.commands:
-            if command_name == command.get_command_name():
-                return command
-        return None
+        pass
 
     @classmethod
     def register_app_command(cls, topic: str, cmd_func, *args, **kwargs):
@@ -553,22 +413,8 @@ class ServerCommands(object):
             topic: topic that the command will process
             cmd_func: the function to process the command
         """
-        if not isinstance(topic, str):
-            raise RuntimeError(f"invalid topic: expect str but got {type(topic)}")
-
-        if not callable(cmd_func):
-            raise RuntimeError(f"command func is not callable for topic {topic}")
-
-        if topic in cls.app_cmd_registry:
-            raise RuntimeError(f"duplicate app command topic {topic}")
-
-        cls.app_cmd_registry[topic] = (cmd_func, args, kwargs)
+        pass
 
     @classmethod
     def get_app_command(cls, topic: str):
-        reg = cls.app_cmd_registry.get(topic)
-        if reg is not None:
-            return reg
-
-        # see whether a default func is registered
-        return cls.app_cmd_registry.get("*")
+        pass

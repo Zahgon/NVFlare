@@ -56,9 +56,7 @@ class TFFedProxLoss(tf.keras.losses.Loss):
         Returns:
         The loss value including the FedProx regularization term.
         """
-        original_loss = self.loss_fun(y_true, y_pred)
-        fedprox_term = (self.mu / 2) * self.model_difference_norm(self.global_model_weights, self.local_model_weights)
-        return original_loss + fedprox_term
+        pass
 
     def model_difference_norm(self, global_model: tf.Tensor, local_model: tf.Tensor) -> tf.Tensor:
         """
@@ -71,6 +69,4 @@ class TFFedProxLoss(tf.keras.losses.Loss):
         Returns:
         The squared norm of the difference between the global and local models.
         """
-        model_difference = tf.nest.map_structure(lambda a, b: a - b, local_model, global_model)
-        squared_norm = tf.reduce_sum([tf.reduce_sum(tf.square(diff)) for diff in model_difference])
-        return squared_norm
+        pass

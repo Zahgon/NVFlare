@@ -39,8 +39,4 @@ class PTFedProxLoss(_Loss):
         Returns:
             FedProx loss term
         """
-        prox_loss: torch.Tensor = 0.0
-        for param, ref in zip(input.named_parameters(), target.named_parameters()):
-            prox_loss += (self.mu / 2) * torch.sum((param[1] - ref[1]) ** 2)
-
-        return prox_loss
+        pass

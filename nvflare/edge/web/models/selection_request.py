@@ -31,18 +31,8 @@ class SelectionRequest(BaseModel):
 
     @classmethod
     def validate(cls, d: dict) -> str:
-        return cls.check_keys(d, [EdgeProtoKey.JOB_ID, EdgeProtoKey.DEVICE_INFO])
+        pass
 
     @classmethod
     def from_dict(cls, d: dict):
-        error = cls.validate(d)
-        if error:
-            return error, None
-
-        error, device_info = DeviceInfo.extract_from_dict(d)
-        if error:
-            return error, None
-
-        req = SelectionRequest(device_info, d.get(EdgeProtoKey.JOB_ID))
-        req.update(d)
-        return "", req
+        pass

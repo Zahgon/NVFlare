@@ -31,40 +31,19 @@ class MemoryPipe(Pipe):
         self.get_queue = None
 
     def open(self, name: str):
-        with MemoryPipe.LOCK:
-            if self.token in MemoryPipe.PIPE_PAIRS:
-                x_queue, y_queue = MemoryPipe.PIPE_PAIRS[self.token]
-            else:
-                x_queue = Queue()
-                y_queue = Queue()
-                MemoryPipe.PIPE_PAIRS[self.token] = (x_queue, y_queue)
-            if self.mode == Mode.ACTIVE:
-                self.put_queue = x_queue
-                self.get_queue = y_queue
-            else:
-                self.put_queue = y_queue
-                self.get_queue = x_queue
+        pass
 
     def clear(self):
         pass
 
     def close(self):
-        with MemoryPipe.LOCK:
-            if self.token in MemoryPipe.PIPE_PAIRS:
-                MemoryPipe.PIPE_PAIRS.pop(self.token)
+        pass
 
     def send(self, msg: Message, timeout=None) -> bool:
-        try:
-            self.put_queue.put(msg, block=False, timeout=timeout)
-            return True
-        except Full:
-            return False
+        pass
 
     def receive(self, timeout=None) -> Union[Message, None]:
-        try:
-            return self.get_queue.get(block=False, timeout=timeout)
-        except Empty:
-            return None
+        pass
 
     def can_resend(self) -> bool:
-        return False
+        pass

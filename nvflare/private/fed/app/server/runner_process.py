@@ -45,127 +45,12 @@ from nvflare.security.logging import secure_format_exception, secure_log_traceba
 
 
 def main(args):
-    kv_list = parse_vars(args.set)
-
-    config_folder = kv_list.get("config_folder", "")
-    if config_folder == "":
-        args.server_config = JobConstants.SERVER_JOB_CONFIG
-    else:
-        args.server_config = os.path.join(config_folder, JobConstants.SERVER_JOB_CONFIG)
-
-    # TODO:: remove env and train config since they are not core
-    args.env = os.path.join("config", AppFolderConstants.CONFIG_ENV)
-    args.config_folder = config_folder
-    args.log_config = None
-    args.snapshot = kv_list.get("restore_snapshot")
-
-    # get parent process id
-    parent_pid = os.getppid()
-    stop_event = threading.Event()
-    secure_train = kv_list.get("secure_train", False)
-    download_workspace(args, secure_train)
-    workspace = Workspace(root_dir=args.workspace, site_name=SiteType.SERVER)
-    set_stats_pool_config_for_job(workspace, args.job_id)
-
-    try:
-        os.chdir(args.workspace)
-        fobs_initialize(workspace=workspace, job_id=args.job_id)
-
-        # initialize security processing and ensure that content in the startup has not been tampered with.
-        security_init_for_job(secure_train, workspace, SiteType.SERVER, args.job_id)
-
-        conf = FLServerStarterConfiger(
-            workspace=workspace,
-            args=args,
-            kv_list=args.set,
-        )
-        configure_logging(workspace, args.job_id)
-        logger = get_script_logger()
-        logger.info("Runner_process started.")
-
-        conf.configure()
-        event_handlers = conf.handlers
-        deployer = conf.deployer
-
-        decomposer_module = ConfigService.get_str_var(
-            name=ConfigVarName.DECOMPOSER_MODULE, conf=SystemConfigs.RESOURCES_CONF
-        )
-        register_ext_decomposers(decomposer_module)
-
-        try:
-            # create the FL server
-            server_config, server = deployer.create_fl_server(args, secure_train=secure_train)
-            server.ha_mode = eval(args.ha_mode)
-
-            server.cell = server.create_job_cell(
-                args.job_id, args.root_url, args.parent_url, secure_train, server_config
-            )
-
-            # set filter to add additional auth headers
-            set_add_auth_headers_filters(
-                cell=server.cell,
-                client_name=AUTH_CLIENT_NAME_FOR_SJ,
-                auth_token=args.job_id,
-                token_signature=args.token_signature,
-                ssid=args.ssid,
-            )
-
-            server.server_state = HotState(host=args.host, port=args.port, ssid=args.ssid)
-
-            snapshot = None
-            if args.snapshot:
-                snapshot = server.snapshot_persistor.retrieve_run(args.job_id)
-
-            server_app_runner = ServerAppRunner(server)
-            # start parent process checking thread
-            thread = threading.Thread(target=monitor_parent_process, args=(server_app_runner, parent_pid, stop_event))
-            thread.start()
-
-            server_app_runner.start_server_app(
-                workspace, args, args.app_root, args.job_id, snapshot, logger, args.set, event_handlers=event_handlers
-            )
-        finally:
-            if deployer:
-                deployer.close()
-            stop_event.set()
-            security_close()
-            err = create_stats_pool_files_for_job(workspace, args.job_id)
-            if err:
-                if logger:
-                    logger.warning(err)
-            upload_results_safely(args, secure_train, log=logger)
-
-    except ConfigError as e:
-        logger = get_script_logger()
-        logger.exception(f"ConfigError: {secure_format_exception(e)}")
-        secure_log_traceback(logger)
-        raise e
+    pass
 
 
 def parse_arguments():
     """FL Server program starting point."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--workspace", "-m", type=str, help="WORKSPACE folder", required=True)
-    parser.add_argument("--fed_server", "-s", type=str, help="server config json file", required=True)
-    parser.add_argument("--app_root", "-r", type=str, help="App Root", required=True)
-    parser.add_argument("--job_id", "-n", type=str, help="job id", required=True)
-    parser.add_argument("--token_signature", "-ts", type=str, help="auth token signature", required=True)
-    parser.add_argument("--root_url", "-u", type=str, help="root_url", required=True)
-    parser.add_argument("--host", "-host", type=str, help="server host", required=True)
-    parser.add_argument("--port", "-port", type=str, help="service port", required=True)
-    parser.add_argument("--ssid", "-id", type=str, help="SSID", required=True)
-    parser.add_argument("--parent_url", "-p", type=str, help="parent_url", required=True)
-    parser.add_argument(
-        "--parent_conn_sec",
-        type=str,
-        help="parent conn security",
-        required=False,
-        default="",
-    )
-    parser.add_argument("--ha_mode", "-ha_mode", type=str, help="HA mode", required=True)
-    parser.add_argument("--set", metavar="KEY=VALUE", nargs="*")
-    args = parser.parse_args()
-    return args
+    pass
 
 
 if __name__ == "__main__":

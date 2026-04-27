@@ -29,31 +29,15 @@ from nvflare.private.fed.server.fed_server import FederatedServer
 
 
 def monitor_parent_process(runner: Runner, parent_pid, stop_event: threading.Event):
-    while True:
-        if stop_event.is_set() or not psutil.pid_exists(parent_pid):
-            runner.stop()
-            break
-        time.sleep(1)
+    pass
 
 
 def check_parent_alive(parent_pid, stop_event: threading.Event):
-    while True:
-        if stop_event.is_set() or not psutil.pid_exists(parent_pid):
-            pid = os.getpid()
-            kill_child_processes(pid)
-            os.killpg(os.getpgid(pid), 9)
-            break
-        time.sleep(1)
+    pass
 
 
 def kill_child_processes(parent_pid):
-    try:
-        parent = psutil.Process(parent_pid)
-    except psutil.NoSuchProcess:
-        return
-    children = parent.children(recursive=True)
-    for process in children:
-        process.kill()
+    pass
 
 
 def create_admin_server(fl_server: FederatedServer, server_conf=None, args=None):
@@ -67,39 +51,16 @@ def create_admin_server(fl_server: FederatedServer, server_conf=None, args=None)
     Returns:
         A FedAdminServer.
     """
-    admin_server = FedAdminServer(
-        cell=fl_server.cell,
-        fed_admin_interface=fl_server.engine,
-        cmd_modules=fl_server.cmd_modules,
-        file_upload_dir=os.path.join(args.workspace, server_conf.get("admin_storage", "tmp")),
-        file_download_dir=os.path.join(args.workspace, server_conf.get("admin_storage", "tmp")),
-        download_job_url=server_conf.get("download_job_url", "http://"),
-        timeout=server_conf.get("admin_timeout", 10.0),
-    )
-    return admin_server
+    pass
 
 
 def version_check():
-    if sys.version_info >= (3, 13):
-        raise RuntimeError(
-            "Python versions 3.13 and above are not yet supported. Please use Python version between 3.9 and 3.12."
-        )
-    if sys.version_info < (3, 9):
-        raise RuntimeError(
-            "Python versions 3.8 and below are not supported. Please use Python version between 3.9 and 3.12."
-        )
+    pass
 
 
 def init_security_content_service(workspace_dir):
-    content_folder_path = os.path.join(workspace_dir, WorkspaceConstants.STARTUP_FOLDER_NAME)
-    os.makedirs(content_folder_path, exist_ok=True)
-    SecurityContentService.initialize(content_folder=content_folder_path)
+    pass
 
 
 def component_security_check(fl_ctx: FLContext):
-    exceptions = fl_ctx.get_prop(FLContextKey.EXCEPTIONS)
-    if exceptions:
-        for _, exception in exceptions.items():
-            if isinstance(exception, UnsafeComponentError):
-                print(f"Unsafe component configured, could not start {fl_ctx.get_identity_name()}!!")
-                raise RuntimeError(exception)
+    pass

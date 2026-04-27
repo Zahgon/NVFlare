@@ -22,7 +22,7 @@ from nvflare.app_opt.xgboost.histogram_based_v2.runners.xgb_runner import AppRun
 
 
 def encode_msg(msg: dict):
-    return bytes(json.dumps(msg), "utf-8")
+    pass
 
 
 class MockSecureClientRunner(AppRunner, FLComponent):
@@ -33,90 +33,10 @@ class MockSecureClientRunner(AppRunner, FLComponent):
         self.sample_size = sample_size
 
     def run(self, ctx: dict):
-        self.logger.info("START TRAINING")
-        server_addr = ctx.get(Constant.RUNNER_CTX_SERVER_ADDR)
-        rank = ctx.get(Constant.RUNNER_CTX_RANK)
-        num_rounds = ctx.get(Constant.RUNNER_CTX_NUM_ROUNDS)
-
-        client = GrpcClient(server_addr=server_addr)
-        client.start()
-
-        rank = rank
-        seq = 0
-        total_time = 0
-        total_reqs = 0
-        for i in range(num_rounds):
-            if self.asked_to_stop:
-                self.logger.info("training aborted")
-                self.training_stopped = True
-                return
-
-            # fake bcst
-            data = {
-                "op": "none",
-            }
-            msg_data = encode_msg(data)
-            self.logger.info("sending non-GH broadcast")
-            start = time.time()
-            seq += 1
-            result = client.send_broadcast(
-                seq_num=seq,
-                rank=rank,
-                data=msg_data,
-                root=0,
-            )
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.BroadcastReply):
-                self.logger.error(f"expect reply to be pb2.BroadcastReply but got {type(result)}")
-            elif result.receive_buffer != msg_data:
-                self.logger.error("ERROR: broadcast result does not match request")
-            else:
-                self.logger.info("OK: broadcast result matched!")
-
-            # gh bcst
-            data = {
-                "op": "gh",
-                "size": self.sample_size,
-            }
-
-            self.logger.info("sending broadcast")
-            start = time.time()
-            seq += 1
-            result = client.send_broadcast(
-                seq_num=seq,
-                rank=rank,
-                data=encode_msg(data),
-                root=0,
-            )
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.BroadcastReply):
-                self.logger.error(f"expect reply to be pb2.BroadcastReply but got {type(result)}")
-            else:
-                self.logger.info("OK: broadcast result received!")
-
-            self.logger.info("sending allgatherV")
-            start = time.time()
-            seq += 1
-            data = {"op": "aggr", "groups": None}
-            result = client.send_allgatherv(seq_num=seq, rank=rank, data=encode_msg(data))
-            total_reqs += 1
-            total_time += time.time() - start
-            if not isinstance(result, pb2.AllgatherVReply):
-                self.logger.error(f"expect reply to be pb2.AllgatherVReply but got {type(result)}")
-            else:
-                self.logger.info("OK: allgatherV result received!")
-
-            time.sleep(1.0)
-
-        time_per_req = total_time / total_reqs
-        self.logger.info(f"DONE: {total_reqs=} {total_time=} {time_per_req=}")
-        print(f"DONE: {total_reqs=} {total_time=} {time_per_req=}")
-        self.training_stopped = True
+        pass
 
     def stop(self):
-        self.asked_to_stop = True
+        pass
 
     def is_stopped(self) -> (bool, int):
-        return self.training_stopped, 0
+        pass

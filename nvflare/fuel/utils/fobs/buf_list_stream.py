@@ -21,17 +21,10 @@ class BufListStream:
         self.size = self.buffer_list.get_size()
 
     def getvalue(self):
-        return self.buffer_list.get_list()
+        pass
 
     def write(self, buf: bytes):
-        self.buffer_list.append(buf)
+        pass
 
     def read(self, n: int):
-        end = self.pos + n
-        if end > self.size:
-            end = self.size
-
-        result = self.buffer_list.read(self.pos, end)
-        self.pos = end
-
-        return result
+        pass

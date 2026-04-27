@@ -40,14 +40,10 @@ class CheckedExecutor(ThreadPoolExecutor):
         self.stopped = False
 
     def shutdown(self, wait=True):
-        self.stopped = True
-        super().shutdown(wait)
+        pass
 
     def submit(self, fn, *args, **kwargs):
-        if self.stopped:
-            log.debug(f"Call {fn} is ignored after streaming shutting down")
-            return None
-        return super().submit(fn, *args, **kwargs)
+        pass
 
 
 stream_thread_pool = CheckedExecutor(STREAM_THREAD_POOL_SIZE, "stm")
@@ -55,19 +51,11 @@ callback_thread_pool = CheckedExecutor(CALLBACK_THREAD_POOL_SIZE, "stm_cb")
 
 
 def wrap_view(buffer: BytesAlike) -> memoryview:
-    if isinstance(buffer, memoryview):
-        view = buffer
-    else:
-        view = memoryview(buffer)
-
-    return view
+    pass
 
 
 def gen_stream_id() -> int:
-    global lock, stream_count, sid_base
-    with lock:
-        stream_count += 1
-    return sid_base + stream_count
+    pass
 
 
 class FastBuffer:
@@ -89,45 +77,22 @@ class FastBuffer:
     def to_bytes(self) -> BytesAlike:
         """Return bytes-like object.
         Once this method is called, append() may not work any longer, since the buffer may have been exported"""
-
-        if self.capacity == self.size:
-            result = self.buffer
-        else:
-            view = wrap_view(self.buffer)
-            result = view[0 : self.size]
-
-        return result
+        pass
 
     def append(self, buf: BytesAlike):
         """Fast append by doubling the size of the buffer when it runs out"""
-
-        if not buf:
-            return self
-
-        length = len(buf)
-        remaining = self.capacity - self.size
-        if length > remaining:
-            # Expanding the array as least twice the current capacity
-            new_cap = max(length + self.size, 2 * self.capacity)
-            self.buffer = self.buffer.ljust(new_cap, b"\x00")
-            self.capacity = new_cap
-
-        self.buffer[self.size :] = buf
-        self.size += length
-
-        return self
+        pass
 
     def __len__(self):
         return self.size
 
 
 def stream_stats_category(fqcn: str, channel: str, topic: str, stream_type: str = "byte"):
-    return f"{fqcn}:{stream_type}:{channel}:{topic}"
+    pass
 
 
 def stream_shutdown():
-    callback_thread_pool.shutdown(wait=True)
-    stream_thread_pool.shutdown(wait=True)
+    pass
 
 
 MainProcessMonitor.add_cleanup_cb(stream_shutdown)

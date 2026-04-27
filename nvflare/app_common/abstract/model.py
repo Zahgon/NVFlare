@@ -29,10 +29,7 @@ class ModelLearnableKey(object):
 
 class ModelLearnable(Learnable):
     def is_empty(self):
-        if self.get(ModelLearnableKey.WEIGHTS):
-            return False
-        else:
-            return True
+        pass
 
 
 def validate_model_learnable(model_learnable: ModelLearnable) -> str:
@@ -44,28 +41,12 @@ def validate_model_learnable(model_learnable: ModelLearnable) -> str:
     Returns:
         str: error text or empty string if no error
     """
-    if not isinstance(model_learnable, ModelLearnable):
-        return "invalid model learnable: expect Model type but got {}".format(type(model_learnable))
-
-    if ModelLearnableKey.WEIGHTS not in model_learnable:
-        return "invalid model learnable: missing weights"
-
-    if ModelLearnableKey.META not in model_learnable:
-        return "invalid model learnable: missing meta"
-
-    return ""
+    pass
 
 
 def make_model_learnable(weights, meta_props) -> ModelLearnable:
-    ml = ModelLearnable()
-    ml[ModelLearnableKey.WEIGHTS] = weights
-    ml[ModelLearnableKey.META] = meta_props
-    return ml
+    pass
 
 
 def model_learnable_to_dxo(ml: ModelLearnable) -> DXO:
-    err = validate_model_learnable(ml)
-    if err:
-        raise ValueError(err)
-
-    return DXO(data_kind=DataKind.WEIGHTS, data=ml[ModelLearnableKey.WEIGHTS], meta=ml[ModelLearnableKey.META])
+    pass

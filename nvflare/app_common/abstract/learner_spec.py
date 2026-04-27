@@ -41,7 +41,7 @@ class Learner(FLComponent):
         Returns: train result in Shareable
 
         """
-        return make_reply(ReturnCode.TASK_UNSUPPORTED)
+        pass
 
     def get_model_for_validation(self, model_name: str, fl_ctx: FLContext) -> Shareable:
         """Called to return the trained model from the Learner.
@@ -53,7 +53,7 @@ class Learner(FLComponent):
         Returns: trained model for validation
 
         """
-        return make_reply(ReturnCode.TASK_UNSUPPORTED)
+        pass
 
     def validate(self, data: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
         """Called to perform validation. Can be called many times during the lifetime of the Learner.
@@ -66,7 +66,7 @@ class Learner(FLComponent):
         Returns: validate result in Shareable
 
         """
-        return make_reply(ReturnCode.TASK_UNSUPPORTED)
+        pass
 
     def abort(self, fl_ctx: FLContext):
         """Called (from another thread) to abort the current task (validate or train).

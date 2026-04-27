@@ -73,36 +73,18 @@ class PTDittoHelper(object):
     def load_model(self, global_weights):
         # load local model from last round's record if model exist,
         # otherwise initialize from global model weights for the first round.
-        if os.path.exists(self.model_file_path):
-            model_data = torch.load(self.model_file_path, weights_only=True)
-            self.model.load_state_dict(model_data["model"])
-            self.epoch_of_start_time = model_data["epoch"]
-        else:
-            self.model.load_state_dict(global_weights)
-            self.epoch_of_start_time = 0
-        if os.path.exists(self.best_model_file_path):
-            model_data = torch.load(self.best_model_file_path, weights_only=True)
-            self.best_metric = model_data["best_metric"]
+        pass
 
     def save_model(self, is_best=False):
         # save personalized model locally
-        model_weights = self.model.state_dict()
-        save_dict = {"model": model_weights, "epoch": self.epoch_global}
-        if is_best:
-            save_dict.update({"best_metric": self.best_metric})
-            torch.save(save_dict, self.best_model_file_path)
-        else:
-            torch.save(save_dict, self.model_file_path)
+        pass
 
     def update_metric_save_model(self, metric):
-        self.save_model(is_best=False)
-        if metric > self.best_metric:
-            self.best_metric = metric
-            self.save_model(is_best=True)
+        pass
 
     @abstractmethod
     def local_train(self, train_loader, model_global, abort_signal: Signal, writer):
         # Train personal model for self.model_epochs, and keep track of curves
         # This part is task dependent, need customization
         # Basic idea is to train personalized model with prox term as compare to model_global
-        raise NotImplementedError
+        pass

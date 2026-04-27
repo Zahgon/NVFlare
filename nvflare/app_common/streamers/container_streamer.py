@@ -49,41 +49,15 @@ class _EntryConsumer(ObjectConsumer):
         fl_ctx: FLContext,
     ) -> Tuple[bool, Shareable]:
 
-        entry = shareable.get(_KEY_ENTRY)
-        try:
-            if isinstance(self.container, dict):
-                key, value = entry
-                self.container[key] = value
-            elif isinstance(self.container, set):
-                self.container.add(entry)
-            else:
-                self.container.append(entry)
-        except Exception:
-            error = f"Unable to add entry ({type(entry)} to container ({type(self.container)}"
-            self.logger.error(error)
-            raise ValueError(error)
-
-        last = shareable.get(_KEY_LAST)
-        if last:
-            # Check if all entries are added
-            if self.size != len(self.container):
-                err = f"Container size {len(self.container)} does not match expected size {self.size}"
-                self.logger.error(err)
-                raise ValueError(err)
-            else:
-                stream_ctx[_CTX_RESULT] = self.container
-                return False, make_reply(ReturnCode.OK)
-        else:
-            # continue streaming
-            return True, make_reply(ReturnCode.OK)
+        pass
 
     def finalize(self, stream_ctx: StreamContext, fl_ctx: FLContext):
-        self.logger.debug(f"Container streaming is done for container type {type(self.container)}")
+        pass
 
 
 class _EntryConsumerFactory(ConsumerFactory):
     def get_consumer(self, stream_ctx: StreamContext, fl_ctx: FLContext) -> ObjectConsumer:
-        return _EntryConsumer(stream_ctx)
+        pass
 
 
 class _EntryProducer(ObjectProducer):
@@ -110,19 +84,7 @@ class _EntryProducer(ObjectProducer):
         fl_ctx: FLContext,
     ) -> Tuple[Shareable, float]:
 
-        try:
-            entry = next(self.iterator)
-            self.count += 1
-            self.last = self.count >= self.size
-        except StopIteration:
-            self.logger.error(f"Producer called too many times {self.count}/{self.size}")
-            self.last = True
-            return None, 0.0
-
-        result = Shareable()
-        result[_KEY_ENTRY] = entry
-        result[_KEY_LAST] = self.last
-        return result, self.entry_timeout
+        pass
 
     def process_replies(
         self,
@@ -130,22 +92,7 @@ class _EntryProducer(ObjectProducer):
         stream_ctx: StreamContext,
         fl_ctx: FLContext,
     ) -> Any:
-        has_error = False
-        for target, reply in replies.items():
-            rc = reply.get_return_code(ReturnCode.OK)
-            if rc != ReturnCode.OK:
-                self.logger.error(f"error from target {target}: {rc}")
-                has_error = True
-
-        if has_error:
-            # done - failed
-            return False
-        elif self.last:
-            # done - succeeded
-            return True
-        else:
-            # not done yet - continue streaming
-            return None
+        pass
 
 
 class ContainerStreamer(StreamerBase):
@@ -171,18 +118,7 @@ class ContainerStreamer(StreamerBase):
         Notes: the stream_done_cb must follow stream_done_cb_signature as defined in apis.streaming.
 
         """
-
-        engine = fl_ctx.get_engine()
-        if not isinstance(engine, StreamableEngine):
-            raise RuntimeError(f"engine must be StreamableEngine but got {type(engine)}")
-
-        engine.register_stream_processing(
-            channel=channel,
-            topic=topic,
-            factory=_EntryConsumerFactory(),
-            stream_done_cb=stream_done_cb,
-            **cb_kwargs,
-        )
+        pass
 
     @staticmethod
     def stream_container(
@@ -213,32 +149,7 @@ class ContainerStreamer(StreamerBase):
 
         Notes: this is a blocking call - only returns after the streaming is done.
         """
-        if not entry_timeout:
-            entry_timeout = 60.0
-        check_positive_number("entry_timeout", entry_timeout)
-
-        producer = _EntryProducer(container, entry_timeout)
-        engine = fl_ctx.get_engine()
-
-        if not isinstance(engine, StreamableEngine):
-            raise RuntimeError(f"engine must be StreamableEngine but got {type(engine)}")
-
-        if not stream_ctx:
-            stream_ctx = {}
-
-        stream_ctx[_CTX_TYPE] = get_class_name(type(container))
-        stream_ctx[_CTX_SIZE] = len(container)
-
-        return engine.stream_objects(
-            channel=channel,
-            topic=topic,
-            stream_ctx=stream_ctx,
-            targets=targets,
-            producer=producer,
-            fl_ctx=fl_ctx,
-            optional=optional,
-            secure=secure,
-        )
+        pass
 
     @staticmethod
     def get_result(stream_ctx: StreamContext) -> Any:
@@ -251,4 +162,4 @@ class ContainerStreamer(StreamerBase):
         Returns: The received container
 
         """
-        return stream_ctx.get(_CTX_RESULT)
+        pass

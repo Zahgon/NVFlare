@@ -116,38 +116,7 @@ class TensorServerStreamer(FLComponent):
         Args:
             fl_ctx (FLContext): The FLContext for the current operation.
         """
-        engine: StreamableEngine = fl_ctx.get_engine()
-        if not engine:
-            self.system_panic(f"Engine not found. {self.__class__.__name__} exiting.", fl_ctx)
-            return
-
-        if not isinstance(engine, StreamableEngine):
-            self.system_panic(
-                f"Engine is not a StreamableEngine. {self.__class__.__name__} exiting.",
-                fl_ctx,
-            )
-            return
-
-        self.engine = engine
-        try:
-            self.receiver = TensorReceiver(engine, FLContextKey.TASK_RESULT, self.format)
-            self.sender = TensorSender(engine, FLContextKey.TASK_DATA, self.format, self.tasks)
-        except Exception as e:
-            self.system_panic(str(e), fl_ctx)
-            return
-
-        # Set minimum get_task_timeout requirement for clients
-        # This will be automatically communicated to clients in task responses
-        recommended_get_task_timeout = self.wait_task_data_sent_to_all_clients_timeout + self.GET_TASK_TIMEOUT_BUFFER
-        fl_ctx.set_prop(FLContextKey.MIN_GET_TASK_TIMEOUT, recommended_get_task_timeout, sticky=True)
-
-        self.log_info(
-            fl_ctx,
-            f"TensorServerStreamer: Requiring clients to use get_task_timeout >= {recommended_get_task_timeout}s "
-            f"(wait_send_task_data_all_clients_timeout={self.wait_task_data_sent_to_all_clients_timeout}s "
-            f"+ {self.GET_TASK_TIMEOUT_BUFFER}s buffer). "
-            f"This will be automatically communicated to clients.",
-        )
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
         """Handle events for the TensorServerStreamer component.
@@ -156,37 +125,7 @@ class TensorServerStreamer(FLComponent):
             event_type (str): The type of event to handle.
             fl_ctx (FLContext): The FLContext for the current operation.
         """
-        if event_type == EventType.START_RUN:
-            self.initialize(fl_ctx)
-        elif event_type == EventType.BEFORE_TASK_DATA_FILTER:
-            current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-            task_id = fl_ctx.get_prop(FLContextKey.TASK_ID)
-            self.seen_tasks[current_round].add(task_id)
-        elif event_type == EventType.AFTER_TASK_DATA_FILTER:
-            # Store tensors after filtering (to get the filtered reference)
-            # Then send to each client
-            self.sender.store_tensors(fl_ctx)
-            self.send_tensors_to_client(fl_ctx)
-            num_clients = len(self.engine.get_clients())
-            self.wait_sending_task_data_all_clients(num_clients, fl_ctx)
-            self.try_to_clean_task_data(num_clients, fl_ctx)
-        elif event_type == EventType.BEFORE_TASK_RESULT_FILTER:
-            task_id = fl_ctx.get_prop(FLContextKey.TASK_ID)
-            peer_name = fl_ctx.get_peer_context().get_identity_name()
-            try:
-                self.receiver.wait_for_tensors(task_id, peer_name)
-                self.receiver.set_ctx_with_tensors(fl_ctx)
-            except Exception as e:
-                self.system_panic(str(e), fl_ctx)
-        elif event_type == AppEventType.ROUND_DONE:
-            current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-            # Clear received tensors in case they were set back to the FLContext
-            # it can happen when the aggregator only accepts part of the clients
-            for task_id in self.seen_tasks[current_round]:
-                if task_id in self.receiver.tensors:
-                    self.receiver.tensors.pop(task_id)
-
-            self.clean_counters(current_round)
+        pass
 
     def clean_counters(self, current_round: int):
         """Clean the counters for the current round.
@@ -194,12 +133,7 @@ class TensorServerStreamer(FLComponent):
         Args:
             current_round (int): The current round number.
         """
-        with self.lock:
-            self.num_task_data_sent.pop(current_round, None)
-            self.num_task_skipped.pop(current_round, None)
-            self.data_cleaned.pop(current_round, None)
-            self.seen_tasks.pop(current_round, None)
-            self.start_sending_time.pop(current_round, None)
+        pass
 
     def send_tensors_to_client(self, fl_ctx: FLContext):
         """Send tensors to the client after task data filtering.
@@ -207,24 +141,7 @@ class TensorServerStreamer(FLComponent):
         Args:
             fl_ctx (FLContext): The FLContext for the current operation.
         """
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        with self.lock:
-            if not self.start_sending_time.get(current_round):
-                self.start_sending_time[current_round] = time.time()
-
-        try:
-            self.sender.send(fl_ctx, self.tensor_send_timeout)
-        except ValueError as e:
-            self.log_warning(fl_ctx, f"No tensors to send to client: {str(e)}")
-            success = False
-        else:
-            success = True
-
-        with self.lock:
-            if success:
-                self.num_task_data_sent[current_round] += 1
-            else:
-                self.num_task_skipped[current_round] += 1
+        pass
 
     def wait_sending_task_data_all_clients(self, num_clients: int, fl_ctx: FLContext):
         """Wait until all clients have received the task data tensors or timeout occurs.
@@ -236,23 +153,7 @@ class TensorServerStreamer(FLComponent):
         Raises:
             TimeoutError: If not all clients have received the tensors within the timeout period.
         """
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        wait_timeout = self.wait_task_data_sent_to_all_clients_timeout
-        while True:
-            time.sleep(0.1)
-
-            num_processed = self.num_task_data_sent[current_round] + self.num_task_skipped[current_round]
-            if num_processed >= num_clients:
-                return
-
-            if time.time() - self.start_sending_time[current_round] > wait_timeout:
-                self.system_panic(
-                    "Timeout waiting for all clients to receive tensors. "
-                    f"Sent to {self.num_task_data_sent[current_round]} out of {num_clients},"
-                    f" skipped {self.num_task_skipped[current_round]}.",
-                    fl_ctx,
-                )
-                return
+        pass
 
     def try_to_clean_task_data(self, num_clients: int, fl_ctx: FLContext):
         """Clean the task data in the FLContext.
@@ -261,14 +162,4 @@ class TensorServerStreamer(FLComponent):
             num_clients (int): The number of clients to wait for.
             fl_ctx (FLContext): The FLContext to clean the task data from.
         """
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        # only clean if we successfully sent to all clients
-        with self.lock:
-            if not self.data_cleaned[current_round] and self.num_task_data_sent[current_round] >= num_clients:
-                self.log_info(
-                    fl_ctx,
-                    f"Tensors were sent to all clients, removing them from task data. "
-                    f"Sent {self.num_task_data_sent[current_round]} out of {num_clients}",
-                )
-                clean_task_data(fl_ctx)
-                self.data_cleaned[current_round] = True
+        pass

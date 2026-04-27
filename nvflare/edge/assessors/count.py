@@ -35,24 +35,10 @@ class CountAssessor(SGAPAssessor):
         self._start_time = None
 
     def start_task(self, fl_ctx: FLContext):
-        self._start_time = time.time()
-        return super().start_task(fl_ctx)
+        pass
 
     def end_task(self, fl_ctx: FLContext):
-        super().end_task(fl_ctx)
-        self._start_time = None
+        pass
 
     def do_assessment(self, fl_ctx: FLContext) -> Assessment:
-        if time.time() - self._start_time > self.timeout:
-            return Assessment.TASK_DONE
-
-        # have we got enough count
-        count = self.aggregator.get_count()
-        if count < self.min_count:
-            return Assessment.CONTINUE
-        elif count >= self.max_count:
-            self.logger.info(f"Got {count} items (>= max {self.max_count}) - WF Done!")
-            return Assessment.WORKFLOW_DONE
-        else:
-            self.logger.info(f"Got {count} items (>= min {self.min_count}) - TASK Done!")
-            return Assessment.TASK_DONE
+        pass

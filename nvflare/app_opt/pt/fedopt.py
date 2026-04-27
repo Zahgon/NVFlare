@@ -81,78 +81,10 @@ class PTFedOptModelShareableGenerator(FullModelShareableGenerator):
         self.lr_scheduler_name = None
 
     def _get_component_name(self, component_args):
-        if component_args is not None:
-            name = component_args.get("path") or component_args.get("class_path")
-            if name is None:
-                name = component_args.get("name", None)
-            return name
-        else:
-            return None
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            # Initialize the optimizer with current global model params
-            engine = fl_ctx.get_engine()
-
-            # select device for server-side optimization
-            if self.device is None:
-                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-            else:
-                self.device = torch.device(self.device)
-
-            if isinstance(self.source_model, str):
-                self.model = engine.get_component(self.source_model)
-            else:
-                self.model = self.source_model
-
-            if self.model is None:
-                self.system_panic(
-                    "Model is not available",
-                    fl_ctx,
-                )
-                return
-            elif not isinstance(self.model, torch.nn.Module):
-                self.system_panic(
-                    f"Expected model to be a torch.nn.Module but got {type(self.model)}",
-                    fl_ctx,
-                )
-                return
-            else:
-                print("server model", self.model)
-
-            self.model.to(self.device)
-
-            # set up optimizer
-            try:
-                # use provided or default optimizer arguments and add the model parameters
-                if "args" not in self.optimizer_args:
-                    self.optimizer_args["args"] = {}
-                self.optimizer_args["args"]["params"] = self.model.parameters()
-                self.optimizer = engine.build_component(self.optimizer_args)
-                # get optimizer name for log
-                self.optimizer_name = self._get_component_name(self.optimizer_args)
-            except Exception as e:
-                self.system_panic(
-                    f"Exception while parsing `optimizer_args`({self.optimizer_args}): {secure_format_exception(e)}",
-                    fl_ctx,
-                )
-                return
-
-            # set up lr scheduler
-            if self.lr_scheduler_args is not None:
-                try:
-                    self.lr_scheduler_name = self._get_component_name(self.lr_scheduler_args)
-                    # use provided or default lr scheduler argument and add the optimizer
-                    if "args" not in self.lr_scheduler_args:
-                        self.lr_scheduler_args["args"] = {}
-                    self.lr_scheduler_args["args"]["optimizer"] = self.optimizer
-                    self.lr_scheduler = engine.build_component(self.lr_scheduler_args)
-                except Exception as e:
-                    self.system_panic(
-                        f"Exception while parsing `lr_scheduler_args`({self.lr_scheduler_args}): {secure_format_exception(e)}",
-                        fl_ctx,
-                    )
-                    return
+        pass
 
     def server_update(self, model_diff):
         """Updates the global model using the specified optimizer.
@@ -164,22 +96,7 @@ class PTFedOptModelShareableGenerator(FullModelShareableGenerator):
             The updated PyTorch model state dictionary.
 
         """
-        self.model.train()
-        self.optimizer.zero_grad()
-
-        # Apply the update to the model. We must multiply weights_delta by -1.0 to
-        # view it as a gradient that should be applied to the server_optimizer.
-        updated_params = []
-        for name, param in self.model.named_parameters():
-            if name in model_diff:
-                param.grad = torch.tensor(-1.0 * model_diff[name]).to(self.device)
-                updated_params.append(name)
-
-        self.optimizer.step()
-        if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
-
-        return self.model.state_dict(), updated_params
+        pass
 
     def shareable_to_learnable(self, shareable: Shareable, fl_ctx: FLContext) -> Learnable:
         """Convert Shareable to Learnable while doing a FedOpt update step.
@@ -193,60 +110,4 @@ class PTFedOptModelShareableGenerator(FullModelShareableGenerator):
         Returns:
             Model: Updated global ModelLearnable.
         """
-        # check types
-        dxo = from_shareable(shareable)
-
-        if dxo.data_kind != DataKind.WEIGHT_DIFF:
-            self.system_panic(
-                "FedOpt is only implemented for " "data_kind == DataKind.WEIGHT_DIFF",
-                fl_ctx,
-            )
-            return Learnable()
-
-        processed_algorithm = dxo.get_meta_prop(MetaKey.PROCESSED_ALGORITHM)
-        if processed_algorithm is not None:
-            self.system_panic(
-                f"FedOpt is not implemented for shareable processed by {processed_algorithm}",
-                fl_ctx,
-            )
-            return Learnable()
-
-        model_diff = dxo.data
-
-        start = time.time()
-        weights, updated_params = self.server_update(model_diff)
-        secs = time.time() - start
-
-        # convert to numpy dict of weights
-        start = time.time()
-        for key in weights:
-            weights[key] = weights[key].detach().cpu().numpy()
-        secs_detach = time.time() - start
-
-        # update unnamed parameters such as batch norm layers if there are any using the averaged update
-        base_model = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-        if not base_model:
-            self.system_panic(reason="No global base model!", fl_ctx=fl_ctx)
-            return base_model
-
-        base_model_weights = base_model[ModelLearnableKey.WEIGHTS]
-
-        n_fedavg = 0
-        for key, value in model_diff.items():
-            if key not in updated_params:
-                weights[key] = base_model_weights[key] + value
-                n_fedavg += 1
-
-        self.log_info(
-            fl_ctx,
-            f"FedOpt ({self.optimizer_name}, {self.device}) server model update "
-            f"round {fl_ctx.get_prop(AppConstants.CURRENT_ROUND)}, "
-            f"{self.lr_scheduler_name if self.lr_scheduler_name else ''} "
-            f"lr: {self.optimizer.param_groups[-1]['lr']}, "
-            f"fedopt layers: {len(updated_params)}, "
-            f"fedavg layers: {n_fedavg}, "
-            f"update: {secs} secs., detach: {secs_detach} secs.",
-        )
-        # TODO: write server-side lr to tensorboard
-
-        return make_model_learnable(weights, dxo.get_meta_props())
+        pass

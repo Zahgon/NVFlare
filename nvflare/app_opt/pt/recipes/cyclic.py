@@ -102,23 +102,4 @@ class CyclicRecipe(BaseCyclicRecipe):
 
     def _setup_model_and_persistor(self, job) -> str:
         """Override to handle PyTorch-specific model setup with relative ckpt support."""
-        if self.model is None and self._pt_initial_ckpt is None:
-            return ""
-
-        # If model is already a PTModel wrapper (user passed PTModel directly), use as-is
-        if hasattr(self.model, "add_to_fed_job"):
-            result = job.to_server(self.model, id="persistor")
-            return extract_persistor_id(result)
-
-        from nvflare.recipe.utils import resolve_initial_ckpt
-
-        ckpt_path = resolve_initial_ckpt(self._pt_initial_ckpt, getattr(self, "_prepared_initial_ckpt", None), job)
-        if self.model is None and ckpt_path:
-            raise ValueError("FrameworkType.PYTORCH requires 'model' when using initial_ckpt.")
-        if self.model is None:
-            return ""
-
-        allow_numpy_conversion = self.server_expected_format != ExchangeFormat.PYTORCH
-        pt_model = PTModel(model=self.model, initial_ckpt=ckpt_path, allow_numpy_conversion=allow_numpy_conversion)
-        result = job.to_server(pt_model, id="persistor")
-        return extract_persistor_id(result)
+        pass

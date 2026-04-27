@@ -26,7 +26,7 @@ class NumpyToKerasModelParamsConverter(ParamsConverter):
 
     def convert(self, params: Any, fl_ctx) -> Any:
         """Unflattens layer weights dict."""
-        return unflat_layer_weights_dict(params)
+        pass
 
 
 class KerasModelToNumpyParamsConverter(ParamsConverter):
@@ -38,4 +38,4 @@ class KerasModelToNumpyParamsConverter(ParamsConverter):
 
     def convert(self, params: Any, fl_ctx) -> Any:
         """Flattens layer weights dict."""
-        return flat_layer_weights_dict(params)
+        pass

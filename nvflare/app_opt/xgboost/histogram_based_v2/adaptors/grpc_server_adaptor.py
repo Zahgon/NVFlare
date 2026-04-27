@@ -68,69 +68,26 @@ class GrpcServerAdaptor(XGBServerAdaptor):
         self._stopping = False
 
     def _start_server(self, addr: str, port: int, world_size: int, fl_ctx: FLContext):
-        runner_ctx = {
-            Constant.RUNNER_CTX_SERVER_ADDR: addr,
-            Constant.RUNNER_CTX_WORLD_SIZE: world_size,
-            Constant.RUNNER_CTX_PORT: port,
-        }
-
-        self.start_runner(runner_ctx, fl_ctx)
+        pass
 
     def _stop_server(self):
-        self._server_stopped = True
-        self.stop_runner()
+        pass
 
     def _is_stopped(self) -> Tuple[bool, int]:
-        runner_stopped, ec = self.is_runner_stopped()
-        if runner_stopped:
-            return runner_stopped, ec
-
-        if self._server_stopped:
-            return True, self._exit_code
-
-        return False, 0
+        pass
 
     def start(self, fl_ctx: FLContext):
         # we dynamically create server address on localhost
-        port = get_open_tcp_port(resources={})
-        if not port:
-            raise RuntimeError("failed to get a port for XGB server")
-
-        server_addr = f"127.0.0.1:{port}"
-        self._start_server(server_addr, port, self.world_size, fl_ctx)
-
-        # start XGB client
-        self.internal_xgb_client = GrpcClient(server_addr, self.int_client_grpc_options)
-        self.internal_xgb_client.start(ready_timeout=self.xgb_server_ready_timeout)
+        pass
 
     def stop(self, fl_ctx: FLContext):
-        _stopping = True
-        client = self.internal_xgb_client
-        self.internal_xgb_client = None
-        if client:
-            self.log_info(fl_ctx, "Stopping internal XGB client")
-            client.stop()
-        self._stop_server()
+        pass
 
     def all_gather(self, rank: int, seq: int, send_buf: bytes, fl_ctx: FLContext) -> bytes:
-        try:
-            result = self.internal_xgb_client.send_allgather(seq_num=seq, rank=rank, data=send_buf)
-            if isinstance(result, pb2.AllgatherReply):
-                return result.receive_buffer
-            else:
-                raise RuntimeError(f"bad result from XGB server: expect AllgatherReply but got {type(result)}")
-        except Exception as ex:
-            return self._handle_error(ex, "all_gather", rank, seq, send_buf)
+        pass
 
     def all_gather_v(self, rank: int, seq: int, send_buf: bytes, fl_ctx: FLContext) -> bytes:
-        try:
-            result = self.internal_xgb_client.send_allgatherv(seq_num=seq, rank=rank, data=send_buf)
-            if isinstance(result, pb2.AllgatherVReply):
-                return result.receive_buffer
-            else:
-                raise RuntimeError(f"bad result from XGB server: expect AllgatherVReply but got {type(result)}")
-        except Exception as ex:
-            return self._handle_error(ex, "all_gather_v", rank, seq, send_buf)
+        pass
 
     def all_reduce(
         self,
@@ -141,35 +98,10 @@ class GrpcServerAdaptor(XGBServerAdaptor):
         send_buf: bytes,
         fl_ctx: FLContext,
     ) -> bytes:
-        try:
-            result = self.internal_xgb_client.send_allreduce(
-                seq_num=seq,
-                rank=rank,
-                data=send_buf,
-                data_type=data_type,
-                reduce_op=reduce_op,
-            )
-            if isinstance(result, pb2.AllreduceReply):
-                return result.receive_buffer
-            else:
-                raise RuntimeError(f"bad result from XGB server: expect AllreduceReply but got {type(result)}")
-        except Exception as ex:
-            return self._handle_error(ex, "all_reduce", rank, seq, send_buf)
+        pass
 
     def broadcast(self, rank: int, seq: int, root: int, send_buf: bytes, fl_ctx: FLContext) -> bytes:
-        self.logger.debug(f"Sending broadcast: {rank=} {seq=} {root=} {len(send_buf)=}")
-        try:
-            result = self.internal_xgb_client.send_broadcast(seq_num=seq, rank=rank, data=send_buf, root=root)
-            if isinstance(result, pb2.BroadcastReply):
-                return result.receive_buffer
-            else:
-                raise RuntimeError(f"bad result from XGB server: expect BroadcastReply but got {type(result)}")
-        except Exception as ex:
-            return self._handle_error(ex, "broadcast", rank, seq, send_buf)
+        pass
 
     def _handle_error(self, ex: Exception, op: str, rank: int, seq: int, send_buf: bytes) -> bytes:
-        if self._stopping:
-            self.logger.warning(f"Error while stopping ignored, " f"op={op} {rank=} {seq=} {len(send_buf)=}: {ex}")
-            return bytes(0)
-        else:
-            raise ex
+        pass

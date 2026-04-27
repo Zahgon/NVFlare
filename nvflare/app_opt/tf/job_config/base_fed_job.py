@@ -98,9 +98,4 @@ class BaseFedJob(UnifiedBaseFedJob):
         persistor: Optional[ModelPersistor] = None,
     ):
         """Setup TensorFlow model with persistor."""
-        from nvflare.app_opt.tf.job_config.model import TFModel
-        from nvflare.recipe.utils import prepare_initial_ckpt
-
-        ckpt_path = prepare_initial_ckpt(initial_ckpt, self)
-        tf_model = TFModel(model=initial_model, initial_ckpt=ckpt_path, persistor=persistor)
-        self.comp_ids["persistor_id"] = self.to_server(tf_model)
+        pass

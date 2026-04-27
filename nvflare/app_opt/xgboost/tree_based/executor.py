@@ -40,17 +40,7 @@ def mask_sum_hessian(model: dict) -> int:
     Returns:
         Number of trees that were masked
     """
-    masked_count = 0
-    if "learner" in model and "gradient_booster" in model["learner"]:
-        gradient_booster = model["learner"]["gradient_booster"]
-        if "model" in gradient_booster and "trees" in gradient_booster["model"]:
-            trees = gradient_booster["model"]["trees"]
-            for tree in trees:
-                if "sum_hessian" in tree:
-                    # Hide sum_hessian with all-1
-                    tree["sum_hessian"] = [1.0] * len(tree["sum_hessian"])
-                    masked_count += 1
-    return masked_count
+    pass
 
 
 class FedXGBTreeExecutor(Executor):
@@ -112,113 +102,22 @@ class FedXGBTreeExecutor(Executor):
 
     def initialize(self, fl_ctx: FLContext):
         # set the paths according to fl_ctx
-        engine = fl_ctx.get_engine()
-        ws = engine.get_workspace()
-        app_dir = ws.get_app_dir(fl_ctx.get_job_id())
-        self.local_model_path = os.path.join(app_dir, self.local_model_path)
-        self.global_model_path = os.path.join(app_dir, self.global_model_path)
-
-        # get and print the args
-        fl_args = fl_ctx.get_prop(FLContextKey.ARGS)
-        self.client_id = fl_ctx.get_identity_name()
-        self.log_info(
-            fl_ctx,
-            f"Client {self.client_id} initialized with args: \n {fl_args}",
-        )
-        self.rank = int(self.client_id.split("-")[1]) - 1
-
-        # set local tensorboard writer for local training info of current model
-        tensorboard, flag = optional_import(module="torch.utils.tensorboard")
-        if flag:
-            self.writer = tensorboard.SummaryWriter(app_dir)
-
-        if self.training_mode not in ["cyclic", "bagging"]:
-            self.system_panic(f"Only support [cyclic] or [bagging] mode, but got {self.training_mode}", fl_ctx)
-            return
-
-        # load data and lr_scale, this is task/site-specific
-        data_loader = engine.get_component(self.data_loader_id)
-        if not isinstance(data_loader, XGBDataLoader):
-            self.system_panic("data_loader should be type XGBDataLoader", fl_ctx)
-        data_loader.initialize(
-            client_id=self.client_id,
-            rank=self.rank,
-        )
-        try:
-            self.train_data, self.val_data = data_loader.load_data()
-        except Exception as e:
-            self.system_panic(f"load_data failed: {secure_format_exception(e)}", fl_ctx)
-        self.lr = self._get_effective_learning_rate()
+        pass
 
     def _get_effective_learning_rate(self):
-        if self.training_mode == "bagging":
-            # Bagging mode
-            if self.lr_mode == "uniform":
-                # uniform lr, global learning_rate scaled by num_client_bagging for bagging
-                lr = self.base_lr / self.num_client_bagging
-            else:
-                # scaled lr, global learning_rate scaled by data size percentage
-                lr = self.base_lr * self.lr_scale
-        else:
-            # Cyclic mode, directly use the base learning_rate
-            lr = self.base_lr
-        return lr
+        pass
 
     def _get_xgb_train_params(self):
-        params = {
-            "objective": self.objective,
-            "eta": self.lr,
-            "max_depth": self.max_depth,
-            "eval_metric": self.eval_metric,
-            "nthread": self.nthread,
-            "num_parallel_tree": self.num_local_parallel_tree,
-            "subsample": self.local_subsample,
-            "tree_method": self.tree_method,
-        }
-        return params
+        pass
 
     def _local_boost_bagging(self, fl_ctx: FLContext):
-        eval_results = self.bst.eval_set(
-            evals=[(self.train_data, "train"), (self.val_data, "valid")], iteration=self.bst.num_boosted_rounds() - 1
-        )
-        self.log_info(fl_ctx, eval_results)
-        auc = float(eval_results.split("\t")[2].split(":")[1])
-        for i in range(self.num_local_round):
-            self.bst.update(self.train_data, self.bst.num_boosted_rounds())
-
-        # extract newly added self.num_local_round using xgboost slicing api
-        bst = self.bst[self.bst.num_boosted_rounds() - self.num_local_round : self.bst.num_boosted_rounds()]
-
-        self.log_info(
-            fl_ctx,
-            f"Global AUC {auc}",
-        )
-        if self.writer:
-            # note: writing auc before current training step, for passed in global model
-            self.writer.add_scalar(
-                "train_metrics",
-                auc,
-                int((self.bst.num_boosted_rounds() - self.num_local_round - 1) / self.num_client_bagging),
-            )
-        return bst
+        pass
 
     def _local_boost_cyclic(self, fl_ctx: FLContext):
         # Cyclic mode
         # starting from global model
         # return the whole boosting tree series
-        self.bst.update(self.train_data, self.bst.num_boosted_rounds())
-        eval_results = self.bst.eval_set(
-            evals=[(self.train_data, "train"), (self.val_data, "valid")], iteration=self.bst.num_boosted_rounds() - 1
-        )
-        self.log_info(fl_ctx, eval_results)
-        auc = float(eval_results.split("\t")[2].split(":")[1])
-        self.log_info(
-            fl_ctx,
-            f"Client {self.client_id} AUC after training: {auc}",
-        )
-        if self.writer:
-            self.writer.add_scalar("train_metrics", auc, self.bst.num_boosted_rounds() - 1)
-        return self.bst
+        pass
 
     def train(
         self,
@@ -226,124 +125,14 @@ class FedXGBTreeExecutor(Executor):
         fl_ctx: FLContext,
         abort_signal: Signal,
     ) -> Shareable:
-        if abort_signal.triggered:
-            self.finalize(fl_ctx)
-            return make_reply(ReturnCode.TASK_ABORTED)
-
-        # retrieve current global model download from server's shareable
-        dxo = from_shareable(shareable)
-        model_update = dxo.data
-
-        # xgboost parameters
-        params = self._get_xgb_train_params()
-
-        if self.use_gpus:
-            # mapping each rank to a GPU (can set to cuda:0 if simulating with only one gpu)
-            self.log_info(fl_ctx, f"Training with GPU {self.rank}")
-            params["device"] = f"cuda:{self.rank}"
-
-        if not self.bst:
-            # First round
-            self.log_info(
-                fl_ctx,
-                f"Client {self.client_id} initial training from scratch",
-            )
-            if not model_update:
-                bst = xgb.train(
-                    params,
-                    self.train_data,
-                    num_boost_round=self.num_local_round,
-                    evals=[(self.val_data, "validate"), (self.train_data, "train")],
-                )
-            else:
-                loadable_model = bytearray(model_update["model_data"])
-                bst = xgb.train(
-                    params,
-                    self.train_data,
-                    num_boost_round=self.num_local_round,
-                    xgb_model=loadable_model,
-                    evals=[(self.val_data, "validate"), (self.train_data, "train")],
-                )
-            self.config = bst.save_config()
-            self.bst = bst
-        else:
-            self.log_info(
-                fl_ctx,
-                f"Client {self.client_id} model updates received from server",
-            )
-            if self.training_mode == "bagging":
-                model_updates = model_update["model_data"]
-                for update in model_updates:
-                    self.global_model_as_dict = update_model(self.global_model_as_dict, json.loads(update))
-
-                loadable_model = bytearray(json.dumps(self.global_model_as_dict), "utf-8")
-            else:
-                loadable_model = bytearray(model_update["model_data"])
-
-            self.log_info(
-                fl_ctx,
-                f"Client {self.client_id} converted global model to json ",
-            )
-
-            self.bst.load_model(loadable_model)
-            self.bst.load_config(self.config)
-
-            self.log_info(
-                fl_ctx,
-                f"Client {self.client_id} loaded global model into booster ",
-            )
-
-            # train local model starting with global model
-            if self.training_mode == "bagging":
-                bst = self._local_boost_bagging(fl_ctx)
-            else:
-                bst = self._local_boost_cyclic(fl_ctx)
-
-        self.log_info(fl_ctx, f"Client {self.client_id} model boosting rounds: {bst.num_boosted_rounds()}")
-
-        # save_raw returns bytes, need to parse to dict first
-        raw_model = bst.save_raw("json")
-        self.local_model = json.loads(raw_model)
-
-        # remove the sum_hessian from local_model for privacy
-        masked_count = mask_sum_hessian(self.local_model)
-        if masked_count > 0:
-            self.log_info(fl_ctx, f"Privacy protection: masked sum_hessian in {masked_count} trees")
-
-        # report updated model in shareable
-        # Convert dict back to bytearray for compatibility with downstream code
-        self.local_model = bytearray(json.dumps(self.local_model), "utf-8")
-        dxo = DXO(data_kind=DataKind.WEIGHTS, data={"model_data": self.local_model})
-        self.log_info(fl_ctx, "Local epochs finished. Returning shareable")
-        new_shareable = dxo.to_shareable()
-
-        if self.writer:
-            self.writer.flush()
-        return new_shareable
+        pass
 
     def finalize(self, fl_ctx: FLContext):
         # freeing resources in finalize avoids seg fault during shutdown of gpu mode
-        del self.bst
-        del self.train_data
-        del self.val_data
-        self.log_info(fl_ctx, "Freed training resources")
+        pass
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        self.log_info(fl_ctx, f"Client trainer got task: {task_name}")
-
-        try:
-            if task_name == "train":
-                return self.train(shareable, fl_ctx, abort_signal)
-            else:
-                self.log_error(fl_ctx, f"Could not handle task: {task_name}")
-                return make_reply(ReturnCode.TASK_UNKNOWN)
-        except Exception as e:
-            # Task execution error, return EXECUTION_EXCEPTION Shareable
-            self.log_exception(fl_ctx, f"execute exception: {secure_format_exception(e)}")
-            return make_reply(ReturnCode.EXECUTION_EXCEPTION)
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.initialize(fl_ctx)
-        elif event_type == EventType.END_RUN:
-            self.finalize(fl_ctx)
+        pass

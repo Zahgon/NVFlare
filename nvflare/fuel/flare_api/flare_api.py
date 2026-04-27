@@ -78,7 +78,7 @@ def _validate_target_strs(targets: List[str]) -> None:
     server's ``shlex.split`` in ``parse_command_line`` would collapse multiple
     names back into a single token (see NVBug 6098943).
     """
-    process_targets_into_str(targets)
+    pass
 
 
 class Session(SessionSpec):
@@ -137,113 +137,17 @@ class Session(SessionSpec):
 
     def close(self):
         """Close the session."""
-        self.api.logout()
+        pass
 
     def try_connect(self, timeout):
-        if self.api.closed:
-            raise SessionClosed("session closed")
-
-        self.api.connect(timeout)
-        result = self.api.login()
-        status = result.get(ResultKey.STATUS) if isinstance(result, dict) else None
-        details = result.get(ResultKey.DETAILS, "") if isinstance(result, dict) else ""
-        if status == APIStatus.SUCCESS:
-            return
-        if status in [APIStatus.ERROR_AUTHENTICATION, APIStatus.ERROR_CERT]:
-            raise AuthenticationError(details or "authentication failed", auth_code=result.get("auth_code"))
-        if status == APIStatus.ERROR_AUTHORIZATION:
-            raise AuthorizationError(details or "authorization failed")
-        if status == APIStatus.ERROR_SERVER_CONNECTION:
-            raise NoConnection(details or "cannot connect to server")
-        raise InternalError(details or f"login failed: {status}")
+        pass
 
     def _do_command(self, command: str, enforce_meta=True, props=None):
-        if self.api.closed:
-            raise SessionClosed("session closed")
-
-        result = self.api.do_command(command, props=props)
-        if not isinstance(result, dict):
-            raise InternalError(f"result from server must be dict but got {type(result)}")
-
-        # Check meta status if available
-        # There are still some commands that do not return meta. But for commands that do return meta, we will check
-        # its meta status first.
-        meta = result.get(ResultKey.META, None)
-        if meta:
-            if not isinstance(meta, dict):
-                raise InternalError(f"meta must be dict but got {type(meta)}")
-
-            cmd_status = meta.get(MetaKey.STATUS, MetaStatusValue.OK)
-            info = meta.get(MetaKey.INFO, "")
-            if cmd_status == MetaStatusValue.INVALID_JOB_DEFINITION:
-                raise InvalidJobDefinition(f"invalid job definition: {info}")
-            elif cmd_status == MetaStatusValue.NOT_AUTHORIZED:
-                raise AuthorizationError(f"user not authorized for the action '{command}: {info}'")
-            elif cmd_status == MetaStatusValue.NOT_AUTHENTICATED:
-                raise AuthenticationError(f"user not authenticated: {info}")
-            elif cmd_status == MetaStatusValue.SYNTAX_ERROR:
-                raise InternalError(f"syntax error: {info}")
-            elif cmd_status == MetaStatusValue.INVALID_JOB_ID:
-                raise JobNotFound(f"no such job: {info}")
-            elif cmd_status == MetaStatusValue.JOB_RUNNING:
-                raise JobNotDone(f"job {info} is still running")
-            elif cmd_status == MetaStatusValue.JOB_NOT_RUNNING:
-                raise JobNotRunning(f"job {info} is not running")
-            elif cmd_status == MetaStatusValue.CLIENTS_RUNNING:
-                raise ClientsStillRunning("one or more clients are still running")
-            elif cmd_status == MetaStatusValue.NO_CLIENTS:
-                raise NoClientsAvailable(ReplyKeyword.NO_CLIENTS)
-            elif cmd_status == MetaStatusValue.INTERNAL_ERROR:
-                raise InternalError(f"server internal error: {info}")
-            elif cmd_status == MetaStatusValue.INVALID_TARGET:
-                if info == ReplyKeyword.NO_CLIENTS:
-                    raise NoClientsAvailable(ReplyKeyword.NO_CLIENTS)
-                else:
-                    raise InvalidTarget(info)
-            elif cmd_status == MetaStatusValue.NO_REPLY:
-                raise NoReply(info)
-            elif cmd_status != MetaStatusValue.OK:
-                raise InternalError(f"{cmd_status}: {info}")
-
-        # Then check API Status. There are cases that a command does not return meta or ran into errors before
-        # setting meta. Even if the command does return meta, still need to make sure APIStatus is good.
-        status = result.get(ResultKey.STATUS, None)
-        if not status:
-            raise InternalError("missing status in result")
-
-        if status in [APIStatus.ERROR_CERT, APIStatus.ERROR_AUTHENTICATION]:
-            details = result.get(ResultKey.DETAILS, "")
-            raise AuthenticationError(details or f"user not authenticated: {status}", auth_code=result.get("auth_code"))
-        elif status == APIStatus.ERROR_AUTHORIZATION:
-            raise AuthorizationError(f"user not authorized for the action '{command}'")
-        elif status == APIStatus.ERROR_INACTIVE_SESSION:
-            raise SessionClosed("the session is closed on server")
-        elif status in [APIStatus.ERROR_PROTOCOL, APIStatus.ERROR_SYNTAX]:
-            status_text = status.value if hasattr(status, "value") else str(status)
-            details = result.get(ResultKey.DETAILS, "")
-            if details:
-                raise InternalError(f"protocol error: {status_text}: {details}")
-            raise InternalError(f"protocol error: {status_text}")
-        elif status in [APIStatus.ERROR_SERVER_CONNECTION]:
-            status_text = status.value if hasattr(status, "value") else str(status)
-            raise NoConnection(f"cannot connect to server: {status_text}")
-        elif status != APIStatus.SUCCESS:
-            details = result.get(ResultKey.DETAILS, "")
-            raise RuntimeError(f"runtime error encountered: {status}: {details}")
-
-        if enforce_meta and not meta:
-            raise InternalError("missing meta from result")
-
-        # both API Status and Meta are okay
-        return result
+        pass
 
     @staticmethod
     def _validate_job_id(job_id: str):
-        if not isinstance(job_id, str):
-            raise JobNotFound(f"invalid job_id {job_id}")
-
-        if not job_id:
-            raise JobNotFound("job_id is required but not specified.")
+        pass
 
     def clone_job(self, job_id: str) -> str:
         """Create a new job by cloning a specified job.
@@ -254,14 +158,7 @@ class Session(SessionSpec):
         Returns: ID of the new job
 
         """
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.CLONE_JOB + " " + job_id)
-        meta = result[ResultKey.META]
-        job_id = meta.get(MetaKey.JOB_ID, None)
-        info = meta.get(MetaKey.INFO, "")
-        if not job_id:
-            raise InternalError(f"server failed to return job id: {info}")
-        return job_id
+        pass
 
     def submit_job(self, job_definition_path: str) -> str:
         """Submit a predefined job to the NVFLARE system.
@@ -274,31 +171,7 @@ class Session(SessionSpec):
         If the submission fails, an exception will be raised.
 
         """
-        if not job_definition_path:
-            raise InvalidJobDefinition("job_definition_path is required but not specified.")
-
-        if not isinstance(job_definition_path, str):
-            raise InvalidJobDefinition(f"job_definition_path must be str but got {type(job_definition_path)}.")
-
-        if not os.path.isdir(job_definition_path):
-            if os.path.isdir(os.path.join(self.upload_dir, job_definition_path)):
-                job_definition_path = os.path.join(self.upload_dir, job_definition_path)
-                job_definition_path = os.path.abspath(job_definition_path)
-            else:
-                raise InvalidJobDefinition(f"job_definition_path '{job_definition_path}' is not a valid folder")
-
-        job_folder_name = os.path.basename(os.path.normpath(job_definition_path))
-        if name_check(job_folder_name, "job_name")[0]:
-            raise InvalidJobDefinition(
-                f"job folder name '{job_folder_name}' contains unsupported characters. "
-                "Use only letters, numbers, dots, underscores, and hyphens, with no spaces."
-            )
-        result = self._do_command(AdminCommandNames.SUBMIT_JOB + " " + job_definition_path)
-        meta = result[ResultKey.META]
-        job_id = meta.get(MetaKey.JOB_ID, None)
-        if not job_id:
-            raise InternalError("server failed to return job id")
-        return job_id
+        pass
 
     def get_job_meta(self, job_id: str) -> dict:
         """Get the meta info of the specified job.
@@ -309,13 +182,7 @@ class Session(SessionSpec):
         Returns: a dict of job metadata
 
         """
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.GET_JOB_META + " " + job_id)
-        meta = result[ResultKey.META]
-        job_meta = meta.get(MetaKey.JOB_META, None)
-        if not job_meta:
-            raise InternalError("server failed to return job meta")
-        return job_meta
+        pass
 
     def list_jobs(
         self,
@@ -339,60 +206,7 @@ class Session(SessionSpec):
         Returns: a list of job metadata
 
         """
-        legacy_aliases = {
-            "max_num": "limit",
-            "job_id_prefix": "id_prefix",
-            "job_name_prefix": "name_prefix",
-            "id": "id_prefix",
-            "name": "name_prefix",
-        }
-        for legacy_key, canonical_key in legacy_aliases.items():
-            if legacy_key not in kwargs:
-                continue
-            value = kwargs.pop(legacy_key)
-            if canonical_key == "limit" and limit is None:
-                limit = value
-            elif canonical_key == "id_prefix" and id_prefix is None:
-                id_prefix = value
-            elif canonical_key == "name_prefix" and name_prefix is None:
-                name_prefix = value
-
-        if kwargs:
-            raise TypeError(f"unsupported list_jobs kwargs: {sorted(kwargs.keys())}")
-
-        if not isinstance(detailed, bool):
-            raise ValueError(f"detailed must be bool but got {type(detailed)}")
-        if not isinstance(reverse, bool):
-            raise ValueError(f"reverse must be bool but got {type(reverse)}")
-        if limit is not None and not isinstance(limit, int):
-            raise ValueError(f"limit must be None or int but got {type(limit)}")
-        if id_prefix is not None and not isinstance(id_prefix, str):
-            raise ValueError(f"id_prefix must be None or str but got {type(id_prefix)}")
-        if name_prefix is not None and not isinstance(name_prefix, str):
-            raise ValueError(f"name_prefix must be None or str but got {type(name_prefix)}")
-
-        parts = [AdminCommandNames.LIST_JOBS]
-        if detailed:
-            parts.append("-d")
-        if reverse:
-            parts.append("-r")
-        if limit:
-            if not isinstance(limit, int):
-                raise InvalidArgumentError(f"limit must be int but got {type(limit)}")
-            parts.extend(["-m", str(limit)])
-        if name_prefix:
-            if not isinstance(name_prefix, str):
-                raise InvalidArgumentError("name_prefix must be str but got {}.".format(type(name_prefix)))
-            parts.extend(["-n", name_prefix])
-        if id_prefix:
-            if not isinstance(id_prefix, str):
-                raise InvalidArgumentError("id_prefix must be str but got {}.".format(type(id_prefix)))
-            parts.append(id_prefix)
-        command = join_args(parts)
-        result = self._do_command(command)
-        meta = result[ResultKey.META]
-        jobs_list = meta.get(MetaKey.JOBS, [])
-        return jobs_list
+        pass
 
     def download_job_result(self, job_id: str, destination: str = None) -> str:
         """Download result of the job.
@@ -405,21 +219,7 @@ class Session(SessionSpec):
         Returns: folder path to the location of the job result
 
         """
-        import shutil
-
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.DOWNLOAD_JOB + " " + job_id)
-        meta = result[ResultKey.META]
-        location = meta.get(MetaKey.LOCATION)
-
-        if destination and location and os.path.exists(location):
-            destination = os.path.abspath(destination)
-            os.makedirs(destination, exist_ok=True)
-            final_path = os.path.join(destination, os.path.basename(location))
-            shutil.move(location, final_path)
-            return final_path
-
-        return location
+        pass
 
     def list_job_components(self, job_id: str) -> List[str]:
         """Get the list of additional job components for the specified job.
@@ -430,11 +230,7 @@ class Session(SessionSpec):
         Returns: a list of the additional job components
 
         """
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.LIST_JOB + " " + job_id)
-        meta = result[ResultKey.META]
-        job_components_list = meta.get(MetaKey.JOB_COMPONENTS, [])
-        return job_components_list
+        pass
 
     def download_job_components(self, job_id: str) -> str:
         """Download additional job components (e.g., ERRORLOG_site-1) for a specified job.
@@ -445,11 +241,7 @@ class Session(SessionSpec):
         Returns: folder path to the location of the downloaded additional job components
 
         """
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.DOWNLOAD_JOB_COMPONENTS + " " + job_id)
-        meta = result[ResultKey.META]
-        location = meta.get(MetaKey.LOCATION)
-        return location
+        pass
 
     def abort_job(self, job_id: str):
         """Abort the specified job.
@@ -465,14 +257,7 @@ class Session(SessionSpec):
         If the job is being executed, it will be aborted.
 
         """
-        self._validate_job_id(job_id)
-        result = self._do_command(AdminCommandNames.ABORT_JOB + " " + job_id)
-        meta = result[ResultKey.META]
-        status = meta.get(MetaKey.STATUS)
-        info = meta.get(MetaKey.INFO)
-        if status != MetaStatusValue.OK:
-            raise InternalError(f"failed to abort job {job_id}: {status}, {info}")
-        return info
+        pass
 
     def delete_job(self, job_id: str):
         """Delete the specified job completely from the system.
@@ -486,8 +271,7 @@ class Session(SessionSpec):
         The job will be deleted from the job store if the job is not currently running.
 
         """
-        self._validate_job_id(job_id)
-        self._do_command(AdminCommandNames.DELETE_JOB + " " + job_id)
+        pass
 
     def get_system_info(self):
         """Get general system information.
@@ -495,30 +279,10 @@ class Session(SessionSpec):
         Returns: a SystemInfo object
 
         """
-        return self._do_get_system_info(AdminCommandNames.CHECK_STATUS)
+        pass
 
     def _do_get_system_info(self, cmd: str):
-        result = self._do_command(f"{cmd} {TargetType.SERVER}")
-        meta = result[ResultKey.META]
-        server_info = ServerInfo(status=meta.get(MetaKey.SERVER_STATUS), start_time=meta.get(MetaKey.SERVER_START_TIME))
-
-        clients = []
-        client_meta_list = meta.get(MetaKey.CLIENTS, None)
-        if client_meta_list:
-            for c in client_meta_list:
-                client_info = ClientInfo(
-                    name=c.get(MetaKey.CLIENT_NAME), last_connect_time=c.get(MetaKey.CLIENT_LAST_CONNECT_TIME)
-                )
-                clients.append(client_info)
-
-        jobs = []
-        job_meta_list = meta.get(MetaKey.JOBS, None)
-        if job_meta_list:
-            for j in job_meta_list:
-                job_info = JobInfo(app_name=j.get(MetaKey.APP_NAME), job_id=j.get(MetaKey.JOB_ID))
-                jobs.append(job_info)
-
-        return SystemInfo(server_info=server_info, client_info=clients, job_info=jobs)
+        pass
 
     def get_client_job_status(self, client_names: List[str] = None) -> List[dict]:
         """Get job status info of specified FL clients.
@@ -531,15 +295,7 @@ class Session(SessionSpec):
         If no FL clients are connected or the server failed to communicate to them, this method returns None.
 
         """
-        parts = [AdminCommandNames.CHECK_STATUS, TargetType.CLIENT]
-        if client_names:
-            _validate_target_strs(client_names)
-            parts.extend(client_names)
-
-        command = join_args(parts)
-        result = self._do_command(command)
-        meta = result[ResultKey.META]
-        return meta.get(MetaKey.CLIENT_STATUS, None)
+        pass
 
     def restart(self, target_type: str, client_names: Optional[List[str]] = None) -> dict:
         """Restart the server, specific clients, or all participants.
@@ -550,17 +306,7 @@ class Session(SessionSpec):
 
         Returns: a dict with detailed info about the restart request.
         """
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"restart target_type must be one of {_VALID_TARGET_TYPES}")
-
-        parts = [AdminCommandNames.RESTART, target_type]
-        if target_type == TargetType.CLIENT and client_names:
-            _validate_target_strs(client_names)
-            parts.extend(client_names)
-
-        command = join_args(parts)
-        result = self._do_command(command)
-        return result[ResultKey.META]
+        pass
 
     def shutdown(self, target_type: str, client_names: Optional[List[str]] = None) -> dict:
         """Shut down the server, specific clients, or all participants.
@@ -571,25 +317,7 @@ class Session(SessionSpec):
 
         Returns: a dict with detailed info about the shutdown request.
         """
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"shutdown target_type must be one of {_VALID_TARGET_TYPES}")
-
-        parts = [AdminCommandNames.SHUTDOWN, target_type]
-        if target_type == TargetType.CLIENT and client_names:
-            _validate_target_strs(client_names)
-            parts.extend(client_names)
-
-        command = join_args(parts)
-        result = self._do_command(command)
-        if target_type in (TargetType.SERVER, TargetType.ALL):
-            try:
-                self.close()
-            except Exception:
-                # The shutdown request already succeeded; the server may tear down the
-                # connection before the client can complete logout. Preserve the command
-                # result instead of masking it with a secondary close failure.
-                pass
-        return result[ResultKey.META]
+        pass
 
     def set_timeout(self, value: float):
         """Set a session-specific command timeout.
@@ -604,7 +332,7 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        self.api.set_command_timeout(value)
+        pass
 
     def unset_timeout(self):
         """Unset the session-specific command timeout.
@@ -614,7 +342,7 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        self.api.unset_command_timeout()
+        pass
 
     def get_available_apps_to_upload(self):
         """Get defined FLARE app folders from the upload folder on the machine the FLARE API is running.
@@ -622,11 +350,7 @@ class Session(SessionSpec):
         Returns: a list of app folders
 
         """
-        dir_list = []
-        for item in os.listdir(self.upload_dir):
-            if os.path.isdir(os.path.join(self.upload_dir, item)):
-                dir_list.append(item)
-        return dir_list
+        pass
 
     def shutdown_system(self):
         """Shutdown the whole NVFLARE system including FL server, and all FL clients.
@@ -636,10 +360,7 @@ class Session(SessionSpec):
         Note: the user must be a Project Admin to use this method; otherwise the NOT_AUTHORIZED exception will be raised.
 
         """
-        self._do_command(f"{AdminCommandNames.SHUTDOWN} {TargetType.ALL}")
-        sys_info = self._do_get_system_info(AdminCommandNames.ADMIN_CHECK_STATUS)
-        if sys_info.server_info.status != "stopped":
-            raise JobNotDone("there are still running jobs")
+        pass
 
     def ls_target(self, target: str, options: Optional[str] = None, path: Optional[str] = None) -> str:
         """Run the "ls" command on the specified target and return the result.
@@ -652,7 +373,7 @@ class Session(SessionSpec):
         Returns: result of "ls" command
 
         """
-        return self._shell_command_on_target("ls", target, options, path)
+        pass
 
     def cat_target(self, target: str, options: Optional[str] = None, file: Optional[str] = None) -> str:
         """Run the "cat" command on the specified target and return the result.
@@ -665,7 +386,7 @@ class Session(SessionSpec):
         Returns: result of "cat" command
 
         """
-        return self._shell_command_on_target("cat", target, options, file, fp_required=True, fp_type="file")
+        pass
 
     def tail_target(self, target: str, options: Optional[str] = None, file: Optional[str] = None) -> str:
         """Run the "tail" command on the specified target and return the result.
@@ -678,7 +399,7 @@ class Session(SessionSpec):
         Returns: result of "tail" command
 
         """
-        return self._shell_command_on_target("tail", target, options, file, fp_required=True, fp_type="file")
+        pass
 
     def tail_target_log(self, target: str, options: Optional[str] = None) -> str:
         """Run the "tail log.txt" command on the specified target and return the result.
@@ -690,7 +411,7 @@ class Session(SessionSpec):
         Returns: result of "tail" command
 
         """
-        return self.tail_target(target, options, file="log.txt")
+        pass
 
     def head_target(self, target: str, options: Optional[str] = None, file: Optional[str] = None) -> str:
         """Run the "head" command on the specified target and return the result.
@@ -703,7 +424,7 @@ class Session(SessionSpec):
         Returns: result of "head" command
 
         """
-        return self._shell_command_on_target("head", target, options, file, fp_required=True, fp_type="file")
+        pass
 
     def head_target_log(self, target: str, options: Optional[str] = None) -> str:
         """Run the "head log.txt" command on the specified target and return the result.
@@ -715,7 +436,7 @@ class Session(SessionSpec):
         Returns: result of "head" command
 
         """
-        return self.head_target(target, options, file="log.txt")
+        pass
 
     def grep_target(
         self, target: str, options: Optional[str] = None, pattern: Optional[str] = None, file: Optional[str] = None
@@ -731,9 +452,7 @@ class Session(SessionSpec):
         Returns: result of "grep" command
 
         """
-        return self._shell_command_on_target(
-            "grep", target, options, file, pattern=pattern, pattern_required=True, fp_required=True, fp_type="file"
-        )
+        pass
 
     def get_working_directory(self, target: str) -> str:
         """Get the working directory of the specified target.
@@ -744,7 +463,7 @@ class Session(SessionSpec):
         Returns: current working directory of the specified target
 
         """
-        return self._shell_command_on_target("pwd", target, options=None, fp=None)
+        pass
 
     def _shell_command_on_target(
         self,
@@ -757,177 +476,65 @@ class Session(SessionSpec):
         fp_required=False,
         fp_type="path",
     ) -> str:
-        target = validate_required_target_string(target)
-        parts = [cmd, target]
-        if options:
-            options = validate_options_string(options)
-            parts.append(options)
-
-        if pattern_required:
-            if not pattern:
-                raise SyntaxError("pattern is required but not specified.")
-            if not isinstance(pattern, str):
-                raise ValueError("pattern is not str.")
-            parts.append(pattern)
-
-        if fp_required and not fp:
-            raise SyntaxError(f"{fp_type} is required but not specified.")
-
-        if fp:
-            if fp_type == "path":
-                validate_path_string(fp)
-            else:
-                validate_file_string(fp)
-            parts.append(fp)
-        command = join_args(parts)
-        reply = self._do_command(command, enforce_meta=False)
-        return self._get_string_data(reply)
+        pass
 
     @staticmethod
     def _get_string_data(reply: dict) -> str:
-        result = ""
-        data_items = reply.get(ProtoKey.DATA, [])
-        for it in data_items:
-            if isinstance(it, dict):
-                if it.get(ProtoKey.TYPE) == ProtoKey.STRING:
-                    result += it.get(ProtoKey.DATA, "")
-        return result
+        pass
 
     @staticmethod
     def _get_dict_data(reply: dict) -> dict:
-        result = {}
-        data_items = reply.get(ProtoKey.DATA, [])
-        for it in data_items:
-            if isinstance(it, dict):
-                if it.get(ProtoKey.TYPE) == ProtoKey.DICT:
-                    return it.get(ProtoKey.DATA, {})
-        return result
+        pass
 
     @staticmethod
     def _get_study_payload(reply: dict) -> dict:
-        payload = Session._get_dict_data(reply)
-        if not isinstance(payload, dict):
-            raise InternalError(f"study payload must be dict but got {type(payload)}")
-        error_code = payload.get("error_code")
-        if error_code:
-            raise CommandError(
-                error_code=error_code,
-                message=payload.get("message", error_code),
-                hint=payload.get("hint", ""),
-                exit_code=payload.get("exit_code", 1),
-            )
-        return payload
+        pass
 
     @staticmethod
     def _validate_study_name(study: str):
-        if not isinstance(study, str):
-            raise InvalidArgumentError(f"study must be str but got {type(study)}")
-        if not study:
-            raise InvalidArgumentError("study is required but not specified.")
+        pass
 
     @staticmethod
     def _validate_study_sites(sites: List[str]):
-        if not isinstance(sites, list):
-            raise InvalidArgumentError(f"sites must be list but got {type(sites)}")
-        if not sites:
-            raise InvalidArgumentError("sites are required but not specified.")
-        for site in sites:
-            if not isinstance(site, str) or not site:
-                raise InvalidArgumentError(f"invalid site value: {site}")
+        pass
 
     @staticmethod
     def _validate_study_user(user: str):
-        if not isinstance(user, str):
-            raise InvalidArgumentError(f"user must be str but got {type(user)}")
-        if not user:
-            raise InvalidArgumentError("user is required but not specified.")
+        pass
 
     @staticmethod
     def _validate_study_site_orgs(site_orgs: List[str]):
-        if not isinstance(site_orgs, list):
-            raise InvalidArgumentError(f"site_orgs must be list but got {type(site_orgs)}")
-        if not site_orgs:
-            raise InvalidArgumentError("site_orgs are required but not specified.")
-        for item in site_orgs:
-            if not isinstance(item, str) or not item:
-                raise InvalidArgumentError(f"invalid site_org value: {item}")
+        pass
 
     def register_study(
         self, study: str, sites: Optional[List[str]] = None, site_orgs: Optional[List[str]] = None
     ) -> dict:
-        self._validate_study_name(study)
-        if sites and site_orgs:
-            raise InvalidArgumentError("sites and site_orgs are mutually exclusive; provide only one")
-        parts = [AdminCommandNames.REGISTER_STUDY, study]
-        if site_orgs:
-            self._validate_study_site_orgs(site_orgs)
-            for item in site_orgs:
-                parts.extend(["--site-org", item])
-        else:
-            self._validate_study_sites(sites)
-            parts.extend(["--sites", ",".join(sites)])
-        reply = self._do_command(join_args(parts))
-        return self._get_study_payload(reply)
+        pass
 
     def add_study_site(
         self, study: str, sites: Optional[List[str]] = None, site_orgs: Optional[List[str]] = None
     ) -> dict:
-        self._validate_study_name(study)
-        if sites and site_orgs:
-            raise InvalidArgumentError("sites and site_orgs are mutually exclusive; provide only one")
-        parts = [AdminCommandNames.ADD_STUDY_SITE, study]
-        if site_orgs:
-            self._validate_study_site_orgs(site_orgs)
-            for item in site_orgs:
-                parts.extend(["--site-org", item])
-        else:
-            self._validate_study_sites(sites)
-            parts.extend(["--sites", ",".join(sites)])
-        reply = self._do_command(join_args(parts))
-        return self._get_study_payload(reply)
+        pass
 
     def remove_study_site(
         self, study: str, sites: Optional[List[str]] = None, site_orgs: Optional[List[str]] = None
     ) -> dict:
-        self._validate_study_name(study)
-        if sites and site_orgs:
-            raise InvalidArgumentError("sites and site_orgs are mutually exclusive; provide only one")
-        parts = [AdminCommandNames.REMOVE_STUDY_SITE, study]
-        if site_orgs:
-            self._validate_study_site_orgs(site_orgs)
-            for item in site_orgs:
-                parts.extend(["--site-org", item])
-        else:
-            self._validate_study_sites(sites)
-            parts.extend(["--sites", ",".join(sites)])
-        reply = self._do_command(join_args(parts))
-        return self._get_study_payload(reply)
+        pass
 
     def remove_study(self, study: str) -> dict:
-        self._validate_study_name(study)
-        reply = self._do_command(join_args([AdminCommandNames.REMOVE_STUDY, study]))
-        return self._get_study_payload(reply)
+        pass
 
     def list_studies(self) -> dict:
-        reply = self._do_command(AdminCommandNames.LIST_STUDIES)
-        return self._get_study_payload(reply)
+        pass
 
     def show_study(self, study: str) -> dict:
-        self._validate_study_name(study)
-        reply = self._do_command(join_args([AdminCommandNames.SHOW_STUDY, study]))
-        return self._get_study_payload(reply)
+        pass
 
     def add_study_user(self, study: str, user: str) -> dict:
-        self._validate_study_name(study)
-        self._validate_study_user(user)
-        reply = self._do_command(join_args([AdminCommandNames.ADD_STUDY_USER, study, user]))
-        return self._get_study_payload(reply)
+        pass
 
     def remove_study_user(self, study: str, user: str) -> dict:
-        self._validate_study_name(study)
-        self._validate_study_user(user)
-        reply = self._do_command(join_args([AdminCommandNames.REMOVE_STUDY_USER, study, user]))
-        return self._get_study_payload(reply)
+        pass
 
     def show_stats(self, job_id: str, target_type: str, targets: Optional[List[str]] = None) -> dict:
         """Show processing stats of specified job on specified targets.
@@ -941,7 +548,7 @@ class Session(SessionSpec):
         a dict of stats reported by different system components (ServerRunner or ClientRunner).
 
         """
-        return self._collect_info(AdminCommandNames.SHOW_STATS, job_id, target_type, targets)
+        pass
 
     def show_errors(self, job_id: str, target_type: str, targets: Optional[List[str]] = None) -> dict:
         """Show processing errors of specified job on specified targets.
@@ -955,7 +562,7 @@ class Session(SessionSpec):
         The value is a dict of errors reported by different system components (ServerRunner or ClientRunner).
 
         """
-        return self._collect_info(AdminCommandNames.SHOW_ERRORS, job_id, target_type, targets)
+        pass
 
     def reset_errors(self, job_id: str):
         """Clear errors for all system targets for the specified job.
@@ -966,26 +573,10 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        self._collect_info(AdminCommandNames.RESET_ERRORS, job_id, TargetType.ALL)
+        pass
 
     def _collect_info(self, cmd: str, job_id: str, target_type: str, targets=None) -> dict:
-        if not isinstance(job_id, str):
-            raise TypeError("job_id must be str but got {}.".format(type(job_id)))
-
-        if not job_id:
-            raise ValueError("job_id is required but not specified.")
-
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"invalid target_type {target_type}: must be one of {_VALID_TARGET_TYPES}")
-
-        parts = [cmd, job_id, target_type]
-        if target_type == TargetType.CLIENT and targets:
-            _validate_target_strs(targets)
-            parts.extend(targets)
-
-        command = join_args(parts)
-        reply = self._do_command(command, enforce_meta=False)
-        return self._get_dict_data(reply)
+        pass
 
     def check_status(self, target_type: str, targets=None) -> dict:
         """Get status of specified system target(s).
@@ -997,17 +588,7 @@ class Session(SessionSpec):
         Returns: a dict with status information
 
         """
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"invalid target_type {target_type} - must be in {_VALID_TARGET_TYPES}")
-
-        parts = [AdminCommandNames.CHECK_STATUS, target_type]
-        if target_type == TargetType.CLIENT and targets:
-            _validate_target_strs(targets)
-            parts.extend(targets)
-
-        command = join_args(parts)
-        result = self._do_command(command)
-        return result[ResultKey.META]
+        pass
 
     def report_resources(self, target_type: str, targets=None) -> dict:
         """Report resources of specified system target(s).
@@ -1025,27 +606,7 @@ class Session(SessionSpec):
             be updated alongside that protocol change.
 
         """
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"invalid target_type {target_type} - must be in {_VALID_TARGET_TYPES}")
-
-        parts = [AdminCommandNames.REPORT_RESOURCES, target_type]
-        if target_type == TargetType.CLIENT and targets:
-            _validate_target_strs(targets)
-            parts.extend(targets)
-
-        command = " ".join(parts)
-        result = self._do_command(command, enforce_meta=False)
-        data_items = result.get(ProtoKey.DATA, [])
-        resources = {}
-        for item in data_items:
-            if isinstance(item, dict) and item.get(ProtoKey.TYPE) == ProtoKey.TABLE:
-                rows = item.get(ProtoKey.ROWS, [])
-                if not rows or len(rows) < 2:
-                    continue
-                for row in rows[1:]:
-                    if isinstance(row, list) and len(row) >= 2:
-                        resources[str(row[0])] = row[1]
-        return resources
+        pass
 
     def report_version(self, target_type: str, targets: Optional[List[str]] = None) -> dict:
         """Report NVFlare version for specified system target(s).
@@ -1057,17 +618,7 @@ class Session(SessionSpec):
         Returns: a dict with version information per site
 
         """
-        if target_type not in _VALID_TARGET_TYPES:
-            raise ValueError(f"invalid target_type {target_type} - must be in {_VALID_TARGET_TYPES}")
-
-        parts = [AdminCommandNames.REPORT_VERSION, target_type]
-        if target_type == TargetType.CLIENT and targets:
-            _validate_target_strs(targets)
-            parts.extend(targets)
-
-        command = " ".join(parts)
-        reply = self._do_command(command, enforce_meta=False)
-        return self._get_dict_data(reply)
+        pass
 
     def remove_client(self, client_name: str) -> None:
         """Remove a client from the system.
@@ -1078,10 +629,7 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        if not client_name or not isinstance(client_name, str):
-            raise ValueError("client_name must be a non-empty str")
-
-        self._do_command(join_args([AdminCommandNames.REMOVE_CLIENT, client_name]))
+        pass
 
     def get_job_logs(
         self, job_id: str, target: str = "server", tail_lines: int = None, grep_pattern: str = None
@@ -1097,27 +645,7 @@ class Session(SessionSpec):
         Returns: dict with "logs" keys mapping site name to log text.
 
         """
-        self._validate_job_id(job_id)
-        if target != "server":
-            raise ValueError("get_job_logs currently only supports target='server'")
-        if tail_lines is not None:
-            if not isinstance(tail_lines, int):
-                raise ValueError(f"tail_lines must be int but got {type(tail_lines)}")
-            if tail_lines <= 0:
-                raise ValueError("tail_lines must be greater than 0")
-
-        parts = [AdminCommandNames.GET_JOB_LOG, job_id]
-        if tail_lines is not None:
-            parts.extend(["-n", str(tail_lines)])
-        if grep_pattern:
-            parts.extend(["-g", grep_pattern])
-
-        command = join_args(parts)
-        reply = self._do_command(command, enforce_meta=False)
-        payload = self._get_dict_data(reply)
-        if isinstance(payload, dict) and "logs" in payload:
-            return {"logs": payload.get("logs", {})}
-        return {"logs": payload}
+        pass
 
     def configure_job_log(self, job_id: str, config, target: str = "all") -> None:
         """Configure logging for a running job.
@@ -1132,20 +660,7 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        self._validate_job_id(job_id)
-        if isinstance(config, dict):
-            config_str = json.dumps(config)
-        else:
-            config_str = str(config)
-
-        parts = [AdminCommandNames.CONFIGURE_JOB_LOG, job_id]
-        if target in ("all", "server"):
-            parts.append(target)
-        else:
-            parts.extend(["client", target])
-        parts.append(config_str)
-        command = join_args(parts)
-        self._do_command(command, enforce_meta=False)
+        pass
 
     def configure_site_log(self, config, target: str = "all") -> None:
         """Configure site-level logging.
@@ -1157,10 +672,7 @@ class Session(SessionSpec):
         Returns: None
 
         """
-        config_str = validate_site_log_config(config)
-
-        command = join_args([AdminCommandNames.CONFIGURE_SITE_LOG, target, config_str])
-        self._do_command(command, enforce_meta=False)
+        pass
 
     def wait_for_job(self, job_id: str, timeout: float = 0.0, poll_interval: float = 2.0) -> dict:
         """Block until job reaches a terminal state.
@@ -1175,10 +687,7 @@ class Session(SessionSpec):
         Raises: JobTimeout if timeout is exceeded before job finishes
 
         """
-        rc, job_meta = self.monitor_job_and_return_job_meta(job_id, timeout=timeout, poll_interval=poll_interval)
-        if rc == MonitorReturnCode.TIMEOUT:
-            raise JobTimeout(f"job {job_id} did not finish within {timeout}s")
-        return job_meta
+        pass
 
     def do_app_command(self, job_id: str, topic: str, cmd_data) -> dict:
         """Ask a running job to execute an app command
@@ -1194,15 +703,7 @@ class Session(SessionSpec):
         calling this method.
 
         """
-        command = f"{AdminCommandNames.APP_COMMAND} {job_id} {topic}"
-        if cmd_data:
-            # cmd_data must be JSON serializable!
-            try:
-                json.dumps(cmd_data)
-            except Exception as ex:
-                raise ValueError(f"cmd_data cannot be JSON serialized: {ex}")
-        reply = self._do_command(command, enforce_meta=False, props=cmd_data)
-        return self._get_dict_data(reply)
+        pass
 
     def get_connected_client_list(self) -> List[ClientInfo]:
         """Get the list of connected clients.
@@ -1210,8 +711,7 @@ class Session(SessionSpec):
         Returns: a list of ClientInfo objects
 
         """
-        sys_info = self.get_system_info()
-        return sys_info.client_info
+        pass
 
     def get_client_env(self, client_names=None):
         """Get running environment values for specified clients. The env includes values of client name,
@@ -1227,21 +727,7 @@ class Session(SessionSpec):
         Raises: InvalidTarget exception, if no clients are connected or an invalid client name is specified
 
         """
-        if not client_names:
-            command = AdminCommandNames.REPORT_ENV
-        else:
-            if isinstance(client_names, str):
-                client_names = [client_names]
-            elif not isinstance(client_names, list):
-                raise ValueError(f"client_names must be str or list of str but got {type(client_names)}")
-            command = AdminCommandNames.REPORT_ENV + " " + " ".join(client_names)
-
-        result = self._do_command(command)
-        meta = result[ResultKey.META]
-        client_envs = meta.get(MetaKey.CLIENTS)
-        if not client_envs:
-            raise RuntimeError(f"missing {MetaKey.CLIENTS} from meta")
-        return client_envs
+        pass
 
     def do_command(self, command: str, props=None):
         """Execute an admin command.
@@ -1253,7 +739,7 @@ class Session(SessionSpec):
         Returns:
 
         """
-        return self.api.do_command(command, props)
+        pass
 
     def get_job_status(self, job_id: str) -> Optional[str]:
         """Get the status of a job.
@@ -1264,11 +750,7 @@ class Session(SessionSpec):
         Returns: status of the job
 
         """
-        job_meta = self.get_job_meta(job_id)
-        if job_meta:
-            return job_meta.get(JobMetaKey.STATUS.value)
-        else:
-            return None
+        pass
 
     def monitor_job_and_return_job_meta(
         self, job_id: str, timeout: float = 0.0, poll_interval: float = 2.0, cb=None, *cb_args, **cb_kwargs
@@ -1292,26 +774,7 @@ class Session(SessionSpec):
         should continue. If False, this method ends.
 
         """
-        start_time = time.time()
-        while True:
-            if 0 < timeout < time.time() - start_time:
-                return MonitorReturnCode.TIMEOUT, None
-
-            job_meta = self.get_job_meta(job_id)
-            if cb is not None:
-                should_continue = cb(self, job_id, job_meta, *cb_args, **cb_kwargs)
-                if not should_continue:
-                    return MonitorReturnCode.ENDED_BY_CB, None
-
-            # check whether the job is finished
-            job_status = job_meta.get(JobMetaKey.STATUS.value, None)
-            if not job_status:
-                raise InternalError(f"missing status in job {job_id}")
-
-            if job_status.startswith("FINISHED"):
-                return MonitorReturnCode.JOB_FINISHED, job_meta
-
-            time.sleep(poll_interval)
+        pass
 
 
 def basic_cb_with_print(session: Session, job_id: str, job_meta, *cb_args, **cb_kwargs) -> bool:
@@ -1323,21 +786,7 @@ def basic_cb_with_print(session: Session, job_id: str, job_meta, *cb_args, **cb_
     stdout/stderr routing policy. Non-CLI callers still get a plain print() fallback.
 
     """
-    try:
-        from nvflare.tool.cli_output import print_human as _emit
-    except ImportError:
-        _emit = print
-
-    if job_meta["status"] == "RUNNING":
-        if cb_kwargs["cb_run_counter"]["count"] < 3:
-            _emit(job_meta)
-        else:
-            _emit(".", end="")
-    else:
-        _emit("\n" + str(job_meta))
-
-    cb_kwargs["cb_run_counter"]["count"] += 1
-    return True
+    pass
 
 
 def new_session(
@@ -1350,30 +799,7 @@ def new_session(
     command_timeout: float = None,
     auto_login_max_tries: int = None,
 ) -> Session:
-    session = Session(
-        username=username,
-        startup_path=startup_kit_location,
-        debug=debug,
-        secure_mode=secure_mode,
-        study=study,
-    )
-    if auto_login_max_tries is not None and getattr(session, "api", None):
-        session.api.auto_login_max_tries = auto_login_max_tries
-    if command_timeout is not None:
-        session.set_timeout(command_timeout)
-    try:
-        session.try_connect(timeout)
-        return session
-    except Exception:
-        try:
-            session.close()
-        except Exception as cleanup_error:
-            # Preserve the original connection/setup failure if cleanup on a partially
-            # initialized session also errors.
-            logger = get_obj_logger(session)
-            if logger:
-                logger.debug("failed to close partially initialized session during cleanup: %s", cleanup_error)
-        raise
+    pass
 
 
 def new_secure_session(
@@ -1399,16 +825,7 @@ def new_secure_session(
     Returns: a Session object
 
     """
-    return new_session(
-        username,
-        startup_kit_location,
-        True,
-        debug,
-        timeout,
-        study=study,
-        command_timeout=command_timeout,
-        auto_login_max_tries=auto_login_max_tries,
-    )
+    pass
 
 
 def new_insecure_session(
@@ -1430,11 +847,4 @@ def new_insecure_session(
     The username for insecure session is always "admin".
 
     """
-    return new_session(
-        username="",
-        startup_kit_location=startup_kit_location,
-        secure_mode=False,
-        debug=debug,
-        timeout=timeout,
-        study=study,
-    )
+    pass

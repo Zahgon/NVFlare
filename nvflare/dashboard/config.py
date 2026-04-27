@@ -54,29 +54,25 @@ class PropertyManager:
                 self.props = json.load(f)
 
     def get_project_props(self):
-        return self.props.get("project", {})
+        pass
 
     def get_project_prop(self, key, default=None):
-        props = self.get_project_props()
-        return props.get(key, default)
+        pass
 
     def get_client_props(self):
-        return self.props.get("client", {})
+        pass
 
     def get_client_prop(self, key, default=None):
-        props = self.get_client_props()
-        return props.get(key, default)
+        pass
 
     def get_server_props(self):
-        return self.props.get("server", {})
+        pass
 
     def get_server_prop(self, key, default=None):
-        props = self.get_server_props()
-        return props.get(key, default)
+        pass
 
     def get_admin_props(self):
-        return self.props.get("admin", {})
+        pass
 
     def get_admin_prop(self, key, default=None):
-        props = self.get_admin_props()
-        return props.get(key, default)
+        pass

@@ -61,65 +61,19 @@ class StreamConnection(Connection):
         self.logger = get_obj_logger(self)
 
     def get_conn_properties(self) -> dict:
-        return self.conn_props
+        pass
 
     def close(self):
-        self.closing = True
-        with self.lock:
-            self.oq.close()
-            if self.context:
-                try:
-                    self.context.abort(grpc.StatusCode.CANCELLED, "service closed")
-                except Exception as ex:
-                    # ignore any exception when aborting
-                    self.logger.debug(f"exception aborting GRPC context: {secure_format_exception(ex)} ")
-                self.context = None
-            if self.channel:
-                try:
-                    self.channel.close()
-                except Exception as ex:
-                    self.logger.debug(f"exception closing GRPC channel: {secure_format_exception(ex)} ")
-                self.channel = None
+        pass
 
     def send_frame(self, frame: Union[bytes, bytearray, memoryview]):
-        try:
-            StreamConnection.seq_num += 1
-            seq = StreamConnection.seq_num
-            self.logger.debug(f"{self.side}: queued frame #{seq}")
-            self.oq.append(Frame(seq=seq, data=bytes(frame)))
-        except BaseException as ex:
-            raise CommError(CommError.ERROR, f"Error sending frame: {ex}")
+        pass
 
     def read_loop(self, msg_iter):
-        ct = threading.current_thread()
-        self.logger.debug(f"{self.side}: started read_loop in thread {ct.name}")
-        try:
-            for f in msg_iter:
-                if self.closing:
-                    break
-
-                assert isinstance(f, Frame)
-                self.logger.debug(f"{self.side} in {ct.name}: incoming frame #{f.seq}")
-                if self.frame_receiver:
-                    self.frame_receiver.process_frame(f.data)
-                else:
-                    self.logger.error(f"{self.side}: Frame receiver not registered for connection: {self.name}")
-        except Exception as ex:
-            if not self.closing:
-                self.logger.debug(f"{self.side}: exception {type(ex)} in read_loop")
-        if self.oq:
-            self.logger.debug(f"{self.side}: closing queue")
-            self.oq.close()
-        self.logger.debug(f"{self.side} in {ct.name}: done read_loop")
+        pass
 
     def generate_output(self):
-        ct = threading.current_thread()
-        self.logger.debug(f"{self.side}: generate_output in thread {ct.name}")
-        for i in self.oq:
-            assert isinstance(i, Frame)
-            self.logger.debug(f"{self.side}: outgoing frame #{i.seq}")
-            yield i
-        self.logger.debug(f"{self.side}: done generate_output in thread {ct.name}")
+        pass
 
 
 class Servicer(StreamerServicer):
@@ -128,37 +82,7 @@ class Servicer(StreamerServicer):
         self.logger = get_obj_logger(self)
 
     def Stream(self, request_iterator, context):
-        connection = None
-        oq = QQ()
-        t = None
-        ct = threading.current_thread()
-        conn_props = {
-            DriverParams.PEER_ADDR.value: context.peer(),
-            DriverParams.LOCAL_ADDR.value: get_address(self.server.connector.params),
-        }
-        cn_names = context.auth_context().get("x509_common_name")
-        if cn_names:
-            conn_props[DriverParams.PEER_CN.value] = cn_names[0].decode("utf-8")
-
-        try:
-            self.logger.debug(f"SERVER started Stream CB in thread {ct.name}")
-            connection = StreamConnection(oq, self.server.connector, conn_props, "SERVER", context=context)
-            self.logger.debug(f"SERVER created connection in thread {ct.name}")
-            self.server.driver.add_connection(connection)
-            self.logger.debug(f"SERVER created read_loop thread in thread {ct.name}")
-            t = threading.Thread(target=connection.read_loop, args=(request_iterator,), name="grpc_reader", daemon=True)
-            t.start()
-            yield from connection.generate_output()
-        except Exception as ex:
-            self.logger.error(f"Connection closed due to error: {secure_format_exception(ex)}")
-        finally:
-            if t is not None:
-                t.join()
-            if connection:
-                connection.close()
-                self.logger.debug(f"SERVER: closing connection {connection.name}")
-                self.server.driver.close_connection(connection)
-            self.logger.debug(f"SERVER: finished Stream CB in thread {ct.name}")
+        pass
 
 
 class Server:
@@ -193,12 +117,10 @@ class Server:
             self.logger.debug(error)
 
     def start(self):
-        self.grpc_server.start()
-        self.grpc_server.wait_for_termination()
+        pass
 
     def shutdown(self):
-        self.grpc_server.stop(grace=0.5)
-        self.grpc_server = None
+        pass
 
 
 class GrpcDriver(BaseDriver):
@@ -223,82 +145,25 @@ class GrpcDriver(BaseDriver):
 
     @staticmethod
     def supported_transports() -> List[str]:
-        should_use_aio = use_aio_grpc()
-        if should_use_aio is None:
-            # not specified
-            return ["grpc", "grpcs"]
-        elif should_use_aio:
-            # Yes - use AIO
-            return []
-        else:
-            # No - do not use AIO. Take over all grpc schemes!
-            return ["grpc", "grpcs", "agrpc", "agrpcs"]
+        pass
 
     @staticmethod
     def capabilities() -> Dict[str, Any]:
-        return {DriverCap.SEND_HEARTBEAT.value: True, DriverCap.SUPPORT_SSL.value: True}
+        pass
 
     def listen(self, connector: ConnectorInfo):
-        self.connector = connector
-        self.server = Server(self, connector, max_workers=self.max_workers, options=self.options)
-        self.server.start()
+        pass
 
     def connect(self, connector: ConnectorInfo):
-        self.logger.debug("CLIENT: trying connect ...")
-        params = connector.params
-        address = get_address(params)
-        conn_props = {DriverParams.PEER_ADDR.value: address}
-        connection = None
-        try:
-            secure = ssl_required(params)
-            if secure:
-                self.logger.debug("CLIENT: creating secure channel")
-                channel = grpc.secure_channel(
-                    address, options=self.options, credentials=get_grpc_client_credentials(params)
-                )
-                self.logger.info(f"created secure channel at {address}")
-            else:
-                self.logger.info("CLIENT: creating insecure channel")
-                channel = grpc.insecure_channel(address, options=self.options)
-                self.logger.info(f"created insecure channel at {address}")
-
-            stub = StreamerStub(channel)
-            self.logger.debug("CLIENT: got stub")
-            oq = QQ()
-            connection = StreamConnection(oq, connector, conn_props, "CLIENT", channel=channel)
-            self.add_connection(connection)
-            self.logger.debug("CLIENT: added connection")
-            received = stub.Stream(connection.generate_output())
-            connection.read_loop(received)
-        except grpc.FutureCancelledError:
-            self.logger.debug("RPC Cancelled")
-        except Exception as ex:
-            self.logger.info(f"CLIENT: connection done: {secure_format_exception(ex)}")
-        finally:
-            if connection:
-                connection.close()
-                self.close_connection(connection)
-        self.logger.info(f"CLIENT: finished connection {connection}")
+        pass
 
     @staticmethod
     def get_urls(scheme: str, resources: dict) -> (str, str):
-        secure = requires_secure_connection(resources)
-        if secure:
-            scheme = "grpcs"
-        return get_tcp_urls(scheme, resources)
+        pass
 
     def shutdown(self):
-        if self.closing:
-            return
-        self.closing = True
-        self.close_all()
-        if self.server:
-            self.server.shutdown()
+        pass
 
     @staticmethod
     def setup_grpc_env_var():
-        env = os.environ
-
-        # GRPC with fork issue: https://github.com/grpc/grpc/issues/28557
-        env.setdefault("GRPC_ENABLE_FORK_SUPPORT", "False")
-        env.setdefault("GRPC_POLL_STRATEGY", "poll")
+        pass

@@ -48,10 +48,7 @@ class AppDefinedModelPersistor(ModelPersistor, ComponentBase, ABC):
         pass
 
     def load_model(self, fl_ctx: FLContext) -> ModelLearnable:
-        self.fl_ctx = fl_ctx
-        model = self.read_model()
-        return make_model_learnable(weights=model, meta_props={})
+        pass
 
     def save_model(self, learnable: ModelLearnable, fl_ctx: FLContext):
-        self.fl_ctx = fl_ctx
-        self.write_model(learnable.get(ModelLearnableKey.WEIGHTS))
+        pass

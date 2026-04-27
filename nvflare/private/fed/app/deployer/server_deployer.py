@@ -52,14 +52,7 @@ class ServerDeployer:
             build_ctx: build context
 
         """
-        self.server_config = build_ctx["server_config"]
-        self.secure_train = build_ctx["secure_train"]
-        self.app_validator = build_ctx["app_validator"]
-        self.host = build_ctx["server_host"]
-        self.snapshot_persistor = build_ctx["snapshot_persistor"]
-        self.overseer_agent = build_ctx["overseer_agent"]
-        self.components = build_ctx["server_components"]
-        self.handlers = build_ctx["server_handlers"]
+        pass
 
     def create_fl_server(self, args, secure_train=False):
         """To create the FL Server.
@@ -71,29 +64,7 @@ class ServerDeployer:
         Returns: FL Server
 
         """
-        # We only deploy the first server right now .....
-        first_server = sorted(self.server_config)[0]
-        heart_beat_timeout = first_server.get("heart_beat_timeout", 600)
-        self.logger.info(f"server heartbeat timeout set to {heart_beat_timeout}")
-
-        if self.host:
-            target = first_server["service"].get("target", None)
-            first_server["service"]["target"] = self.host + ":" + target.split(":")[1]
-
-        services = FederatedServer(
-            project_name=first_server.get("name", ""),
-            min_num_clients=first_server.get("min_num_clients", 1),
-            max_num_clients=first_server.get("max_num_clients", 100),
-            cmd_modules=self.cmd_modules,
-            heart_beat_timeout=heart_beat_timeout,
-            args=args,
-            secure_train=secure_train,
-            snapshot_persistor=self.snapshot_persistor,
-            overseer_agent=self.overseer_agent,
-            shutdown_period=first_server.get("shutdown_period", 30.0),
-            check_engine_frequency=first_server.get("check_engine_frequency", 3.0),
-        )
-        return first_server, services
+        pass
 
     def deploy(self, args):
         """To deploy the FL server services.
@@ -104,48 +75,10 @@ class ServerDeployer:
         Returns: FL Server
 
         """
-        first_server, services = self.create_fl_server(args, secure_train=self.secure_train)
-        services.deploy(args, grpc_args=first_server, secure_train=self.secure_train)
-
-        job_runner = JobRunner(workspace_root=args.workspace)
-        workspace = Workspace(args.workspace, SiteType.SERVER, args.config_folder)
-        run_manager = RunManager(
-            server_name=SiteType.SERVER,
-            engine=services.engine,
-            job_id="",
-            workspace=workspace,
-            components=self.components,
-            handlers=self.handlers,
-        )
-        job_manager = self.components.get(SystemComponents.JOB_MANAGER)
-        services.engine.set_run_manager(run_manager)
-        services.engine.set_job_runner(job_runner, job_manager)
-
-        fed_event_runner = ServerFedEventRunner()
-        run_manager.add_handler(fed_event_runner)
-
-        run_manager.add_handler(job_runner)
-        run_manager.add_component(SystemComponents.JOB_RUNNER, job_runner)
-
-        with services.engine.new_context() as fl_ctx:
-            fl_ctx.set_prop(ReservedKey.RUN_ABORT_SIGNAL, Signal(), private=True, sticky=True)
-            fl_ctx.set_prop(FLContextKey.WORKSPACE_OBJECT, workspace, private=True)
-            fl_ctx.set_prop(FLContextKey.ARGS, args, private=True, sticky=True)
-            fl_ctx.set_prop(FLContextKey.SITE_OBJ, services, private=True, sticky=True)
-            services.engine.fire_event(EventType.SYSTEM_BOOTSTRAP, fl_ctx)
-
-            component_security_check(fl_ctx)
-
-            threading.Thread(target=self._start_job_runner, args=[job_runner, fl_ctx]).start()
-            services.status = ServerStatus.STARTED
-
-            services.engine.fire_event(EventType.SYSTEM_START, fl_ctx)
-            self.logger.info("deployed FLARE Server.")
-
-        return services
+        pass
 
     def _start_job_runner(self, job_runner, fl_ctx):
-        job_runner.run(fl_ctx)
+        pass
 
     def close(self):
         """To close the services."""

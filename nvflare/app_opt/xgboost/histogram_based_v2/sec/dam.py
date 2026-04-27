@@ -32,42 +32,22 @@ class DamEncoder:
         self.buffer = BytesIO()
 
     def add_int_array(self, value: List[int]):
-        self.entries.append((DATA_TYPE_INT_ARRAY, value))
+        pass
 
     def add_float_array(self, value: List[float]):
-        self.entries.append((DATA_TYPE_FLOAT_ARRAY, value))
+        pass
 
     def finish(self) -> bytes:
-        size = PREFIX_LEN
-        for entry in self.entries:
-            size += 16
-            size += len(entry[1]) * 8
-
-        self.write_str(SIGNATURE)
-        self.write_int64(size)
-        self.write_int64(self.data_set_id)
-
-        for entry in self.entries:
-            data_type, value = entry
-            self.write_int64(data_type)
-            self.write_int64(len(value))
-
-            for x in value:
-                if data_type == DATA_TYPE_INT_ARRAY:
-                    self.write_int64(x)
-                else:
-                    self.write_float(x)
-
-        return self.buffer.getvalue()
+        pass
 
     def write_int64(self, value: int):
-        self.buffer.write(struct.pack("q", value))
+        pass
 
     def write_float(self, value: float):
-        self.buffer.write(struct.pack("d", value))
+        pass
 
     def write_str(self, value: str):
-        self.buffer.write(value.encode("utf-8"))
+        pass
 
 
 class DamDecoder:
@@ -84,46 +64,22 @@ class DamDecoder:
             self.data_set_id = 0
 
     def is_valid(self):
-        return self.signature == SIGNATURE
+        pass
 
     def get_data_set_id(self):
-        return self.data_set_id
+        pass
 
     def decode_int_array(self) -> List[int]:
-        data_type = self.read_int64()
-        if data_type != DATA_TYPE_INT_ARRAY:
-            raise RuntimeError("Invalid data type for int array")
-
-        num = self.read_int64()
-        result = [0] * num
-        for i in range(num):
-            result[i] = self.read_int64()
-
-        return result
+        pass
 
     def decode_float_array(self):
-        data_type = self.read_int64()
-        if data_type != DATA_TYPE_FLOAT_ARRAY:
-            raise RuntimeError("Invalid data type for float array")
-
-        num = self.read_int64()
-        result = [0.0] * num
-        for i in range(num):
-            result[i] = self.read_float()
-
-        return result
+        pass
 
     def read_string(self, length: int) -> str:
-        result = self.buffer[self.pos : self.pos + length].decode("latin1")
-        self.pos += length
-        return result
+        pass
 
     def read_int64(self) -> int:
-        (result,) = struct.unpack_from("q", self.buffer, self.pos)
-        self.pos += 8
-        return result
+        pass
 
     def read_float(self) -> float:
-        (result,) = struct.unpack_from("d", self.buffer, self.pos)
-        self.pos += 8
-        return result
+        pass

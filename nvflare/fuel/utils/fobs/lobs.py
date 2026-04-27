@@ -49,24 +49,14 @@ class _Header:
 
     @classmethod
     def from_bytes(cls, buffer: bytes):
-        if len(buffer) < HEADER_LEN:
-            raise ValueError("Header too short")
-
-        marker, dot, size = HEADER_STRUCT.unpack_from(buffer, 0)
-        return _Header(marker, dot, size)
+        pass
 
     def to_bytes(self):
-        return HEADER_STRUCT.pack(self.marker, self.dot, self.size)
+        pass
 
 
 def _write_datum_header(stream: BinaryIO, marker, dot, datum_id: str, value_size: int):
-    datum_uuid = uuid.UUID(datum_id)
-    datum_id_bytes = datum_uuid.bytes
-    if len(datum_id_bytes) != DATUM_ID_LEN:
-        raise RuntimeError(f"program error: datum ID length should be {DATUM_ID_LEN} but got {len(datum_id_bytes)}")
-    header = _Header(marker, dot, DATUM_ID_LEN + value_size)
-    stream.write(header.to_bytes())
-    stream.write(datum_id_bytes)
+    pass
 
 
 def dump_to_stream(obj: Any, stream: BinaryIO, max_value_size=None, fobs_ctx: Optional[dict] = None):
@@ -91,49 +81,7 @@ def dump_to_stream(obj: Any, stream: BinaryIO, max_value_size=None, fobs_ctx: Op
     Returns: None
 
     """
-    mgr = DatumManager(max_value_size, fobs_ctx=fobs_ctx)
-    externalizer = Externalizer(mgr)
-    main_body = serialize(externalizer.externalize(obj), mgr)
-    header = _Header(MARKER_MAIN, 0, len(main_body))
-    stream.write(header.to_bytes())
-    stream.write(main_body)
-
-    datums = mgr.get_datums()
-    for datum_id, datum in datums.items():
-        if datum.restore_func is not None:
-            # restore original object state
-            restore_func = datum.restore_func
-            func_data = datum.restore_func_data
-            datum.restore_func_data = None
-            datum.restore_func = None
-            restore_func(mgr, datum, func_data)
-
-        if datum.datum_type == DatumType.TEXT:
-            # text representation is platform specific.
-            # we convert it to utf-8 based bytes, which is platform independent.
-            data_bytes = datum.value.encode("utf-8")
-            _write_datum_header(stream, MARKER_DATUM_TEXT, datum.dot, datum_id, len(data_bytes))
-            stream.write(data_bytes)
-        elif datum.datum_type == DatumType.BLOB:
-            _write_datum_header(stream, MARKER_DATUM_BLOB, datum.dot, datum_id, len(datum.value))
-            stream.write(datum.value)
-        else:
-            # file type:
-            file_path = datum.value
-            if not os.path.exists(file_path):
-                raise RuntimeError(f"{file_path} does not exist")
-
-            if not os.path.isfile(file_path):
-                raise RuntimeError(f"{file_path} is not a valid file")
-
-            file_size = os.path.getsize(file_path)
-            _write_datum_header(stream, MARKER_DATUM_FILE, datum.dot, datum_id, file_size)
-            with open(file_path, "rb") as f:
-                while True:
-                    bytes_read = f.read(MAX_BYTES_PER_READ)
-                    if not bytes_read:
-                        break
-                    stream.write(bytes_read)
+    pass
 
 
 def _get_datum_id(stream: BinaryIO, header: _Header):
@@ -150,20 +98,7 @@ def _get_datum_id(stream: BinaryIO, header: _Header):
     Returns: datum ID string
 
     """
-    # get datum_id:
-    if header.size < DATUM_ID_LEN:
-        raise RuntimeError(f"not enough data for datum ID: expect {DATUM_ID_LEN} bytes but got {header.size}")
-
-    uuid_bytes = stream.read(DATUM_ID_LEN)
-    if not uuid_bytes:
-        raise RuntimeError(f"cannot get {DATUM_ID_LEN} for datum ID")
-
-    if len(uuid_bytes) != DATUM_ID_LEN:
-        raise RuntimeError(f"expect {DATUM_ID_LEN} bytes for datum ID but got {len(uuid_bytes)}")
-
-    header.size -= DATUM_ID_LEN  # adjust the size in header to be length of remaining data
-    uuid_str = uuid_bytes.hex()  # this str version does not have "-" between parts
-    return str(uuid.UUID(uuid_str))  # this str version has "-" between parts
+    pass
 
 
 def _get_one_section(stream: BinaryIO, expect_datum: bool):
@@ -178,36 +113,7 @@ def _get_one_section(stream: BinaryIO, expect_datum: bool):
     Returns: a tuple of (header, datum_id, data_bytes)
 
     """
-    buf = stream.read(HEADER_LEN)
-    if not buf:
-        return None, None, None
-
-    if len(buf) != HEADER_LEN:
-        raise RuntimeError(f"cannot get {HEADER_LEN} header bytes")
-
-    header = _Header.from_bytes(buf)
-    if header.size <= 0:
-        raise RuntimeError(f"invalid size {header.size}")
-
-    if expect_datum:
-        if header.marker not in (MARKER_DATUM_BLOB, MARKER_DATUM_FILE, MARKER_DATUM_TEXT):
-            raise RuntimeError(f"expect datum but got {header.marker}")
-    else:
-        if header.marker != MARKER_MAIN:
-            raise RuntimeError(f"expect main but got {header.marker}")
-
-    datum_id = None
-    if expect_datum:
-        datum_id = _get_datum_id(stream, header)
-
-    data = stream.read(header.size)
-    if not data:
-        raise RuntimeError(f"cannot get {header.size} data bytes")
-
-    if len(data) != header.size:
-        raise RuntimeError(f"expect {header.size} bytes but got {len(data)}")
-
-    return header, datum_id, data
+    pass
 
 
 def get_datum_dir():
@@ -223,10 +129,7 @@ def get_datum_dir():
     closed.
 
     """
-    dir_name = ConfigService.get_str_var(name=DATUM_DIR_CONFIG_VAR, default=DEFAULT_DATUM_DIR)
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name, exist_ok=True)
-    return dir_name
+    pass
 
 
 def load_from_stream(stream: BinaryIO, fobs_ctx: Optional[dict] = None):
@@ -243,53 +146,7 @@ def load_from_stream(stream: BinaryIO, fobs_ctx: Optional[dict] = None):
     Returns: an object
 
     """
-    mgr = DatumManager(fobs_ctx=fobs_ctx)
-
-    # get main body
-    header, _, main_body = _get_one_section(stream, expect_datum=False)
-    if not header:
-        raise RuntimeError("invalid lobs content: missing main body")
-
-    # try to get datums
-    while True:
-        header, datum_id, body = _get_one_section(stream, expect_datum=True)
-        if not header:
-            # all done
-            break
-
-        assert isinstance(header, _Header)
-        if header.marker == MARKER_DATUM_TEXT:
-            # the body is utf-8 encoded bytes
-            text = body.decode("utf-8")
-            datum = Datum.text_datum(text, header.dot)
-        elif header.marker == MARKER_DATUM_BLOB:
-            datum = Datum.blob_datum(body, header.dot)
-        else:
-            # put the value in a file
-            datum_dir = get_datum_dir()
-            file_path = os.path.join(datum_dir, f"{datum_id}.dat")
-            with open(file_path, "wb") as f:
-                f.write(body)
-            datum = Datum.file_datum(file_path, header.dot)
-
-        datum.datum_id = datum_id
-        mgr.add_datum(datum)
-
-    # process datums if needed
-    datums = mgr.get_datums()
-    for datum in datums.values():
-        if not isinstance(datum, Datum):
-            raise RuntimeError(f"datum {datum} should be Datum but got {type(datum)}")
-
-        if datum.dot > 0:
-            # this datum needs processing
-            handler = get_dot_handler(datum.dot)
-            if not handler:
-                raise RuntimeError(f"cannot find handler for Datum Object Type {datum.dot}")
-            handler.process_datum(datum, mgr)
-    internalizer = Internalizer(mgr)
-    obj = deserialize(main_body, mgr)
-    return internalizer.internalize(obj)
+    pass
 
 
 def dump_to_bytes(obj: Any, buffer_list=False, max_value_size=None, fobs_ctx: Optional[dict] = None):
@@ -305,12 +162,7 @@ def dump_to_bytes(obj: Any, buffer_list=False, max_value_size=None, fobs_ctx: Op
     Returns: a bytes object
 
     """
-    if buffer_list:
-        bio = BufListStream()
-    else:
-        bio = io.BytesIO()
-    dump_to_stream(obj, bio, max_value_size, fobs_ctx=fobs_ctx)
-    return bio.getvalue()
+    pass
 
 
 def load_from_bytes(data: Union[bytes, list], fobs_ctx: Optional[dict] = None) -> Any:
@@ -323,12 +175,7 @@ def load_from_bytes(data: Union[bytes, list], fobs_ctx: Optional[dict] = None) -
     Returns: an object
 
     """
-    if isinstance(data, list):
-        stream = BufListStream(data)
-    else:
-        stream = io.BytesIO(data)
-
-    return load_from_stream(stream, fobs_ctx=fobs_ctx)
+    pass
 
 
 def dump_to_file(obj: Any, file_path: str, max_value_size=None, fobs_ctx: Optional[dict] = None):
@@ -344,8 +191,7 @@ def dump_to_file(obj: Any, file_path: str, max_value_size=None, fobs_ctx: Option
     Returns: None
 
     """
-    with open(file_path, "wb") as f:
-        dump_to_stream(obj, f, max_value_size, fobs_ctx=fobs_ctx)
+    pass
 
 
 def load_from_file(file_path: str, fobs_ctx: Optional[dict] = None) -> Any:
@@ -358,5 +204,4 @@ def load_from_file(file_path: str, fobs_ctx: Optional[dict] = None) -> Any:
     Returns: an object
 
     """
-    with open(file_path, "rb") as f:
-        return load_from_stream(f, fobs_ctx=fobs_ctx)
+    pass

@@ -29,44 +29,12 @@ class StatisticsPrivacyFilter(DXOFilter):
         self.result_cleanser_ids = result_cleanser_ids
 
     def get_cleansers(self, result_checker_ids: List[str], fl_ctx: FLContext) -> List[StatisticsPrivacyCleanser]:
-        filters = []
-        for cleanser_id in result_checker_ids:
-            c = fl_ctx.get_engine().get_component(cleanser_id)
-            # disabled component return None
-            if c:
-                if not isinstance(c, StatisticsPrivacyCleanser):
-                    msg = "component identified by {} type {} is not type of StatisticsPrivacyCleanser".format(
-                        cleanser_id, type(c)
-                    )
-                    raise ValueError(msg)
-                filters.append(c)
-        return filters
+        pass
 
     def process_dxo(self, dxo: DXO, shareable: Shareable, fl_ctx: FLContext) -> Union[None, DXO]:
-        if dxo.data_kind == DataKind.STATISTICS:
-            self.log_info(fl_ctx, "start StatisticsPrivacyFilter")
-            cleansers: List[StatisticsPrivacyCleanser] = self.get_cleansers(self.result_cleanser_ids, fl_ctx)
-
-            client_name = fl_ctx.get_identity_name()
-            self.log_info(fl_ctx, f"apply StatisticPrivacyFilter for client {client_name}")
-            dxo1 = self.filter_stats_statistics(dxo, client_name, cleansers)
-            self.log_info(fl_ctx, "end StatisticsPrivacyFilter")
-            return dxo1
+        pass
 
     def filter_stats_statistics(
         self, dxo: DXO, client_name: str, filters: List[StatisticsPrivacyCleanser]
     ) -> Optional[DXO]:
-        client_result = dxo.data
-        statistics_task = client_result[StC.STATISTICS_TASK_KEY]
-        statistics = fobs.loads(client_result[statistics_task])
-        statistics_modified = False
-        for f in filters:
-            (statistics, modified) = f.apply(statistics, client_name)
-            statistics_modified = statistics_modified or modified
-
-        dxo1 = dxo
-        if statistics_modified:
-            client_result[statistics_task] = fobs.dumps(statistics)
-            dxo1 = DXO(data_kind=DataKind.STATISTICS, data=client_result)
-
-        return dxo1
+        pass

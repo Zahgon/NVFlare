@@ -46,30 +46,17 @@ class TaskRegistry:
     @property
     def is_rank0(self) -> bool:
         """Whether this is the rank 0 process."""
-        return self.rank is None or self.rank == "0"
+        pass
 
     def _receive(self, timeout: Optional[float] = None) -> Task:
         """Receives a task using flare agent.
 
         This is only called on rank0.
         """
-        if not self.is_rank0:
-            raise RuntimeError("only rank0 should call _receive.")
-
-        task = self.flare_agent.get_task(timeout)
-
-        if task is None:
-            raise RuntimeError(f"no received task within timeout: {timeout}")
-
-        if task.data is None:
-            raise RuntimeError("no received task.data")
-
-        return task
+        pass
 
     def _set_task(self, task: Task):
-        self.received_task = task
-        self.task_name = task.task_name
-        self.cache_loaded = True
+        pass
 
     def get_task(self, timeout: Optional[float] = None) -> Optional[Task]:
         """Gets the cached received task.
@@ -81,10 +68,7 @@ class TaskRegistry:
         Returns:
             None if flare agent is None; or a Task object if task is available within timeout.
         """
-        if self.is_rank0 and not self.cache_loaded:
-            task = self._receive(timeout)
-            self._set_task(task)
-        return self.received_task
+        pass
 
     def get_sys_info(self) -> Dict:
         """Gets NVFlare system information.
@@ -92,7 +76,7 @@ class TaskRegistry:
         Returns:
             A dict of system information.
         """
-        return self.sys_info
+        pass
 
     def submit_task(self, data: Any, return_code: str = RC.OK) -> bool:
         """Submits result of the current task.
@@ -104,16 +88,11 @@ class TaskRegistry:
         Returns:
             whether the result is submitted successfully
         """
-        if not self.flare_agent or not self.task_name or self.received_task is None:
-            return False
-
-        return self.flare_agent.submit_result(result=data, rc=return_code)
+        pass
 
     def clear(self) -> None:
         """Clears the cached received task."""
-        self.received_task = None
-        self.task_name = ""
-        self.cache_loaded = False
+        pass
 
     def __str__(self):
         return f"{self.__class__.__name__}(config: {self.config.get_config()})"

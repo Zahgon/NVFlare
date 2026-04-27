@@ -54,56 +54,18 @@ class AddNoiseToMinMax(FLComponent, StatisticsPrivacyCleanser):
         self.validate_inputs()
 
     def validate_inputs(self):
-        for i in range(0, 2):
-            if self.noise_level[i] < 0 or self.noise_level[i] > 1.0:
-                raise ValueError(f"noise_level {self.noise_level}  is not within (0, 1)")
-        if self.noise_level[0] > self.noise_level[1]:
-            raise ValueError(
-                f"minimum noise level {self.noise_level[0]} should be less "
-                f"than maximum noise level {self.noise_level[1]}"
-            )
+        pass
 
     @staticmethod
     def _get_min_value(local_min_value: float, noise_level: Tuple):
-        r = random.uniform(noise_level[0], noise_level[1])
-        if local_min_value == 0:
-            min_value = -(1 - r) * 1e-5
-        else:
-            if local_min_value > 0:
-                min_value = local_min_value * (1 - r)
-            else:
-                min_value = local_min_value * (1 + r)
-
-        return min_value
+        pass
 
     @staticmethod
     def _get_max_value(local_max_value: float, noise_level: Tuple):
-        r = random.uniform(noise_level[0], noise_level[1])
-        if local_max_value == 0:
-            max_value = (1 + r) * 1e-5
-        else:
-            if local_max_value > 0:
-                max_value = local_max_value * (1 + r)
-            else:
-                max_value = local_max_value * (1 - r)
-
-        return max_value
+        pass
 
     def generate_noise(self, statistics: dict, statistic) -> dict:
-        noise_gen = self.noise_generators[statistic]
-        for ds_name in statistics[statistic]:
-            for feature_name in statistics[statistic][ds_name]:
-                local_value = statistics[statistic][ds_name][feature_name]
-                noise_value = noise_gen(local_value, self.noise_level)
-                statistics[statistic][ds_name][feature_name] = noise_value
-        return statistics
+        pass
 
     def apply(self, statistics: dict, client_name: str) -> Tuple[dict, bool]:
-        statistics_modified = False
-        for statistic in statistics:
-            if statistic in self.noise_generators:
-                self.logger.info(f"AddNoiseToMinMax on {statistic} for client {client_name}")
-                statistics = self.generate_noise(statistics, statistic)
-                statistics_modified = True
-
-        return statistics, statistics_modified
+        pass

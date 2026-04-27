@@ -131,93 +131,7 @@ class PTFileModelPersistor(ModelPersistor):
         # Existence is validated at runtime in load_model() when the job executes.
 
     def _initialize(self, fl_ctx: FLContext):
-        app_root = fl_ctx.get_prop(FLContextKey.APP_ROOT)
-        env = None
-        run_args = fl_ctx.get_prop(FLContextKey.ARGS)
-        if run_args:
-            env_config_file_name = os.path.join(app_root, run_args.env)
-            if os.path.exists(env_config_file_name):
-                try:
-                    with open(env_config_file_name) as file:
-                        env = json.load(file)
-                except Exception:
-                    self.system_panic(
-                        reason="error opening env config file {}".format(env_config_file_name), fl_ctx=fl_ctx
-                    )
-                    return
-
-        if env is not None:
-            if env.get(self.ckpt_dir_env_key, None):
-                fl_ctx.set_prop(AppConstants.LOG_DIR, env[self.ckpt_dir_env_key], private=True, sticky=True)
-            if env.get(self.ckpt_file_name_env_key) is not None:
-                fl_ctx.set_prop(
-                    AppConstants.CKPT_PRELOAD_PATH, env[self.ckpt_file_name_env_key], private=True, sticky=True
-                )
-
-        log_dir = fl_ctx.get_prop(AppConstants.LOG_DIR)
-        if log_dir:
-            self.log_dir = os.path.join(app_root, log_dir)
-        else:
-            self.log_dir = app_root
-
-        self._ckpt_save_path = os.path.join(self.log_dir, self.global_model_file_name)
-        self._best_ckpt_save_path = os.path.join(self.log_dir, self.best_global_model_file_name)
-
-        ckpt_preload_path = fl_ctx.get_prop(AppConstants.CKPT_PRELOAD_PATH)
-        if ckpt_preload_path:
-            self.ckpt_preload_path = os.path.join(app_root, ckpt_preload_path)
-
-        if not os.path.exists(self.log_dir):
-            os.makedirs(self.log_dir)
-
-        if isinstance(self.model, dict):
-            # Dict config: {"path": "module.Class", "args": {...}}
-            # Dynamically instantiate the model class
-            from nvflare.fuel.utils.class_utils import instantiate_class
-
-            class_path = self.model.get("path")
-            class_args = self.model.get("args", {})
-            if not class_path:
-                self.system_panic(reason="Dict model config must have 'path' key with class path", fl_ctx=fl_ctx)
-                return
-            try:
-                self.model = instantiate_class(class_path, class_args)
-            except Exception as e:
-                self.system_panic(
-                    reason=f"Failed to instantiate model class '{class_path}': {e}",
-                    fl_ctx=fl_ctx,
-                )
-                return
-            if not isinstance(self.model, torch.nn.Module):
-                self.system_panic(
-                    reason=f"expect model class '{class_path}' to be torch.nn.Module but got {type(self.model)}",
-                    fl_ctx=fl_ctx,
-                )
-                return
-        elif isinstance(self.model, str):
-            # treat it as model component ID
-            model_component_id = self.model
-            engine = fl_ctx.get_engine()
-            self.model = engine.get_component(model_component_id)
-            if not self.model:
-                self.system_panic(reason="cannot find model component '{}'".format(model_component_id), fl_ctx=fl_ctx)
-                return
-            if not isinstance(self.model, torch.nn.Module):
-                self.system_panic(
-                    reason="expect model component '{}' to be torch.nn.Module but got {}".format(
-                        model_component_id, type(self.model)
-                    ),
-                    fl_ctx=fl_ctx,
-                )
-                return
-        elif self.model and not isinstance(self.model, torch.nn.Module):
-            self.system_panic(
-                reason="expect model to be torch.nn.Module but got {}".format(type(self.model)), fl_ctx=fl_ctx
-            )
-            return
-
-        fl_ctx.sync_sticky()
-        fobs.register(TensorDecomposer)
+        pass
 
     def load_model(self, fl_ctx: FLContext) -> ModelLearnable:
         """Convert initialised model into Learnable/Model format.
@@ -228,141 +142,25 @@ class PTFileModelPersistor(ModelPersistor):
         Returns:
             Model: a Learnable/Model object
         """
-        src_file_name = None
-        if self.source_ckpt_file_full_name:
-            if os.path.isabs(self.source_ckpt_file_full_name):
-                ckpt_path = self.source_ckpt_file_full_name
-            else:
-                # Relative path: resolve against app's custom directory
-                app_root = fl_ctx.get_prop(FLContextKey.APP_ROOT)
-                ckpt_path = os.path.join(
-                    app_root, WorkspaceConstants.CUSTOM_FOLDER_NAME, self.source_ckpt_file_full_name
-                )
-            # Checkpoint MUST exist at runtime (fail fast to catch config errors)
-            if not os.path.exists(ckpt_path):
-                self.system_panic(
-                    reason=f"Source checkpoint not found: {ckpt_path}. " "Check that the checkpoint exists at runtime.",
-                    fl_ctx=fl_ctx,
-                )
-                return None
-            src_file_name = ckpt_path
-        elif self.ckpt_preload_path:
-            src_file_name = self.ckpt_preload_path
-
-        if src_file_name:
-            try:
-                device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                self.log_info(fl_ctx, f"Loading checkpoint from {src_file_name} on device {device}")
-                data = torch.load(src_file_name, map_location=device, weights_only=self.load_weights_only)
-                # "checkpoint may contain 'model', 'optimizer', 'lr_scheduler', etc. or only contain model dict directly."
-            except Exception:
-                self.log_exception(fl_ctx, "error loading checkpoint from {}".format(src_file_name))
-                self.system_panic(reason="cannot load model checkpoint", fl_ctx=fl_ctx)
-                return None
-        else:
-            # if no pretrained model provided, use the generated network weights from APP config
-            # note that, if set "determinism" in the config, the init model weights will always be the same
-            self.log_info(
-                fl_ctx,
-                f"Both source_ckpt_file_full_name and {AppConstants.CKPT_PRELOAD_PATH} are not provided. Using the default model weights initialized on the persistor side.",
-                fire_event=False,
-            )
-            try:
-                data = self.model.state_dict() if self.model is not None else OrderedDict()
-            except Exception:
-                self.log_exception(fl_ctx, "error getting state_dict from model object")
-                self.system_panic(reason="cannot create state_dict from model object", fl_ctx=fl_ctx)
-                return None
-
-        if self.model:
-            self.default_train_conf = {"train": {"model": type(self.model).__name__}}
-
-        self.persistence_manager = PTModelPersistenceFormatManager(
-            data, default_train_conf=self.default_train_conf, allow_numpy_conversion=self._allow_numpy_conversion
-        )
-        return self.persistence_manager.to_model_learnable(self.exclude_vars)
+        pass
 
     def _get_persistence_manager(self, fl_ctx: FLContext):
-        if not self.persistence_manager:
-            self.load_model(fl_ctx)
-
-        return self.persistence_manager
+        pass
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        if event == EventType.START_RUN:
-            self._initialize(fl_ctx)
-        elif event == AppEventType.GLOBAL_BEST_MODEL_AVAILABLE:
-            # save the current model as the best model, or the global best model if available
-            ml = fl_ctx.get_prop(AppConstants.GLOBAL_MODEL)
-            if ml:
-                self._get_persistence_manager(fl_ctx).update(ml)
-            self.save_model_file(self._best_ckpt_save_path)
+        pass
 
     def save_model_file(self, save_path: str):
-        save_dict = self.persistence_manager.to_persistence_dict()
-        torch.save(save_dict, save_path)
+        pass
 
     def save_model(self, ml: ModelLearnable, fl_ctx: FLContext):
-        self._get_persistence_manager(fl_ctx).update(ml)
-        self.save_model_file(self._ckpt_save_path)
+        pass
 
     def get_model(self, model_file: str, fl_ctx: FLContext) -> ModelLearnable:
-        inventory = self.get_model_inventory(fl_ctx)
-        if not inventory:
-            return None
-
-        desc = inventory.get(model_file)
-        if not desc:
-            return None
-
-        location = desc.location
-        return self._get_model_from_location(location, fl_ctx)
+        pass
 
     def _get_model_from_location(self, location, fl_ctx):
-        try:
-            # Use the "cpu" to load the global model weights, avoid GPU out of memory
-            device = "cpu"
-            data = torch.load(location, map_location=device, weights_only=self.load_weights_only)
-            persistence_manager = PTModelPersistenceFormatManager(
-                data, default_train_conf=self.default_train_conf, allow_numpy_conversion=self._allow_numpy_conversion
-            )
-            return persistence_manager.to_model_learnable(self.exclude_vars)
-        except Exception:
-            self.log_exception(fl_ctx, "error loading checkpoint from {}".format(location))
-            return None
+        pass
 
     def get_model_inventory(self, fl_ctx: FLContext) -> Dict[str, ModelDescriptor]:
-        model_inventory = {}
-
-        # Include source checkpoint if provided (supports external/pre-trained models)
-        if self.source_ckpt_file_full_name and os.path.exists(self.source_ckpt_file_full_name):
-            _, tail = os.path.split(self.source_ckpt_file_full_name)
-            model_inventory[tail] = ModelDescriptor(
-                name=self.source_ckpt_file_full_name,
-                location=self.source_ckpt_file_full_name,
-                model_format=self._get_persistence_manager(fl_ctx).get_persist_model_format(),
-                props={"source": "initial_ckpt"},
-            )
-
-        # Include training artifacts
-        location = os.path.join(self.log_dir, self.global_model_file_name)
-        if os.path.exists(location):
-            _, tail = os.path.split(self.global_model_file_name)
-            model_inventory[tail] = ModelDescriptor(
-                name=self.global_model_file_name,
-                location=location,
-                model_format=self._get_persistence_manager(fl_ctx).get_persist_model_format(),
-                props={},
-            )
-
-        location = os.path.join(self.log_dir, self.best_global_model_file_name)
-        if os.path.exists(location):
-            _, tail = os.path.split(self.best_global_model_file_name)
-            model_inventory[tail] = ModelDescriptor(
-                name=self.best_global_model_file_name,
-                location=location,
-                model_format=self._get_persistence_manager(fl_ctx).get_persist_model_format(),
-                props={},
-            )
-
-        return model_inventory
+        pass

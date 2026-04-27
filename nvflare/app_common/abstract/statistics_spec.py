@@ -122,7 +122,7 @@ class Statistics(InitFinalComponent, ABC):
         Returns: Dict
 
         """
-        return {}
+        pass
 
     @abstractmethod
     def features(self) -> Dict[str, List[Feature]]:
@@ -138,7 +138,7 @@ class Statistics(InitFinalComponent, ABC):
         Raises:
             NotImplementedError
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def count(self, dataset_name: str, feature_name: str) -> int:
@@ -155,7 +155,7 @@ class Statistics(InitFinalComponent, ABC):
             NotImplementedError
 
         """
-        raise NotImplementedError
+        pass
 
     def sum(self, dataset_name: str, feature_name: str) -> float:
         """Calculate local sums for given dataset and feature.
@@ -171,7 +171,7 @@ class Statistics(InitFinalComponent, ABC):
             configured to be calculated, no need to implement this method and NotImplementedError will not be raised.
 
         """
-        raise NotImplementedError
+        pass
 
     def mean(self, dataset_name: str, feature_name: str) -> float:
         """
@@ -188,7 +188,7 @@ class Statistics(InitFinalComponent, ABC):
 
         """
 
-        raise NotImplementedError
+        pass
 
     def stddev(self, dataset_name: str, feature_name: str) -> float:
         """Get local stddev value for given dataset and feature.
@@ -203,7 +203,7 @@ class Statistics(InitFinalComponent, ABC):
             NotImplementedError will be raised when stddev statistic is configured but not implemented. If the stddev is not
             configured to be calculated, no need to implement this method and NotImplementedError will not be raised.
         """
-        raise NotImplementedError
+        pass
 
     def variance_with_mean(
         self,
@@ -237,7 +237,7 @@ class Statistics(InitFinalComponent, ABC):
             configured to be calculated, no need to implement this method and NotImplementedError will not be raised.
         """
 
-        raise NotImplementedError
+        pass
 
     def histogram(
         self, dataset_name: str, feature_name: str, num_of_bins: int, global_min_value: float, global_max_value: float
@@ -257,7 +257,7 @@ class Statistics(InitFinalComponent, ABC):
              is not configured to be calculated, no need to implement this method and NotImplementedError will not be raised.
         """
 
-        raise NotImplementedError
+        pass
 
     def max_value(self, dataset_name: str, feature_name: str) -> float:
         """Returns max value.
@@ -280,7 +280,7 @@ class Statistics(InitFinalComponent, ABC):
             no need to implement this method and NotImplementedError will not be raised.
         """
 
-        raise NotImplementedError
+        pass
 
     def min_value(self, dataset_name: str, feature_name: str) -> float:
         """Returns min value.
@@ -303,7 +303,7 @@ class Statistics(InitFinalComponent, ABC):
             no need to implement this method and NotImplementedError will not be raised.
         """
 
-        raise NotImplementedError
+        pass
 
     def failure_count(self, dataset_name: str, feature_name: str) -> int:
         """Return failed count for given dataset and feature.
@@ -316,7 +316,7 @@ class Statistics(InitFinalComponent, ABC):
 
         Returns: number of failure records, default to 0
         """
-        return 0
+        pass
 
     def quantiles(self, dataset_name: str, feature_name: str, percentiles: List) -> Dict:
         """Return failed count for given dataset and feature.
@@ -329,7 +329,7 @@ class Statistics(InitFinalComponent, ABC):
             percentiles: List[Int] ex [25,50, 75] corresponding to p25, p50, p75
         Returns: dict
         """
-        raise NotImplementedError
+        pass
 
     def finalize(self, fl_ctx: FLContext):
         """Called to finalize the Statistic calculator (close/release resources gracefully).

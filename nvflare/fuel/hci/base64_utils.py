@@ -17,14 +17,12 @@ import base64
 
 def bytes_to_b64str(data_bytes) -> str:
     """Convert binary to base64-encoded string."""
-    encoded_bytes = base64.b64encode(data_bytes)
-    return encoded_bytes.decode("ascii")
+    pass
 
 
 def b64str_to_bytes(b64str: str) -> bytes:
     """Convert base64-encoded string to binary."""
-    encoded_bytes = b64str.encode("ascii")
-    return base64.b64decode(encoded_bytes)
+    pass
 
 
 def binary_file_to_b64str(file_name) -> str:
@@ -36,8 +34,7 @@ def binary_file_to_b64str(file_name) -> str:
     Returns: base64-encoded ASCII string
 
     """
-    data_bytes = open(file_name, "rb").read()
-    return bytes_to_b64str(data_bytes)
+    pass
 
 
 def b64str_to_binary_file(b64str: str, file_name):
@@ -50,10 +47,7 @@ def b64str_to_binary_file(b64str: str, file_name):
     Returns: number of bytes written
 
     """
-    data_bytes = b64str_to_bytes(b64str)
-    with open(file_name, "wb") as f:
-        f.write(data_bytes)
-    return len(data_bytes)
+    pass
 
 
 def text_file_to_b64str(file_name) -> str:
@@ -65,18 +59,15 @@ def text_file_to_b64str(file_name) -> str:
     Returns: base64-encoded string
 
     """
-    data_string = open(file_name, "r").read()
-    return str_to_b64str(data_string)
+    pass
 
 
 def str_to_b64str(s: str) -> str:
-    data_bytes = s.encode("utf-8")
-    return bytes_to_b64str(data_bytes)
+    pass
 
 
 def b64str_to_str(b64str: str) -> str:
-    data_bytes = b64str_to_bytes(b64str)
-    return data_bytes.decode("utf-8")
+    pass
 
 
 def b64str_to_text_file(b64str: str, file_name):
@@ -89,8 +80,4 @@ def b64str_to_text_file(b64str: str, file_name):
     Returns: number of data types written (may not be the same as number of characters)
 
     """
-    data_bytes = b64str_to_bytes(b64str)
-    data_string = data_bytes.decode("utf-8")
-    with open(file_name, "w") as f:
-        f.write(data_string)
-    return len(data_bytes)
+    pass

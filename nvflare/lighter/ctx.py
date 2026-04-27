@@ -52,87 +52,58 @@ class ProvisionContext(dict):
         self[CtxKey.WARNINGS] = []
 
     def get_project(self) -> Project:
-        return self.get(CtxKey.PROJECT)
+        pass
 
     def load_templates(self, temp_files: Union[str, List[str]]):
-        if not temp_files:
-            return
-
-        if isinstance(temp_files, str):
-            temp_files = [temp_files]
-        elif not isinstance(temp_files, list):
-            raise ValueError(f"temp_files must be str or List[str] but got {type(temp_files)}")
-
-        prov_folder = os.path.dirname(prov.__file__)
-        temp_folder = os.path.join(prov_folder, "templates")
-
-        loaded = self[CtxKey.TEMP_FILES_LOADED]
-        template = self[CtxKey.TEMPLATE]
-        for f in temp_files:
-            if f not in loaded:
-                template.update(load_yaml(os.path.join(temp_folder, f)))
-                loaded.append(f)
+        pass
 
     def get_template_section(self, section_key: str):
-        template = self.get(CtxKey.TEMPLATE)
-        if not template:
-            raise RuntimeError("template is not available")
-
-        section = template.get(section_key)
-        if not section:
-            raise RuntimeError(f"missing section {section_key} in template")
-
-        return section
+        pass
 
     def set_provision_mode(self, mode: str):
-        valid_modes = [ProvisionMode.POC, ProvisionMode.NORMAL]
-        if mode not in valid_modes:
-            raise ValueError(f"invalid provision mode {mode}: must be one of {valid_modes}")
-        self[CtxKey.PROVISION_MODE] = mode
+        pass
 
     def get_provision_mode(self):
-        return self.get(CtxKey.PROVISION_MODE)
+        pass
 
     def set_logger(self, logger):
-        self[CtxKey.LOGGER] = logger
+        pass
 
     def get_logger(self):
-        return self.get(CtxKey.LOGGER)
+        pass
 
     def get_wip_dir(self):
-        return self.get(CtxKey.WIP)
+        pass
 
     def get_ws_dir(self, entity: Entity):
-        return os.path.join(self.get_wip_dir(), entity.name)
+        pass
 
     def get_kit_dir(self, entity: Entity):
-        return os.path.join(self.get_ws_dir(entity), "startup")
+        pass
 
     def get_transfer_dir(self, entity: Entity):
-        return os.path.join(self.get_ws_dir(entity), "transfer")
+        pass
 
     def get_local_dir(self, entity: Entity):
-        return os.path.join(self.get_ws_dir(entity), "local")
+        pass
 
     def get_state_dir(self):
-        return self.get(CtxKey.STATE)
+        pass
 
     def get_workspace(self):
-        return self.get(CtxKey.WORKSPACE)
+        pass
 
     def get_errors(self) -> List[str]:
-        return list(self.get(CtxKey.ERRORS, []))
+        pass
 
     def get_warnings(self) -> List[str]:
-        return list(self.get(CtxKey.WARNINGS, []))
+        pass
 
     def yaml_load_template_section(self, section_key: str, replacement=None):
-        section = self.build_section_from_template(section_key, replacement)
-        return yaml.safe_load(section)
+        pass
 
     def json_load_template_section(self, section_key: str, replacement=None):
-        section = self.build_section_from_template(section_key, replacement)
-        return json.loads(section)
+        pass
 
     def build_from_template(
         self,
@@ -159,8 +130,7 @@ class ProvisionContext(dict):
             cb_kwargs: additional keyword arguments for the callback
 
         """
-        section = self.build_section_from_template(temp_section, replacement, content_modify_cb, **cb_kwargs)
-        utils.write(os.path.join(dest_dir, file_name), section, mode, exe=exe)
+        pass
 
     def build_section_from_template(
         self,
@@ -169,62 +139,19 @@ class ProvisionContext(dict):
         content_modify_cb=None,
         **cb_kwargs,
     ):
-        if isinstance(temp_section, str):
-            temp_section = [temp_section]
-        elif not isinstance(temp_section, list):
-            raise ValueError(f"temp_section must be str or List[str] but got {type(temp_section)}")
-
-        section = ""
-        for s in temp_section:
-            section += self.get_template_section(s)
-
-        if replacement:
-            section = utils.sh_replace(section, replacement)
-        if content_modify_cb:
-            section = content_modify_cb(section, **cb_kwargs)
-        return section
+        pass
 
     def info(self, msg: str):
-        logger = self.get_logger()
-        if logger:
-            logger.info(msg)
-        else:
-            from nvflare.tool.cli_output import _is_json_mode
-
-            stream = sys.stderr if _is_json_mode() else sys.stdout
-            print(f"INFO: {msg}", file=stream)
+        pass
 
     def error(self, msg: str):
-        self[CtxKey.ERRORS].append(msg)
-        logger = self.get_logger()
-        if logger:
-            logger.error(msg)
-        else:
-            from nvflare.tool.cli_output import _is_json_mode
-
-            if not _is_json_mode():
-                print(f"ERROR: {msg}", file=sys.stderr)
+        pass
 
     def debug(self, msg: str):
-        logger = self.get_logger()
-        if logger:
-            logger.debug(msg)
-        else:
-            from nvflare.tool.cli_output import _is_json_mode
-
-            stream = sys.stderr if _is_json_mode() else sys.stdout
-            print(f"DEBUG: {msg}", file=stream)
+        pass
 
     def warning(self, msg: str):
-        self[CtxKey.WARNINGS].append(msg)
-        logger = self.get_logger()
-        if logger:
-            logger.warning(msg)
-        else:
-            from nvflare.tool.cli_output import _is_json_mode
-
-            if not _is_json_mode():
-                print(f"WARNING: {msg}", file=sys.stderr)
+        pass
 
     def get_result_location(self) -> Optional[str]:
         """Get the directory of the provision result.
@@ -233,4 +160,4 @@ class ProvisionContext(dict):
         Returns: the name of the directory that holds the provisioned result.
 
         """
-        return self.get(CtxKey.CURRENT_PROD_DIR)
+        pass

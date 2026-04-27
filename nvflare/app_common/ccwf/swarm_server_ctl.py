@@ -71,32 +71,7 @@ class SwarmServerController(ServerSideController):
         self.train_clients = train_clients
 
     def start_controller(self, fl_ctx: FLContext):
-        super().start_controller(fl_ctx)
-
-        self.train_clients = validate_candidates(
-            var_name="train_clients",
-            candidates=self.train_clients,
-            base=self.participating_clients,
-            default_policy=DefaultValuePolicy.ALL,
-            allow_none=False,
-        )
-
-        self.aggr_clients = validate_candidates(
-            var_name="aggr_clients",
-            candidates=self.aggr_clients,
-            base=self.participating_clients,
-            default_policy=DefaultValuePolicy.ALL,
-            allow_none=False,
-        )
-
-        # make sure every participating client is either training or aggr client
-        for c in self.participating_clients:
-            if c not in self.train_clients and c not in self.aggr_clients:
-                raise RuntimeError(f"Config Error:  client {c} is neither train client nor aggr client")
-
-        # set train_clients as a sticky prop in fl_ctx
-        # in case CSE (cross site eval) workflow follows, it will know that only training clients have local models
-        fl_ctx.set_prop(key=Constant.PROP_KEY_TRAIN_CLIENTS, value=self.train_clients, private=True, sticky=True)
+        pass
 
     def prepare_config(self):
-        return {Constant.AGGR_CLIENTS: self.aggr_clients, Constant.TRAIN_CLIENTS: self.train_clients}
+        pass

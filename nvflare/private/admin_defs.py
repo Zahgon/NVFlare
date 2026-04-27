@@ -44,54 +44,30 @@ class Message(object):
         self.headers = {}
 
     def set_header(self, key, value):
-        self.headers[key] = value
+        pass
 
     def set_meta(self, meta: dict):
-        meta_str = json.dumps(meta)
-        self.set_header(MsgHeader.META, meta_str)
+        pass
 
     def get_meta(self):
-        meta_str = self.get_header(MsgHeader.META, None)
-        if meta_str:
-            return json.loads(meta_str)
-        else:
-            return None
+        pass
 
     def set_headers(self, headers: dict):
-        if not headers:
-            return
-        if not isinstance(headers, dict):
-            raise TypeError("headers must be dict but got {}".format(type(headers)))
-        if len(headers) > 0:
-            self.headers.update(headers)
+        pass
 
     def get_header(self, key, default=None):
-        return self.headers.get(key, default)
+        pass
 
     def get_ref_id(self, default=None):
-        return self.get_header(MsgHeader.REF_MSG_ID, default)
+        pass
 
     def set_ref_id(self, msg_id):
-        self.set_header(MsgHeader.REF_MSG_ID, msg_id)
+        pass
 
 
 def error_reply(err: str, meta: Optional[dict] = None) -> Message:
-    msg = Message(topic="reply", body=err)
-    msg.set_header(MsgHeader.RETURN_CODE, ReturnCode.ERROR)
-    if meta:
-        msg.set_meta(meta)
-    return msg
+    pass
 
 
 def ok_reply(topic=None, body=None, meta: Optional[dict] = None) -> Message:
-    if body is None:
-        body = "ok"
-
-    if topic is None:
-        topic = "reply"
-
-    msg = Message(topic=topic, body=body)
-    msg.set_header(MsgHeader.RETURN_CODE, ReturnCode.OK)
-    if meta:
-        msg.set_meta(meta)
-    return msg
+    pass

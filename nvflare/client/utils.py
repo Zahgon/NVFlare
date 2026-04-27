@@ -28,19 +28,7 @@ def numerical_params_diff(original: Dict, new: Dict) -> Dict:
         A dict with common keys that exist in both original dict and new dict,
         values are the difference between original and new.
     """
-    diff_dict = {}
-    for k in original:
-        if k not in new:
-            continue
-        if isinstance(new[k], list) and isinstance(original[k], list):
-            diff = [new[k][i] - original[k][i] for i in range(len(new[k]))]
-        else:
-            diff = new[k] - original[k]
-
-        diff_dict[k] = diff
-    if diff_dict == {}:
-        raise RuntimeError("no common keys between original and new dict, parameters difference are empty.")
-    return diff_dict
+    pass
 
 
 DIFF_FUNCS = {ExchangeFormat.PYTORCH: numerical_params_diff, ExchangeFormat.NUMPY: numerical_params_diff}

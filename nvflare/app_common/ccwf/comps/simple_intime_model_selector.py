@@ -45,89 +45,16 @@ class SimpleIntimeModelSelector(Widget):
         self._reset_stats()
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._startup()
-        elif event_type == AppEventType.ROUND_STARTED:
-            self._reset_stats()
-        elif event_type == AppEventType.BEFORE_CONTRIBUTION_ACCEPT:
-            self._before_accept(fl_ctx)
-        elif event_type == AppEventType.BEFORE_AGGREGATION:
-            self._before_aggregate(fl_ctx)
+        pass
 
     def _startup(self):
-        self._reset_stats()
+        pass
 
     def _reset_stats(self):
-        self.validation_metric_weighted_sum = 0
-        self.validation_metric_sum_of_weights = 0
+        pass
 
     def _before_accept(self, fl_ctx: FLContext):
-        peer_ctx = fl_ctx.get_peer_context()
-        shareable: Shareable = fl_ctx.get_prop(AppConstants.TRAINING_RESULT)
-        try:
-            dxo = from_shareable(shareable)
-        except:
-            self.log_exception(fl_ctx, "shareable data is not a valid DXO")
-            return False
-
-        if dxo.data_kind not in (DataKind.WEIGHT_DIFF, DataKind.WEIGHTS, DataKind.COLLECTION):
-            self.log_debug(fl_ctx, "cannot handle {}".format(dxo.data_kind))
-            return False
-
-        if dxo.data is None:
-            self.log_debug(fl_ctx, "no data to filter")
-            return False
-
-        contribution_round = shareable.get_cookie(AppConstants.CONTRIBUTION_ROUND)
-        client_name = peer_ctx.get_identity_name(default="?")
-
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-
-        if current_round == 0:
-            self.log_debug(fl_ctx, "skipping round 0")
-            return False  # There is no aggregated model at round 0
-
-        if contribution_round != current_round:
-            self.log_warning(
-                fl_ctx,
-                f"discarding shareable from {client_name} for round: {contribution_round}. Current round is: {current_round}",
-            )
-            return False
-
-        validation_metric = dxo.get_meta_prop(self.validation_metric_name)
-        if validation_metric is None:
-            self.log_debug(fl_ctx, f"validation metric not existing in {client_name}")
-            return False
-        else:
-            self.log_info(fl_ctx, f"validation metric {validation_metric} from client {client_name}")
-
-        if self.weigh_by_local_iter:
-            n_iter = dxo.get_meta_prop(MetaKey.NUM_STEPS_CURRENT_ROUND, 1.0)
-        else:
-            n_iter = 1.0
-
-        aggregation_weights = self.aggregation_weights.get(client_name, 1.0)
-        self.log_debug(fl_ctx, f"aggregation weight: {aggregation_weights}")
-
-        weight = n_iter * aggregation_weights
-        self.validation_metric_weighted_sum += validation_metric * weight
-        self.validation_metric_sum_of_weights += weight
-        return True
+        pass
 
     def _before_aggregate(self, fl_ctx):
-        if self.validation_metric_sum_of_weights == 0:
-            self.log_debug(fl_ctx, "nothing accumulated")
-            return False
-        self.val_metric = self.validation_metric_weighted_sum / self.validation_metric_sum_of_weights
-        self.logger.debug(f"weighted validation metric {self.val_metric}")
-        if self.val_metric > self.best_val_metric:
-            self.best_val_metric = self.val_metric
-            current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-            self.log_info(fl_ctx, f"new best validation metric at round {current_round}: {self.best_val_metric}")
-
-            # Fire event to notify that the current global model is a new best
-            fl_ctx.set_prop(AppConstants.VALIDATION_RESULT, self.best_val_metric, private=True, sticky=False)
-            self.fire_event(AppEventType.GLOBAL_BEST_MODEL_AVAILABLE, fl_ctx)
-
-        self._reset_stats()
-        return True
+        pass

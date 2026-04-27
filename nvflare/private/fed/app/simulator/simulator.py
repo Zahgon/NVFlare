@@ -25,46 +25,11 @@ from nvflare.private.fed.app.utils import version_check
 
 
 def define_simulator_parser(simulator_parser):
-    simulator_parser.add_argument("job_folder")
-    simulator_parser.add_argument("-w", "--workspace", type=str, help="WORKSPACE folder")
-    simulator_parser.add_argument("-n", "--n_clients", type=int, help="number of clients")
-    simulator_parser.add_argument("-c", "--clients", type=str, help="client names list")
-    simulator_parser.add_argument("-t", "--threads", type=int, help="number of parallel running clients")
-    simulator_parser.add_argument("-gpu", "--gpu", type=str, help="list of GPU Device Ids, comma separated")
-    simulator_parser.add_argument(
-        "-l",
-        "--log_config",
-        type=str,
-        default=None,
-        help="log config mode ('concise', 'msg_only', 'full', 'verbose'), filepath, or level",
-    )
-    simulator_parser.add_argument("-m", "--max_clients", type=int, default=100, help="max number of clients")
-    simulator_parser.add_argument(
-        "--end_run_for_all",
-        default=False,
-        action="store_true",
-        help="flag to indicate if running END_RUN event for all clients",
-    )
+    pass
 
 
 def run_simulator(simulator_args):
-    log_config = simulator_args.log_config
-    if log_config is None:
-        log_config = os.environ.get(FL_LOG_LEVEL, LogMode.CONCISE)
-    simulator = SimulatorRunner(
-        job_folder=simulator_args.job_folder,
-        workspace=simulator_args.workspace,
-        clients=simulator_args.clients,
-        n_clients=simulator_args.n_clients,
-        threads=simulator_args.threads,
-        gpu=simulator_args.gpu,
-        log_config=log_config,
-        max_clients=simulator_args.max_clients,
-        end_run_for_all=simulator_args.end_run_for_all,
-    )
-    run_status = simulator.run()
-
-    return run_status
+    pass
 
 
 if __name__ == "__main__":

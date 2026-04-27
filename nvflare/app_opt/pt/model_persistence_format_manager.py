@@ -78,54 +78,13 @@ class PTModelPersistenceFormatManager(object):
         self._allow_numpy_conversion = allow_numpy_conversion
 
     def _get_processed_vars(self) -> dict:
-        if self.meta:
-            return self.meta.get(MetaKey.PROCESSED_KEYS, {})
-        else:
-            return {}
+        pass
 
     def to_model_learnable(self, exclude_vars) -> ModelLearnable:
-        processed_vars = self._get_processed_vars()
-
-        weights = {}
-        for k, v in self.var_dict.items():
-            if exclude_vars and exclude_vars.search(k):
-                continue
-
-            is_processed = processed_vars.get(k, False)
-            if not is_processed and self._allow_numpy_conversion:
-                # convert to numpy
-                # BFloat16 is not supported by numpy, convert to float32 first
-                if v.dtype == torch.bfloat16:
-                    weights[k] = v.cpu().to(torch.float32).numpy()
-                else:
-                    weights[k] = v.cpu().numpy()
-            else:
-                weights[k] = v
-
-        return make_model_learnable(weights, self.meta)
+        pass
 
     def to_persistence_dict(self) -> dict:
-        processed_vars = self._get_processed_vars()
-        weights_dict = OrderedDict()
-        for k, v in self.var_dict.items():
-            is_processed = processed_vars.get(k, False)
-            if not is_processed and self._allow_numpy_conversion:
-                # convert back to tensor
-                weights_dict[k] = torch.as_tensor(v)
-            else:
-                weights_dict[k] = v
-
-        # always use complex format for saving
-        persistence_dict = OrderedDict()
-        persistence_dict[self.PERSISTENCE_KEY_MODEL] = weights_dict
-        if self.meta:
-            persistence_dict[self.PERSISTENCE_KEY_META_PROPS] = self.meta
-        if self.train_conf:
-            persistence_dict[self.PERSISTENCE_KEY_TRAIN_CONF] = self.train_conf
-        if self.other_props:
-            for k, v in self.other_props.items():
-                persistence_dict[k] = v
-        return persistence_dict
+        pass
 
     def update(self, ml: ModelLearnable):
         """Update the persistence data with the learned values.
@@ -144,28 +103,8 @@ class PTModelPersistenceFormatManager(object):
             subset of checkpoint keys that the client actually trained. The
             original persisted weights for untouched keys are preserved.
         """
-        err = validate_model_learnable(ml)
-        if err:
-            raise ValueError(err)
-        self.meta = ml.get(ModelLearnableKey.META, None)
-
-        # update with value of the model learnable
-        # note that the original weights that are not learned are still kept!
-        learned_weights = ml.get(ModelLearnableKey.WEIGHTS, {})
-        report = inspect_model_params(self.var_dict, learned_weights)
-
-        if report.shape_mismatches:
-            raise ValueError(report.format_shape_mismatch_error())
-
-        if learned_weights and not report.matched_keys:
-            raise ValueError(report.format_zero_match_error())
-
-        if report.unexpected_keys:
-            raise ValueError(report.format_unexpected_keys_error())
-
-        for k, v in learned_weights.items():
-            self.var_dict[k] = v
+        pass
 
     @staticmethod
     def get_persist_model_format():
-        return ModelFormat.PT_CHECKPOINT
+        pass

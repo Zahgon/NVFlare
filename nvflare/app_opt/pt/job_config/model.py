@@ -82,62 +82,12 @@ class PTModel:
         Returns:
             dictionary of ids of component added
         """
-        # Handle nn.Module instance
-        if isinstance(self.model, nn.Module):
-            persistor = self._create_persistor_for_module()
-            persistor_id = job.add_component(comp_id="persistor", obj=persistor, ctx=ctx)
-
-            locator = self.locator if self.locator else PTFileModelLocator(pt_persistor_id=persistor_id)
-            locator_id = job.add_component(comp_id="locator", obj=locator, ctx=ctx)
-            return {"persistor_id": persistor_id, "locator_id": locator_id}
-
-        # Handle dict config {"path": "...", "args": {...}}
-        elif isinstance(self.model, dict):
-            # TODO: Future enhancement - when dict config is used, we currently create a PTFileModelPersistor
-            # instance that will dynamically instantiate the model at runtime. Consider enhancing Job API to
-            # allow passing dict config directly to job.add_component() without pre-creating the persistor,
-            # which would simplify the internal implementation for dict-based models.
-            persistor = self._create_persistor_for_dict_config()
-            persistor_id = job.add_component(comp_id="persistor", obj=persistor, ctx=ctx)
-
-            locator = self.locator if self.locator else PTFileModelLocator(pt_persistor_id=persistor_id)
-            locator_id = job.add_component(comp_id="locator", obj=locator, ctx=ctx)
-            return {"persistor_id": persistor_id, "locator_id": locator_id}
-
-        else:
-            raise ValueError(
-                f"Unable to add {self.model} to job. Expected nn.Module or dict config, " f"but got {type(self.model)}."
-            )
+        pass
 
     def _create_persistor_for_module(self) -> ModelPersistor:
         """Create persistor for nn.Module model."""
-        if self.persistor:
-            return self.persistor
-
-        persistor_kwargs = {
-            "model": self.model,
-            "allow_numpy_conversion": self.allow_numpy_conversion,
-        }
-
-        # Add checkpoint path if provided
-        if self.initial_ckpt:
-            persistor_kwargs["source_ckpt_file_full_name"] = self.initial_ckpt
-
-        return PTFileModelPersistor(**persistor_kwargs)
+        pass
 
     def _create_persistor_for_dict_config(self) -> ModelPersistor:
         """Create persistor for dict config model."""
-        if self.persistor:
-            return self.persistor
-
-        # For dict config, pass full dict with path and args (resolved at runtime via instantiate_class)
-        persistor_kwargs = {
-            "model": self.model,  # Pass full dict {"path": "...", "args": {...}}
-            "allow_numpy_conversion": self.allow_numpy_conversion,
-        }
-
-        # Add checkpoint path if provided
-        if self.initial_ckpt:
-            persistor_kwargs["source_ckpt_file_full_name"] = self.initial_ckpt
-
-        return PTFileModelPersistor(**persistor_kwargs)
+        pass

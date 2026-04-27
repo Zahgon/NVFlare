@@ -31,65 +31,13 @@ logger = get_module_logger(name="quantile_stats")
 
 def get_quantiles(stats: Dict, statistic_configs: Dict, precision: int):
 
-    logger.info(f"get_quantiles: stats: {TDIGEST_AVAILABLE=}")
-
-    if not TDIGEST_AVAILABLE:
-        return {}
-
-    global_digest = {}
-    for client_name in stats:
-        global_digest = merge_quantiles(stats[client_name], global_digest)
-
-    quantile_config = statistic_configs.get(StC.STATS_QUANTILE)
-    return compute_quantiles(global_digest, quantile_config, precision)
+    pass
 
 
 def merge_quantiles(metrics: Dict[str, Dict[str, Dict]], g_digest: dict) -> dict:
 
-    if not TDIGEST_AVAILABLE:
-        return g_digest
-
-    for ds_name in metrics:
-        if ds_name not in g_digest:
-            g_digest[ds_name] = {}
-
-        feature_metrics = metrics[ds_name]
-        for feature_name in feature_metrics:
-            if feature_metrics[feature_name] is not None:
-                digest_dict: Dict = feature_metrics[feature_name].get(StC.STATS_DIGEST_COORD)
-                if digest_dict:
-                    feature_digest = TDigest.from_dict(digest_dict)
-                    if feature_name not in g_digest[ds_name]:
-                        g_digest[ds_name][feature_name] = feature_digest
-                    else:
-                        g_digest[ds_name][feature_name] = g_digest[ds_name][feature_name].merge(feature_digest)
-                else:
-                    g_digest[ds_name][feature_name] = {}
-
-    return g_digest
+    pass
 
 
 def compute_quantiles(g_digest: dict, quantile_config: Dict, precision: int) -> Dict:
-    g_ds_metrics = {}
-    if not TDIGEST_AVAILABLE:
-        return g_digest
-
-    for ds_name in g_digest:
-        if ds_name not in g_ds_metrics:
-            g_ds_metrics[ds_name] = {}
-
-        feature_metrics = g_digest[ds_name]
-        for feature_name in feature_metrics:
-            digest = feature_metrics[feature_name]
-            percentiles = get_target_quantiles(quantile_config, feature_name)
-            quantile_values = {}
-            if digest:
-                for percentile in percentiles:
-                    quantile_values[percentile] = round(digest.quantile(percentile), precision)
-            else:
-                for percentile in percentiles:
-                    quantile_values[percentile] = None
-
-            g_ds_metrics[ds_name][feature_name] = quantile_values
-
-    return g_ds_metrics
+    pass

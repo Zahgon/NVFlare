@@ -22,4 +22,4 @@ def install_skills():
     Returns:
         dict: Summary with 'installed', 'skipped', and 'backed_up' lists.
     """
-    return {"installed": [], "skipped": [], "backed_up": []}
+    pass

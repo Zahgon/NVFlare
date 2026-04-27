@@ -55,19 +55,7 @@ class MsgHighWaterInfo:
         self.headers = None
 
     def update(self, size, msg: Message):
-        if size <= self.size:
-            return
-
-        self.size = size
-        self.timestamp = time.time()
-        self.topic = msg.get_header(MessageHeaderKey.TOPIC)
-        self.origin = msg.get_header(MessageHeaderKey.ORIGIN)
-        self.destination = msg.get_header(MessageHeaderKey.DESTINATION)
-        self.headers = copy.copy(msg.headers)
-
-        if size > _MSG_SIZE_HW_THRESHOLD:
-            info = f"from {self.origin} to {self.destination}: {size=} topic={self.topic} headers={self.headers}"
-            log.debug(f"{self.hw_type} Msg Size High Water: {info}")
+        pass
 
 
 # Some stats of msg size high water
@@ -76,58 +64,32 @@ _received_hw_info = MsgHighWaterInfo("Received")
 
 
 def new_cell_message(headers: dict, payload=None):
-    msg_headers = {}
-    if headers:
-        msg_headers.update(headers)
-    return Message(msg_headers, payload)
+    pass
 
 
 def make_reply(rc: str, error: str = "", body=None) -> Message:
-    headers = {MessageHeaderKey.RETURN_CODE: rc}
-    if error:
-        headers[MessageHeaderKey.ERROR] = error
-    return Message(headers, payload=body)
+    pass
 
 
 def shorten_string(string):
-    if len(string) > 8:
-        ss = ":" + string[-7:]
-    else:
-        ss = string
-    return ss
+    pass
 
 
 def buffer_len(buffer: Any):
 
-    if not buffer:
-        buf_len = 0
-    elif isinstance(buffer, list):
-        buf_len = BufferList(buffer).get_size()
-    else:
-        buf_len = len(buffer)
-
-    return buf_len
+    pass
 
 
 def shorten_fqcn(fqcn):
-    parts = fqcn.split(".")
-    s_fqcn = ".".join([shorten_string(p) for p in parts])
-    return s_fqcn
+    pass
 
 
 def get_msg_header_value(m, k):
-    return m.get_header(k, "?")
+    pass
 
 
 def format_log_message(fqcn: str, message: Message, log: str) -> str:
-    context = [f"[ME={shorten_fqcn(fqcn)}"]
-    for k, v in cell_mapping.items():
-        string = f"{k}={shorten_fqcn(get_msg_header_value(message, v))}"
-        context.append(string)
-    for k, v in msg_mapping.items():
-        string = f"{k}={get_msg_header_value(message, v)}"
-        context.append(string)
-    return " ".join(context) + f"] {log}"
+    pass
 
 
 def encode_payload(message: Message, encoding_key=MessageHeaderKey.PAYLOAD_ENCODING, fobs_ctx: dict = None) -> int:
@@ -147,51 +109,11 @@ def encode_payload(message: Message, encoding_key=MessageHeaderKey.PAYLOAD_ENCOD
     Returns: the encoded payload size.
 
     """
-    if isinstance(fobs_ctx, dict):
-        fobs_ctx[fobs.FOBSContextKey.MESSAGE] = message
-
-    encoding = message.get_header(encoding_key)
-    if not encoding:
-        if message.payload is None:
-            encoding = Encoding.NONE
-        elif isinstance(message.payload, (bytes, bytearray, memoryview)):
-            encoding = Encoding.BYTES
-        else:
-            encoding = Encoding.FOBS
-            message.payload = fobs.dumps(message.payload, buffer_list=True, fobs_ctx=fobs_ctx)
-        message.set_header(encoding_key, encoding)
-
-    size = buffer_len(message.payload)
-    message.set_header(MessageHeaderKey.PAYLOAD_LEN, size)
-
-    global _sent_hw_info
-    _sent_hw_info.update(size, message)
-
-    return size
+    pass
 
 
 def decode_payload(message: Message, encoding_key=MessageHeaderKey.PAYLOAD_ENCODING, fobs_ctx: dict = None):
-    if isinstance(fobs_ctx, dict):
-        fobs_ctx[fobs.FOBSContextKey.MESSAGE] = message
-
-    size = buffer_len(message.payload)
-    message.set_header(MessageHeaderKey.PAYLOAD_LEN, size)
-
-    global _received_hw_info
-    _received_hw_info.update(size, message)
-
-    encoding = message.get_header(encoding_key)
-    if not encoding:
-        return
-
-    if encoding == Encoding.FOBS:
-        message.payload = fobs.loads(message.payload, fobs_ctx=fobs_ctx)
-    elif encoding == Encoding.NONE:
-        message.payload = None
-    else:
-        # assume to be bytes
-        pass
-    message.remove_header(encoding_key)
+    pass
 
 
 def format_size(size, binary=False):
@@ -204,27 +126,4 @@ def format_size(size, binary=False):
     Returns: Size in human-readable format (like 10MB, 100.2GiB etc)
 
     """
-
-    if binary:
-        kilo = 1024.0
-        suffix = "iB"
-    else:
-        kilo = 1000.0
-        suffix = "B"
-
-    num = int(size)
-    unit_found = False
-    for unit in ("", "K", "M", "G", "T"):
-        if abs(num) < kilo:
-            unit_found = True
-            break
-        num /= kilo
-
-    if not unit_found:
-        unit = "P"
-
-    if not unit:
-        suffix = "B"
-
-    num_str = f"{num:.1f}".rstrip("0").rstrip(".")
-    return f"{num_str}{unit}{suffix}"
+    pass

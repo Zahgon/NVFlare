@@ -49,96 +49,22 @@ class LearnerExecutor(Executor):
         self.is_initialized = False
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABORT_TASK:
-            try:
-                if self.learner:
-                    if not self.unsafe:
-                        self.learner.abort(fl_ctx)
-                    else:
-                        self.log_warning(fl_ctx, f"skipped abort of unsafe learner {self.learner.__class__.__name__}")
-            except Exception as e:
-                self.log_exception(fl_ctx, f"learner abort exception: {secure_format_exception(e)}")
-        elif event_type == EventType.END_RUN:
-            if not self.unsafe:
-                self.finalize(fl_ctx)
-            elif self.learner:
-                self.log_warning(fl_ctx, f"skipped finalize of unsafe learner {self.learner.__class__.__name__}")
+        pass
 
     def initialize(self, fl_ctx: FLContext):
-        try:
-            engine = fl_ctx.get_engine()
-            self.learner = engine.get_component(self.learner_id)
-            if not isinstance(self.learner, Learner):
-                raise TypeError(f"learner must be Learner type. Got: {type(self.learner)}")
-            self.learner.initialize(engine.get_all_components(), fl_ctx)
-        except Exception as e:
-            self.log_exception(fl_ctx, f"learner initialize exception: {secure_format_exception(e)}")
-            raise e
+        pass
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        self.log_info(fl_ctx, f"Client trainer got task: {task_name}")
-        if not self.is_initialized:
-            self.is_initialized = True
-            self.initialize(fl_ctx)
-
-        if task_name == self.train_task:
-            return self.train(shareable, fl_ctx, abort_signal)
-        elif task_name == self.submit_model_task:
-            return self.submit_model(shareable, fl_ctx)
-        elif task_name == self.validate_task:
-            return self.validate(shareable, fl_ctx, abort_signal)
-        else:
-            self.log_error(fl_ctx, f"Could not handle task: {task_name}")
-            return make_reply(ReturnCode.TASK_UNKNOWN)
+        pass
 
     def train(self, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        self.log_debug(fl_ctx, f"train abort signal: {abort_signal.triggered}")
-
-        shareable.set_header(AppConstants.VALIDATE_TYPE, ValidateType.BEFORE_TRAIN_VALIDATE)
-        validate_result: Shareable = self.learner.validate(shareable, fl_ctx, abort_signal)
-
-        train_result = self.learner.train(shareable, fl_ctx, abort_signal)
-        if not (train_result and isinstance(train_result, Shareable)):
-            return make_reply(ReturnCode.EMPTY_RESULT)
-
-        # if the learner returned the valid BEFORE_TRAIN_VALIDATE result, set the INITIAL_METRICS in
-        # the train result, which can be used for best model selection.
-        if (
-            validate_result
-            and isinstance(validate_result, Shareable)
-            and validate_result.get_return_code() == ReturnCode.OK
-        ):
-            try:
-                metrics_dxo = from_shareable(validate_result)
-                train_dxo = from_shareable(train_result)
-                train_dxo.meta[MetaKey.INITIAL_METRICS] = metrics_dxo.data.get(MetaKey.INITIAL_METRICS, 0)
-                return train_dxo.to_shareable()
-            except ValueError:
-                return train_result
-        else:
-            return train_result
+        pass
 
     def submit_model(self, shareable: Shareable, fl_ctx: FLContext) -> Shareable:
-        model_name = shareable.get_header(AppConstants.SUBMIT_MODEL_NAME)
-        submit_model_result = self.learner.get_model_for_validation(model_name, fl_ctx)
-        if submit_model_result and isinstance(submit_model_result, Shareable):
-            return submit_model_result
-        else:
-            return make_reply(ReturnCode.EMPTY_RESULT)
+        pass
 
     def validate(self, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        self.log_debug(fl_ctx, f"validate abort_signal {abort_signal.triggered}")
-
-        shareable.set_header(AppConstants.VALIDATE_TYPE, ValidateType.MODEL_VALIDATE)
-        validate_result: Shareable = self.learner.validate(shareable, fl_ctx, abort_signal)
-        if validate_result and isinstance(validate_result, Shareable):
-            return validate_result
-        else:
-            return make_reply(ReturnCode.EMPTY_RESULT)
+        pass
 
     def finalize(self, fl_ctx: FLContext):
-        try:
-            if self.learner:
-                self.learner.finalize(fl_ctx)
-        except Exception as e:
-            self.log_exception(fl_ctx, f"learner finalize exception: {secure_format_exception(e)}")
+        pass

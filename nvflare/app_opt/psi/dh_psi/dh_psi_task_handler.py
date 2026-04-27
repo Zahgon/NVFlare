@@ -28,9 +28,7 @@ from nvflare.app_opt.psi.dh_psi.dh_psi_server import PSIServer
 
 
 def check_items_uniqueness(items):
-    duplicates = {item: count for item, count in collections.Counter(items).items() if count > 1}
-    if duplicates:
-        raise ValueError(f"the items must be unique, the following items with duplicates {duplicates}")
+    pass
 
 
 class DhPSITaskHandler(TaskHandler):
@@ -53,113 +51,25 @@ class DhPSITaskHandler(TaskHandler):
         self.local_psi_id = local_psi_id
 
     def initialize(self, fl_ctx: FLContext):
-        super().initialize(fl_ctx)
-        self.local_psi_handler = self.local_comp
+        pass
 
     def execute_task(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        client_name = fl_ctx.get_identity_name()
-        self.client_name = client_name
-        self.log_info(fl_ctx, f"Executing task '{task_name}' for {client_name}")
-
-        if PSIConst.TASK == task_name:
-            psi_stage_task = shareable.get(PSIConst.TASK_KEY)
-            self.log_info(fl_ctx, f"Executing psi_stage_task {psi_stage_task} for {client_name}")
-
-            if psi_stage_task == PSIConst.TASK_PREPARE:
-                self.bloom_filter_fpr = shareable[PSIConst.BLOOM_FILTER_FPR]
-                items = self.get_items()
-                self.psi_client = PSIClient(items)
-                self.psi_server = PSIServer(items, self.bloom_filter_fpr)
-                return self.get_items_size()
-            else:
-                if psi_stage_task == PSIConst.TASK_SETUP:
-                    return self.setup(shareable, client_name)
-                elif psi_stage_task == PSIConst.TASK_REQUEST:
-                    return self.create_request(shareable)
-                elif psi_stage_task == PSIConst.TASK_RESPONSE:
-                    return self.process_request(shareable)
-                elif psi_stage_task == PSIConst.TASK_INTERSECT:
-                    return self.calculate_intersection(shareable)
-        else:
-            raise RuntimeError(ReturnCode.TASK_UNKNOWN)
+        pass
 
     def create_request(self, shareable: Shareable):
-        setup_msg = shareable.get(PSIConst.SETUP_MSG)
-        self.psi_client.receive_setup(setup_msg)
-        request = self.psi_client.get_request(self.get_items())
-        result = Shareable()
-        result[PSIConst.REQUEST_MSG] = request
-        return result
+        pass
 
     def setup(self, shareable: Shareable, client_name: str):
-        items = self.get_items()
-        if len(items) == 0:
-            raise RuntimeError(f"site {client_name} doesn't have any items for to perform PSI")
-
-        # note, each interaction with client requires a new client,server keys to be secure.
-        self.psi_client = PSIClient(items)
-        self.psi_server = PSIServer(items, self.bloom_filter_fpr)
-
-        if PSIConst.ITEMS_SIZE in shareable:
-            target_item_size = shareable.get(PSIConst.ITEMS_SIZE)
-            setup_msg = self.psi_server.setup(target_item_size)
-            result = Shareable()
-            result[PSIConst.SETUP_MSG] = setup_msg
-            return result
-        elif PSIConst.ITEMS_SIZE_SET in shareable:
-            target_item_size_set = shareable.get(PSIConst.ITEMS_SIZE_SET)
-            result = Shareable()
-            setup_sets = {}
-            for client_iterm_size in target_item_size_set:
-                setup_msg = self.psi_server.setup(client_iterm_size)
-                setup_sets[str(client_iterm_size)] = setup_msg
-
-            result[PSIConst.SETUP_MSG] = setup_sets
-            return result
+        pass
 
     def get_items_size(self):
-        result = Shareable()
-        result[PSIConst.ITEMS_SIZE] = len(self.get_items())
-        return result
+        pass
 
     def process_request(self, shareable: Shareable):
-        if PSIConst.REQUEST_MSG in shareable:
-            request_msg = shareable.get(PSIConst.REQUEST_MSG)
-            response = self.psi_server.process_request(request_msg)
-            result = Shareable()
-            result[PSIConst.RESPONSE_MSG] = response
-            return result
-        elif PSIConst.REQUEST_MSG_SET in shareable:
-            request_msgs = shareable.get(PSIConst.REQUEST_MSG_SET)
-            result = Shareable()
-            client_responses = {}
-            for client_name in request_msgs:
-                response = self.psi_server.process_request(request_msgs[client_name])
-                client_responses[client_name] = response
-            result[PSIConst.RESPONSE_MSG] = client_responses
-        else:
-            raise ValueError(
-                "Required PSI Message PSIConst.PSI_REQUEST_MSG or PSIConst.PSI_REQUEST_MSG_SET is not provided"
-            )
-
-        return result
+        pass
 
     def calculate_intersection(self, shareable: Shareable):
-        response_msg = shareable.get(PSIConst.RESPONSE_MSG)
-        intersections = self.psi_client.get_intersection(response_msg)
-        self.intersects = intersections
-        self.local_psi_handler.save(intersections)
-        result = Shareable()
-        result[PSIConst.ITEMS_SIZE] = len(intersections)
-        return result
+        pass
 
     def get_items(self):
-        if not self.intersects:
-            if self.items is None:
-                items = self.local_psi_handler.load_items()
-                check_items_uniqueness(items)
-                self.items = items
-        else:
-            self.items = self.intersects
-
-        return self.items
+        pass

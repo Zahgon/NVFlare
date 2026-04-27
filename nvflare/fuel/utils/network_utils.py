@@ -24,28 +24,7 @@ def get_open_ports(number) -> list:
     Returns:
         A list of open_ports
     """
-    ports = []
-    sockets = []
-    for i in range(number):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("", 0))
-        s.listen(1)
-
-        # to prevent the same port number used multiple times, we only close it after all ports are obtained
-        sockets.append(s)
-        port = s.getsockname()[1]
-        if port > 0:
-            ports.append(port)
-
-    # close obtained ports
-    for s in sockets:
-        s.close()
-
-    if len(ports) != number:
-        raise RuntimeError(
-            "Could not get enough open ports from the system. Needed {} but got {}.".format(number, len(ports))
-        )
-    return ports
+    pass
 
 
 def get_local_addresses(number, host_name=None) -> list:
@@ -58,7 +37,4 @@ def get_local_addresses(number, host_name=None) -> list:
     Returns:
 
     """
-    if not host_name:
-        host_name = "127.0.0.1"
-    ports = get_open_ports(number)
-    return [f"{host_name}:{p}" for p in ports]
+    pass

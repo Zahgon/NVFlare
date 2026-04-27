@@ -37,24 +37,8 @@ class JobRequest(BaseModel):
 
     @classmethod
     def validate(cls, d: dict) -> str:
-        return cls.check_keys(d, [EdgeProtoKey.CAPABILITIES, EdgeProtoKey.DEVICE_INFO, EdgeProtoKey.JOB_NAME])
+        pass
 
     @classmethod
     def from_dict(cls, d: dict):
-        error = cls.validate(d)
-        if error:
-            return error, None
-
-        job_name = d.pop(EdgeProtoKey.JOB_NAME, None)
-        error, device_info = DeviceInfo.extract_from_dict(d)
-        if error:
-            return error, None
-
-        _, user_info = UserInfo.extract_from_dict(d)
-
-        error, caps = Capabilities.extract_from_dict(d)
-        if error:
-            return error, None
-
-        job_req = JobRequest(job_name, device_info, user_info, caps, **d)
-        return "", job_req
+        pass

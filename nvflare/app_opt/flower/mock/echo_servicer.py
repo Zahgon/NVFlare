@@ -26,24 +26,7 @@ class EchoServicer(GrpcAdapterServicer):
         self.stopped = False
 
     def set_server(self, s):
-        self.server = s
+        pass
 
     def SendReceive(self, request: pb2.MessageContainer, context):
-        msg_name = request.grpc_message_name
-        headers = request.metadata
-        content = request.grpc_message_content
-        self.logger.info(f"got {msg_name=}: {headers=} {content=}")
-
-        round_num = int(headers.get("round"))
-        if round_num >= self.num_rounds:
-            # stop the server
-            self.logger.info(f"got round number {round_num}: ask to shutdown server")
-            self.server.shutdown()
-            self.stopped = True
-
-        headers["round"] = str(round_num + 1)
-        return pb2.MessageContainer(
-            metadata=headers,
-            grpc_message_name=msg_name,
-            grpc_message_content=content,
-        )
+        pass

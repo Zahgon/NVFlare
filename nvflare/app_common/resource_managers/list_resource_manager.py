@@ -50,33 +50,13 @@ class ListResourceManager(AutoCleanResourceManager):
         super().__init__(resources=resource_queue, expiration_period=expiration_period)
 
     def _deallocate(self, resources: dict):
-        for k, v in resources.items():
-            for i in v:
-                self.resources[k].appendleft(i)
+        pass
 
     def _check_required_resource_available(self, resource_requirement: dict) -> bool:
-        is_resource_enough = True
-        for k in resource_requirement:
-            if k in self.resources:
-                if len(self.resources[k]) < resource_requirement[k]:
-                    is_resource_enough = False
-                    break
-            else:
-                is_resource_enough = False
-                break
-        return is_resource_enough
+        pass
 
     def _reserve_resource(self, resource_requirement: dict) -> dict:
-        reserved_resources = {}
-        for k in resource_requirement:
-            reserved_resource_units = []
-            for i in range(resource_requirement[k]):
-                reserved_resource_units.append(self.resources[k].popleft())
-            reserved_resources[k] = reserved_resource_units
-        return reserved_resources
+        pass
 
     def _resource_to_dict(self) -> dict:
-        return {
-            "resources": {k: list(self.resources[k]) for k in self.resources},
-            "reserved_resources": self.reserved_resources,
-        }
+        pass

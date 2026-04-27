@@ -30,9 +30,7 @@ class AdamOptimizerWrapper:
 
     def get(self, model_params, **kwargs):
         # args could be changed when the actual optimizer is needed
-        all_args = copy.copy(self.kwargs)
-        all_args.update(kwargs)
-        return optim.Adam(model_params, **all_args)
+        pass
 
 
 class SGDOptimizerWrapper:
@@ -41,6 +39,4 @@ class SGDOptimizerWrapper:
         self.kwargs = kwargs
 
     def get(self, model_params, **kwargs):
-        all_args = copy.copy(self.kwargs)
-        all_args.update(kwargs)
-        return optim.SGD(model_params, **all_args)
+        pass

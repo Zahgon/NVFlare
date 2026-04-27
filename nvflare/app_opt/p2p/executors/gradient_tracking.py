@@ -74,125 +74,19 @@ class GTExecutor(SyncAlgorithmExecutor):
         self.test_loss_sequence = []
 
     def run_algorithm(self, fl_ctx, shareable, abort_signal):
-        start_time = time.time()
-        iter_dataloader = iter(self.train_dataloader)
-
-        for iteration in range(self._iterations):
-            self.log_info(fl_ctx, f"iteration: {iteration}/{self._iterations}")
-            if abort_signal.triggered:
-                break
-
-            try:
-                data, label = next(iter_dataloader)
-                data, label = data.to(self.device), label.to(self.device)
-            except StopIteration:
-                # 3. store metrics
-                current_time = time.time() - start_time
-                self.train_loss_sequence.append(
-                    (
-                        current_time,
-                        compute_loss_over_dataset(self.model, self.loss, self.train_dataloader, self.device),
-                    )
-                )
-                self.test_loss_sequence.append(
-                    (
-                        current_time,
-                        compute_loss_over_dataset(self.model, self.loss, self.test_dataloader, self.device),
-                    )
-                )
-                # restart after an epoch
-                iter_dataloader = iter(self.train_dataloader)
-                data, label = next(iter_dataloader)
-                data, label = data.to(self.device), label.to(self.device)
-
-            # run algorithm step
-            with torch.no_grad():
-                # 1. exchange trainable parameters and tracker
-                value_to_exchange = {
-                    "parameters": self.model.parameters(),
-                    "tracker": self.tracker,
-                }
-                self._exchange_values(fl_ctx, value=value_to_exchange, iteration=iteration)
-
-                # 2. Update trainable parameters
-                # - a. compute consensus value
-                for idx, param in enumerate(self.model.parameters()):
-                    if param.requires_grad:
-                        param.mul_(self._weight)
-                        for neighbor in self.neighbors:
-                            neighbor_param = self.neighbors_values[iteration][neighbor.id]["parameters"][idx].to(
-                                self.device
-                            )
-                            param.add_(
-                                neighbor_param,
-                                alpha=neighbor.weight,
-                            )
-
-                # - b. update local parameters
-                self._update_local_state(self._stepsize)
-
-                # 3. Update tracker
-                # - a. consensus on tracker
-                for idx, tracker in enumerate(iter(self.tracker)):
-                    tracker.mul_(self._weight)
-                    for neighbor in self.neighbors:
-                        neighbor_tracker = self.neighbors_values[iteration][neighbor.id]["tracker"][idx].to(self.device)
-                        tracker.add_(
-                            neighbor_tracker,
-                            alpha=neighbor.weight,
-                        )
-
-            # -b. compute new gradients
-            self.model.zero_grad()
-            pred = self.model(data)
-            loss = self.loss(pred, label)
-            loss.backward()
-
-            gradient = [param.grad.clone() for param in self.model.parameters()]
-
-            # - c. update tracker
-            with torch.no_grad():
-                for i in range(len(self.tracker)):
-                    self.tracker[i].add_(gradient[i], alpha=1.0)
-                    self.tracker[i].sub_(self.old_gradient[i], alpha=1.0)
-
-            self.old_gradient = [g.clone() for g in gradient]
-
-            # 4. free memory that's no longer needed
-            del self.neighbors_values[iteration]
+        pass
 
     def _update_local_state(self, stepsize):
-        for idx, param in enumerate(self.model.parameters()):
-            if param.requires_grad:
-                param.add_(self.tracker[idx], alpha=-stepsize)
+        pass
 
     def _to_message(self, x):
-        return {
-            "parameters": [param.cpu().numpy() for param in iter(x["parameters"])],
-            "tracker": [z.cpu().numpy() for z in iter(x["tracker"])],
-        }
+        pass
 
     def _from_message(self, x):
-        return {
-            "parameters": [torch.from_numpy(param) for param in x["parameters"]],
-            "tracker": [torch.from_numpy(z) for z in x["tracker"]],
-        }
+        pass
 
     def _pre_algorithm_run(self, fl_ctx, shareable, abort_signal):
-        data = from_shareable(shareable).data
-        self._iterations = data["iterations"]
-        self._stepsize = data["stepsize"]
-
-        init_train_loss = compute_loss_over_dataset(self.model, self.loss, self.train_dataloader, self.device)
-        init_test_loss = compute_loss_over_dataset(self.model, self.loss, self.test_dataloader, self.device)
-
-        self.train_loss_sequence.append((0, init_train_loss))
-        self.test_loss_sequence.append((0, init_test_loss))
-
-        # initialize tracker
-        self.old_gradient = [torch.zeros_like(param, device=self.device) for param in self.model.parameters()]
-        self.tracker = [torch.zeros_like(param, device=self.device) for param in self.model.parameters()]
+        pass
 
     def _post_algorithm_run(self, *args, **kwargs):
-        torch.save(torch.tensor(self.train_loss_sequence), "train_loss_sequence.pt")
-        torch.save(torch.tensor(self.test_loss_sequence), "test_loss_sequence.pt")
+        pass

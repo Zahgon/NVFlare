@@ -33,14 +33,7 @@ FUNCTION_MAPPING = {
 
 
 def _create_new_data(key, value, sender):
-    if isinstance(value, (int, float)):
-        data_type = AnalyticsDataType.SCALAR
-    elif isinstance(value, str):
-        data_type = AnalyticsDataType.TEXT
-    else:
-        return None
-
-    return AnalyticsData(key=key, value=value, data_type=data_type, sender=sender)
+    pass
 
 
 class TBAnalyticsReceiver(AnalyticsReceiver):
@@ -72,70 +65,15 @@ class TBAnalyticsReceiver(AnalyticsReceiver):
         self.root_log_dir = None
 
     def initialize(self, fl_ctx: FLContext):
-        workspace = fl_ctx.get_engine().get_workspace()
-        run_dir = workspace.get_run_dir(fl_ctx.get_job_id())
-        root_log_dir = os.path.join(run_dir, self.tb_folder)
-        os.makedirs(root_log_dir, exist_ok=True)
-        self.root_log_dir = root_log_dir
-        self.log_info(
-            fl_ctx,
-            f"Tensorboard records can be found in {self.root_log_dir} you can view it using `tensorboard --logdir={self.root_log_dir}`",
-        )
+        pass
 
     def _convert_to_records(self, analytic_data: AnalyticsData, fl_ctx: FLContext) -> List[AnalyticsData]:
         # break dict of stuff to smaller items to support
         # AnalyticsDataType.PARAMETER and AnalyticsDataType.PARAMETERS
-        records = []
-
-        if analytic_data.data_type in (AnalyticsDataType.PARAMETER, AnalyticsDataType.PARAMETERS):
-            for k, v in (
-                analytic_data.value.items()
-                if analytic_data.data_type == AnalyticsDataType.PARAMETERS
-                else [(analytic_data.tag, analytic_data.value)]
-            ):
-                new_data = _create_new_data(k, v, analytic_data.sender)
-                if new_data is None:
-                    self.log_warning(fl_ctx, f"Entry {k} of type {type(v)} is not supported.", fire_event=False)
-                else:
-                    records.append(new_data)
-        else:
-            records.append(analytic_data)
-
-        return records
+        pass
 
     def save(self, fl_ctx: FLContext, shareable: Shareable, record_origin):
-        dxo = from_shareable(shareable)
-        analytic_data = AnalyticsData.from_dxo(dxo)
-        if not analytic_data:
-            return
-
-        writer = self.writers_table.get(record_origin)
-        if writer is None:
-            peer_log_dir = os.path.join(self.root_log_dir, record_origin)
-            writer = TensorBoardEventWriter(log_dir=peer_log_dir)
-            self.writers_table[record_origin] = writer
-
-        # do different things depending on the type in dxo
-        self.log_debug(
-            fl_ctx,
-            f"try to save data {analytic_data} from {record_origin}",
-            fire_event=False,
-        )
-        data_records = self._convert_to_records(analytic_data, fl_ctx)
-
-        for data_record in data_records:
-            func_name = FUNCTION_MAPPING.get(data_record.data_type, None)
-            if func_name is None:
-                self.log_warning(fl_ctx, f"The data_type {data_record.data_type} is not supported.", fire_event=False)
-                return
-
-            func = getattr(writer, func_name)
-            if data_record.step is not None:
-                func(data_record.tag, data_record.value, data_record.step)
-            else:
-                func(data_record.tag, data_record.value)
+        pass
 
     def finalize(self, fl_ctx: FLContext):
-        for writer in self.writers_table.values():
-            writer.flush()
-            writer.close()
+        pass

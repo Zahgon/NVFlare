@@ -48,17 +48,7 @@ def should_ignore_result_error(
         True if the error should be ignored (no panic needed).
         False if a panic should be triggered.
     """
-    if ignore_result_error is True:
-        # Resilient mode - always ignore errors
-        return True
-    elif ignore_result_error is False:
-        # Strict mode - always panic on error
-        return False
-    else:
-        # Dynamic mode (None) - check if min_responses still reachable
-        failed_clients.add(client_name)
-        remaining_good_clients = num_targets - len(failed_clients)
-        return remaining_good_clients >= min_responses
+    pass
 
 
 def get_error_handling_message(
@@ -86,24 +76,4 @@ def get_error_handling_message(
     Returns:
         Appropriate message string for logging.
     """
-    if ignore_result_error is True:
-        return f"Ignore the result from {client_name} at round {current_round}. " f"Result error code: {error_code}"
-    elif ignore_result_error is False:
-        return (
-            f"Result from {client_name} is bad, error code: {error_code}. "
-            f"{controller_name} exiting at round {current_round}."
-        )
-    else:
-        remaining_good_clients = num_targets - len(failed_clients)
-        if remaining_good_clients >= min_responses:
-            return (
-                f"Ignore the result from {client_name} at round {current_round}. "
-                f"Result error code: {error_code}. "
-                f"Remaining good clients ({remaining_good_clients}) >= min_responses ({min_responses})."
-            )
-        else:
-            return (
-                f"Result from {client_name} is bad, error code: {error_code}. "
-                f"Cannot reach min_responses: remaining good clients ({remaining_good_clients}) < min_responses ({min_responses}). "
-                f"{controller_name} exiting at round {current_round}."
-            )
+    pass

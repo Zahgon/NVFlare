@@ -37,129 +37,57 @@ class Commander(cmd.Cmd):
 
     def do_bye(self, arg):
         """Exits from the client."""
-        return True
+        pass
 
     def emptyline(self):
-        return
+        pass
 
     def _split_to_args(self, arg):
-        if len(arg) <= 0:
-            return []
-        else:
-            return split_to_args(arg)
+        pass
 
     def do_show_rights(self, arg):
-        rights = self.policy.rights
-        table = Table(["right"])
-        for r in rights:
-            table.add_row([r])
-        self.write_table(table)
+        pass
 
     def do_show_roles(self, arg):
-        roles = self.policy.roles
-        table = Table(["role"])
-        for r in roles:
-            table.add_row([r])
-        self.write_table(table)
+        pass
 
     def do_show_config(self, arg):
-        config = self.policy.config
-        self.write_string(json.dumps(config, indent=1))
+        pass
 
     def do_show_role_rights(self, arg):
-        role_rights = self.policy.role_rights
-        table = Table(["role", "right", "conditions"])
-        for role_name in sorted(role_rights):
-            right_conds = role_rights[role_name]
-            for right_name in sorted(right_conds):
-                conds = right_conds[right_name]
-                table.add_row([role_name, right_name, str(conds)])
-        self.write_table(table)
+        pass
 
     def _parse_person(self, spec: str):
-        parts = spec.split(":")
-        if len(parts) != 3:
-            return "must be like name:org:role"
-        return Person(parts[0], parts[1], parts[2])
+        pass
 
     def do_eval_right(self, arg):
-        args = ["eval_right"] + self._split_to_args(arg)
-        if len(args) < 4:
-            self.write_string(
-                "Usage: {} site_org right_name user_name:org:role [submitter_name:org:role]".format(args[0])
-            )
-            return
-
-        site_org = args[1]
-        right_name = args[2]
-        user_spec = args[3]
-
-        submitter_spec = None
-        if len(args) > 4:
-            submitter_spec = args[4]
-
-        parsed = self._parse_person(user_spec)
-        if isinstance(parsed, str):
-            # error
-            return self.write_error("bad user spec: " + parsed)
-        user = parsed
-
-        submitter = None
-        if submitter_spec:
-            parsed = self._parse_person(submitter_spec)
-            if isinstance(parsed, str):
-                # error
-                return self.write_error("bad submitter spec: " + parsed)
-            submitter = parsed
-
-        result, err = self.policy.evaluate(
-            site_org=site_org, ctx=AuthzContext(right=right_name, user=user, submitter=submitter)
-        )
-        if err:
-            self.write_error(err)
-        elif result is None:
-            self.write_string("undetermined")
-        else:
-            self.write_string(str(result))
+        pass
 
     def write_string(self, data: str):
-        content = data + "\n"
-        self.stdout.write(content)
+        pass
 
     def write_table(self, table: Table):
-        table.write(self.stdout)
+        pass
 
     def write_error(self, err: str):
-        content = "Error: " + err + "\n"
-        self.stdout.write(content)
+        pass
 
 
 def define_authz_preview_parser(parser):
-    parser.add_argument("--policy", "-p", type=str, help="authz policy file", required=True)
+    pass
 
 
 def load_policy(policy_file_path):
-    with open(policy_file_path) as file:
-        config = json.load(file)
-        policy, err = parse_policy_config(config, COMMAND_CATEGORIES)
-        if err:
-            print("Policy config error: {}".format(err))
-            sys.exit(1)
-    return policy
+    pass
 
 
 def run_command(args):
-    policy = load_policy(args.policy)
-    commander = Commander(policy)
-    commander.cmdloop(intro="Type help or ? to list commands.")
+    pass
 
 
 def main():
     """Tool to help preview and see the details of an authorization policy with command line commands."""
-    parser = argparse.ArgumentParser()
-    define_authz_preview_parser(parser)
-    args = parser.parse_args()
-    run_command(args)
+    pass
 
 
 if __name__ == "__main__":

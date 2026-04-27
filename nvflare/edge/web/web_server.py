@@ -23,29 +23,23 @@ app = Flask(__name__)
 
 
 def clean_dict(value: Any):
-    if isinstance(value, dict):
-        return {k: clean_dict(v) for k, v in value.items() if v is not None}
-    return value
+    pass
 
 
 class FilteredJSONProvider(DefaultJSONProvider):
     sort_keys = False
 
     def dumps(self, obj: Any, **kwargs: Any) -> str:
-        return super().dumps(clean_dict(obj))
+        pass
 
 
 @app.errorhandler(ApiError)
 def handle_api_error(error: ApiError):
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
-    return response
+    pass
 
 
 def run_server(host, port):
-    app.json = FilteredJSONProvider(app)
-    app.register_blueprint(feg_bp)
-    app.run(host=host, port=port, debug=False)
+    pass
 
 
 if __name__ == "__main__":

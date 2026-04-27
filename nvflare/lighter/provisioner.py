@@ -63,16 +63,11 @@ class Provisioner:
                 raise ValueError(f"packager must be Packager type but got {type(packager)}")
 
     def add_template(self, template: dict):
-        if not isinstance(template, dict):
-            raise ValueError(f"template must be a dict but got {type(template)}")
-        self.template.update(template)
+        pass
 
     @staticmethod
     def _check_method(logger, method_name: str):
-        if not hasattr(logger, method_name):
-            raise ValueError(f"invalid logger {type(logger)}: missing method '{method_name}'")
-        elif not callable(getattr(logger, method_name)):
-            raise ValueError(f"invalid logger {type(logger)}: method '{method_name}' is not callable")
+        pass
 
     def provision(self, project: Project, mode=None, logger=None) -> ProvisionContext:
         """Provision a specified project.
@@ -89,57 +84,8 @@ class Provisioner:
             property (CtxKey.CURRENT_PROD_DIR) that specifies where the provision result is stored.
 
         """
-        ctx = self._build(project, mode, logger)
-        if self.packager and not ctx.get(CtxKey.BUILD_ERROR):
-            self.packager.package(project, ctx)
-        return ctx
+        pass
 
     def _build(self, project: Project, mode=None, logger=None) -> ProvisionContext:
 
-        if logger:
-            self._check_method(logger, "info")
-            self._check_method(logger, "debug")
-            self._check_method(logger, "warning")
-            self._check_method(logger, "error")
-
-        server = project.get_server()
-        if not server:
-            raise RuntimeError("missing server from the project")
-
-        workspace_root_dir = os.path.join(self.root_dir, project.name)
-        ctx = ProvisionContext(workspace_root_dir, project)
-
-        if not mode:
-            mode = ProvisionMode.NORMAL
-
-        valid_modes = [ProvisionMode.NORMAL, ProvisionMode.POC]
-        if mode not in valid_modes:
-            raise ValueError(f"invalid mode '{mode}': must be one of {valid_modes}")
-        ctx.set_provision_mode(mode)
-
-        if logger:
-            ctx.set_logger(logger)
-
-        try:
-            for b in self.builders:
-                b.initialize(project, ctx)
-
-            # call builders!
-            for b in self.builders:
-                b.build(project, ctx)
-
-            for b in self.builders[::-1]:
-                b.finalize(project, ctx)
-
-        except Exception as ex:
-            prod_dir = ctx.get(WorkDir.CURRENT_PROD_DIR)
-            if prod_dir:
-                shutil.rmtree(prod_dir)
-            ctx.error(f"Exception {ex} raised during provision.  Incomplete prod_n folder removed.")
-            traceback.print_exc()
-            ctx[CtxKey.BUILD_ERROR] = True
-        finally:
-            wip_dir = ctx.get(WorkDir.WIP)
-            if wip_dir:
-                shutil.rmtree(wip_dir)
-        return ctx
+        pass

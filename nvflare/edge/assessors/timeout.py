@@ -25,15 +25,10 @@ class TimeoutAssessor(SGAPAssessor):
         self._start_time = None
 
     def start_task(self, fl_ctx: FLContext):
-        self._start_time = time.time()
-        return super().start_task(fl_ctx)
+        pass
 
     def end_task(self, fl_ctx: FLContext):
-        super().end_task(fl_ctx)
-        self._start_time = None
+        pass
 
     def do_assessment(self, fl_ctx: FLContext) -> Assessment:
-        if time.time() - self._start_time > self.timeout:
-            return Assessment.TASK_DONE
-        else:
-            return Assessment.CONTINUE
+        pass

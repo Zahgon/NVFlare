@@ -19,7 +19,7 @@ from .data_bus import DataBus
 
 
 def _scope_prop_key(scope_name: str, key: str):
-    return f"{scope_name}::{key}"
+    pass
 
 
 def set_scope_property(scope_name: str, key: str, value: Any):
@@ -30,10 +30,7 @@ def set_scope_property(scope_name: str, key: str, value: Any):
         value: value of property
     Returns: None
     """
-    check_str("scope_name", scope_name)
-    check_str("key", key)
-    data_bus = DataBus()
-    data_bus.put_data(_scope_prop_key(scope_name, key), value)
+    pass
 
 
 def get_scope_property(scope_name: str, key: str, default=None) -> Any:
@@ -44,10 +41,4 @@ def get_scope_property(scope_name: str, key: str, default=None) -> Any:
         default: value to return if property is not found
     Returns:
     """
-    check_str("scope_name", scope_name)
-    check_str("key", key)
-    data_bus = DataBus()
-    result = data_bus.get_data(_scope_prop_key(scope_name, key))
-    if result is None:
-        result = default
-    return result
+    pass

@@ -101,17 +101,4 @@ class CyclicRecipe(BaseCyclicRecipe):
 
     def _setup_model_and_persistor(self, job) -> str:
         """Override to handle TensorFlow-specific model setup with relative ckpt support."""
-        if self.model is None and self._tf_initial_ckpt is None:
-            return ""
-
-        # If model is already a TFModel wrapper (user passed TFModel directly), use as-is
-        if hasattr(self.model, "add_to_fed_job"):
-            result = job.to_server(self.model, id="persistor")
-            return extract_persistor_id(result)
-
-        from nvflare.recipe.utils import resolve_initial_ckpt
-
-        ckpt_path = resolve_initial_ckpt(self._tf_initial_ckpt, getattr(self, "_prepared_initial_ckpt", None), job)
-        tf_model = TFModel(model=self.model, initial_ckpt=ckpt_path)
-        result = job.to_server(tf_model, id="persistor")
-        return extract_persistor_id(result)
+        pass

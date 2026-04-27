@@ -31,35 +31,19 @@ class SecurityHandler(FLComponent):
         pass
 
     def _format_msg(self, fl_ctx: FLContext, msg: str):
-        rank = fl_ctx.get_prop(Constant.PARAM_KEY_RANK, "?")
-        seq = fl_ctx.get_prop(Constant.PARAM_KEY_SEQ, "?")
-        root = fl_ctx.get_prop(Constant.PARAM_KEY_ROOT)
-        event = fl_ctx.get_prop(Constant.PARAM_KEY_EVENT, "?")
-        if root:
-            return f"[{event}: {rank=} {seq=} {root=}] {msg}"
-        else:
-            return f"[{event}: {rank=} {seq=}] {msg}"
+        pass
 
     def info(self, fl_ctx: FLContext, msg: str):
-        self.log_info(fl_ctx, self._format_msg(fl_ctx, msg), fire_event=False)
+        pass
 
     def debug(self, fl_ctx: FLContext, msg: str):
-        self.log_debug(fl_ctx, self._format_msg(fl_ctx, msg), fire_event=False)
+        pass
 
     def error(self, fl_ctx: FLContext, msg: str):
-        self.log_error(fl_ctx, self._format_msg(fl_ctx, msg), fire_event=False)
+        pass
 
     def _abort(self, error: str, fl_ctx: FLContext):
-        fl_ctx.set_prop(FLContextKey.FATAL_SYSTEM_ERROR, error, private=True)
-        self.fire_event(Constant.EVENT_XGB_ABORTED, fl_ctx)
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        fl_ctx.set_prop(key=Constant.PARAM_KEY_EVENT, value=event_type, private=True, sticky=False)
-        if event_type == Constant.EVENT_BEFORE_BROADCAST:
-            self._process_before_broadcast(fl_ctx)
-        elif event_type == Constant.EVENT_AFTER_BROADCAST:
-            self._process_after_broadcast(fl_ctx)
-        elif event_type == Constant.EVENT_BEFORE_ALL_GATHER_V:
-            self._process_before_all_gather_v(fl_ctx)
-        elif event_type == Constant.EVENT_AFTER_ALL_GATHER_V:
-            self._process_after_all_gather_v(fl_ctx)
+        pass

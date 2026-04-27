@@ -40,33 +40,10 @@ class DistOptController(Controller):
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext):
         # Send network config (aka neighbors info) to each client
-        for node in self.config.network.nodes:
-            task = Task(
-                name="config",
-                data=DXO(
-                    data_kind=DataKind.APP_DEFINED,
-                    data={"neighbors": [n.__dict__ for n in node.neighbors]},
-                ).to_shareable(),
-            )
-            self.send_and_wait(task=task, targets=[node.id], fl_ctx=fl_ctx)
-
-        # Run algorithm (with extra params if any passed as data)
-        targets = [node.id for node in self.config.network.nodes]
-        self.broadcast_and_wait(
-            task=Task(
-                name="run_algorithm",
-                data=DXO(
-                    data_kind=DataKind.APP_DEFINED,
-                    data={key: value for key, value in self.config.extra.items()},
-                ).to_shareable(),
-            ),
-            targets=targets,
-            min_responses=0,
-            fl_ctx=fl_ctx,
-        )
+        pass
 
     def start_controller(self, fl_ctx: FLContext):
-        self.log_info(fl_ctx, "P2PAlgorithmController started")
+        pass
 
     def stop_controller(self, fl_ctx: FLContext):
-        self.log_info(fl_ctx, "P2PAlgorithmController stopped")
+        pass

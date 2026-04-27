@@ -75,137 +75,99 @@ class ServerState(ABC):
 
 class ColdState(ServerState):
     def register(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def heartbeat(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def get_task(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def submit_result(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def aux_communicate(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def handle_sd_callback(self, sp: SP, fl_ctx: FLContext) -> ServerState:
-        if sp:
-            self.logger.debug(
-                f"handle_sd_callback Got SP: {sp.name=} {sp.fl_port=} {sp.primary=} {self.host=} {self.service_port=}"
-            )
-        else:
-            self.logger.debug("handle_sd_callback no SP!")
-
-        if sp and sp.primary is True:
-            if sp.name == self.host and sp.fl_port in self.service_port:
-                self.primary = True
-                self.ssid = sp.service_session_id
-                self.logger.info(
-                    f"Got the primary sp: {sp.name} fl_port: {sp.fl_port} SSID: {sp.service_session_id}. "
-                    f"Turning to hot."
-                )
-                return Cold2HotState(host=self.host, port=self.service_port, ssid=sp.service_session_id)
-            else:
-                self.primary = False
-                return self
-        return self
+        pass
 
 
 class Cold2HotState(ServerState):
     def register(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def heartbeat(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def get_task(self, fl_ctx: FLContext) -> dict:
-        return ServerState.ABORT_CURRENT_RUN
+        pass
 
     def submit_result(self, fl_ctx: FLContext) -> dict:
-        return ServerState.ABORT_CURRENT_RUN
+        pass
 
     def aux_communicate(self, fl_ctx: FLContext) -> dict:
-        return ServerState.ABORT_CURRENT_RUN
+        pass
 
     def handle_sd_callback(self, sp: SP, fl_ctx: FLContext) -> ServerState:
-        return self
+        pass
 
 
 class HotState(ServerState):
     def register(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def heartbeat(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def get_task(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def submit_result(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def aux_communicate(self, fl_ctx: FLContext) -> dict:
-        return ServerState.IN_SERVICE
+        pass
 
     def handle_sd_callback(self, sp: SP, fl_ctx: FLContext) -> ServerState:
-        if sp and sp.primary is True:
-            if sp.name == self.host and sp.fl_port in self.service_port:
-                self.primary = True
-                if sp.service_session_id != self.ssid:
-                    self.ssid = sp.service_session_id
-                    self.logger.info(
-                        f"Primary sp changed to: {sp.name} fl_port: {sp.fl_port} SSID: {sp.service_session_id}. "
-                        f"Turning to Cold"
-                    )
-                    return Hot2ColdState(host=self.host, port=self.service_port, ssid=sp.service_session_id)
-                else:
-                    return self
-            else:
-                self.primary = False
-                self.logger.info(
-                    f"Primary sp changed to: {sp.name} fl_port: {sp.fl_port} SSID: {sp.service_session_id}. "
-                    f"Turning to Cold"
-                )
-                return Hot2ColdState(host=self.host, port=self.service_port)
-        return self
+        pass
 
 
 class Hot2ColdState(ServerState):
     def register(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def heartbeat(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def get_task(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def submit_result(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def aux_communicate(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def handle_sd_callback(self, sp: SP, fl_ctx: FLContext) -> ServerState:
-        return self
+        pass
 
 
 class ShutdownState(ServerState):
     def register(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def heartbeat(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def get_task(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def submit_result(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def aux_communicate(self, fl_ctx: FLContext) -> dict:
-        return ServerState.NOT_IN_SERVICE
+        pass
 
     def handle_sd_callback(self, sp: SP, fl_ctx: FLContext) -> ServerState:
-        return self
+        pass

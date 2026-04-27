@@ -41,116 +41,23 @@ class InfoCollectorCommandModule(JobCommandModule, CommandUtil):
     CONN_KEY_COLLECTOR = "collector"
 
     def get_spec(self):
-        return CommandModuleSpec(
-            name="info",
-            cmd_specs=[
-                CommandSpec(
-                    name=AdminCommandNames.SHOW_STATS,
-                    description="show current system stats for an actively running job",
-                    usage="show_stats job_id server|client [clients]",
-                    handler_func=self.show_stats,
-                    authz_func=self.authorize_info_collection,
-                    visible=True,
-                ),
-                CommandSpec(
-                    name=AdminCommandNames.SHOW_ERRORS,
-                    description="show latest errors in an actively running job",
-                    usage="show_errors job_id server|client [clients]",
-                    handler_func=self.show_errors,
-                    authz_func=self.authorize_info_collection,
-                    visible=True,
-                ),
-                CommandSpec(
-                    name=AdminCommandNames.RESET_ERRORS,
-                    description="reset error stats for an actively running job",
-                    usage="reset_errors job_id server|client [clients]",
-                    handler_func=self.reset_errors,
-                    authz_func=self.authorize_info_collection,
-                    visible=True,
-                ),
-            ],
-        )
+        pass
 
     def authorize_info_collection(self, conn: Connection, args: List[str]):
-        if len(args) < 3:
-            cmd_entry = conn.get_prop(ConnProps.CMD_ENTRY)
-            conn.append_error(f"Usage: {cmd_entry.usage}", meta=make_meta(MetaStatusValue.SYNTAX_ERROR))
-            return PreAuthzReturnCode.ERROR
-
-        rt = self.authorize_job(conn, args)
-        if rt == PreAuthzReturnCode.ERROR:
-            return rt
-
-        engine = conn.app_ctx
-        if not isinstance(engine, ServerEngineInternalSpec):
-            raise TypeError("engine must be ServerEngineInternalSpec but got {}".format(type(engine)))
-
-        collector = engine.get_widget(WidgetID.INFO_COLLECTOR)
-        if not collector:
-            msg = "info collector not available"
-            conn.append_error(msg, meta=make_meta(MetaStatusValue.INTERNAL_ERROR, msg))
-            return PreAuthzReturnCode.ERROR
-
-        if not isinstance(collector, InfoCollector):
-            msg = "info collector not right object"
-            conn.append_error(msg, meta=make_meta(MetaStatusValue.INTERNAL_ERROR, msg))
-            return PreAuthzReturnCode.ERROR
-
-        conn.set_prop(self.CONN_KEY_COLLECTOR, collector)
-
-        job_id = conn.get_prop(self.JOB_ID)
-        if job_id not in engine.run_processes:
-            conn.append_error(
-                f"Job_id: {job_id} is not running.", meta=make_meta(MetaStatusValue.JOB_NOT_RUNNING, job_id)
-            )
-            return PreAuthzReturnCode.ERROR
-
-        run_info = engine.get_app_run_info(job_id)
-        if not run_info:
-            conn.append_string(
-                f"Cannot find job: {job_id}. Please make sure the first arg following the command is a valid job_id.",
-                meta=make_meta(MetaStatusValue.INVALID_JOB_ID, job_id),
-            )
-            return PreAuthzReturnCode.ERROR
-        return rt
+        pass
 
     def show_stats(self, conn: Connection, args: List[str]):
-        engine = conn.app_ctx
-        self._collect_stats(conn, args, stats_func=engine.show_stats, msg_topic=InfoCollectorTopic.SHOW_STATS)
+        pass
 
     def _collect_stats(self, conn: Connection, args: List[str], stats_func, msg_topic):
-        job_id = conn.get_prop(self.JOB_ID)
-        target_type = args[2]
-        result = {}
-        if target_type in [self.TARGET_TYPE_SERVER, self.TARGET_TYPE_ALL]:
-            server_stats = stats_func(job_id)
-            result["server"] = server_stats
-
-        if target_type in [self.TARGET_TYPE_CLIENT, self.TARGET_TYPE_ALL]:
-            message = new_message(conn, topic=msg_topic, body="", require_authz=True)
-            message.set_header(RequestHeader.JOB_ID, job_id)
-            replies = self.send_request_to_clients(conn, message)
-            self._process_stats_replies(conn, replies, result)
-        conn.append_any(result)
+        pass
 
     def show_errors(self, conn: Connection, args: List[str]):
-        engine = conn.app_ctx
-        self._collect_stats(conn, args, stats_func=engine.get_errors, msg_topic=InfoCollectorTopic.SHOW_ERRORS)
+        pass
 
     def reset_errors(self, conn: Connection, args: List[str]):
-        engine = conn.app_ctx
-        self._collect_stats(conn, args, stats_func=engine.reset_errors, msg_topic=InfoCollectorTopic.RESET_ERRORS)
+        pass
 
     @staticmethod
     def _process_stats_replies(conn, replies, result: dict):
-        if not replies:
-            return
-
-        for r in replies:
-            client_name = r.client_name
-            try:
-                body = json.loads(r.reply.body)
-                result[client_name] = body
-            except Exception:
-                result[client_name] = "invalid_reply"
-                return
+        pass

@@ -32,14 +32,10 @@ class ArrayDownloadable(CacheableObject):
         super().__init__(arrays, max_chunk_size)
 
     def get_item_count(self) -> int:
-        return self.size
+        pass
 
     def produce_item(self, index: int) -> bytes:
-        key = self.keys[index]
-        arrays_to_send = {key: self.base_obj[key]}
-        stream = BytesIO()
-        np.savez(allow_pickle=False, file=stream, **arrays_to_send)
-        return stream.getvalue()
+        pass
 
 
 class ArrayConsumer(ItemConsumer):
@@ -53,32 +49,10 @@ class ArrayConsumer(ItemConsumer):
 
     @staticmethod
     def _to_dict(item: bytes) -> dict:
-        result = {}
-        stream = BytesIO(item)
-        with np.load(stream, allow_pickle=False) as npz_obj:
-            for k in npz_obj.files:
-                result[k] = npz_obj[k]
-        return result
+        pass
 
     def consume_items(self, items: List[Any], result: Any) -> Any:
-        assert isinstance(items, list)
-        if result is None:
-            result = {}
-
-        arrays = {}
-        for item in items:
-            td = self._to_dict(item)
-            if not isinstance(td, dict):
-                raise ValueError("cannot load received bytes to arrays")
-            arrays.update(td)
-
-        if self.arrays_received_cb is not None:
-            cb_result = self.arrays_received_cb(arrays, **self.cb_kwargs)
-            if isinstance(cb_result, dict):
-                result.update(cb_result)
-        else:
-            result.update(arrays)
-        return result
+        pass
 
 
 def add_arrays(
@@ -96,8 +70,7 @@ def add_arrays(
     Returns: reference id for the arrays.
 
     """
-    obj = ArrayDownloadable(arrays, max_chunk_size)
-    return downloader.add_object(obj)
+    pass
 
 
 def download_arrays(
@@ -126,15 +99,4 @@ def download_arrays(
     Returns: tuple of (error message if any, downloaded state dict).
 
     """
-    consumer = ArrayConsumer(arrays_received_cb, cb_kwargs)
-    download_object(
-        from_fqcn=from_fqcn,
-        ref_id=ref_id,
-        consumer=consumer,
-        per_request_timeout=per_request_timeout,
-        cell=cell,
-        secure=secure,
-        optional=optional,
-        abort_signal=abort_signal,
-    )
-    return consumer.error, consumer.result
+    pass

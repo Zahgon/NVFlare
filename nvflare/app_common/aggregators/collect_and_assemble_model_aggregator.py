@@ -53,51 +53,7 @@ class CollectAndAssembleModelAggregator(ModelAggregator):
         Args:
             model: FLModel received from a client
         """
-        if not self.assembler:
-            self.assembler = self.fl_ctx.get_engine().get_component(self.assembler_id)
-
-        # Extract contributor name
-        contributor_name = model.meta.get("client_name", "?")
-
-        # Convert FLModel to Shareable to extract DXO
-        shareable = FLModelUtils.to_shareable(model)
-
-        # Check return code
-        rc = shareable.get_return_code()
-        if rc and rc != ReturnCode.OK:
-            self.warning(f"Contributor {contributor_name} returned rc: {rc}. Disregarding contribution.")
-            return
-
-        # Get DXO from shareable
-        try:
-            dxo = from_shareable(shareable)
-        except Exception:
-            self.exception(f"Failed to convert shareable to DXO for {contributor_name}")
-            return
-
-        # Validate data kind
-        expected_data_kind = self.assembler.get_expected_data_kind()
-        if dxo.data_kind != expected_data_kind:
-            self.error(f"Expected {expected_data_kind} but got {dxo.data_kind} from {contributor_name}")
-            return
-
-        # Check contribution round - get from FLModel, not shareable cookie
-        current_round = self.fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        contribution_round = model.current_round
-        if contribution_round is not None and contribution_round != current_round:
-            self.warning(
-                f"Discarding DXO from {contributor_name} at round {contribution_round}. "
-                f"Current round is: {current_round}"
-            )
-            return
-
-        # Add to assembler's collection
-        collection = self.assembler.collection
-        if contributor_name not in collection:
-            collection[contributor_name] = self.assembler.get_model_params(dxo)
-            self.info(f"Accepted contribution from {contributor_name}")
-        else:
-            self.info(f"Discarded: contributions already include client {contributor_name} at round {current_round}")
+        pass
 
     def aggregate_model(self) -> FLModel:
         """Aggregate all accepted models using the Assembler.
@@ -105,28 +61,8 @@ class CollectAndAssembleModelAggregator(ModelAggregator):
         Returns:
             FLModel: Aggregated model
         """
-        if not self.assembler:
-            self.error("Assembler not initialized")
-            return FLModel()
-
-        current_round = self.fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        collection = self.assembler.collection
-        site_num = len(collection)
-        self.info(f"Aggregating {site_num} update(s) at round {current_round}")
-
-        # Delegate to assembler
-        dxo = self.assembler.assemble(data=collection, fl_ctx=self.fl_ctx)
-
-        # Convert DXO to FLModel
-        aggregated_model = FLModel(
-            params=dxo.data,
-            params_type=ParamsType.FULL,
-            meta={"nr_aggregated": site_num, "current_round": current_round},
-        )
-
-        return aggregated_model
+        pass
 
     def reset_stats(self) -> None:
         """Reset aggregation statistics for next round."""
-        if self.assembler:
-            self.assembler.reset()
+        pass

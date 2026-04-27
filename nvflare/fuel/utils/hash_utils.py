@@ -47,8 +47,7 @@ class UniformHash:
         Returns:
              Number of buckets
         """
-
-        return self.num_buckets
+        pass
 
     def hash(self, key: str) -> int:
         """
@@ -58,23 +57,4 @@ class UniformHash:
         Returns:
             The bucket index between 0 and num_buckets-1
         """
-        check_str("key", key)
-
-        # Step 1, calculate hash value using first 8 bytes of SHA256
-        sha_bytes = hashlib.sha256(key.encode()).digest()
-        sha = int.from_bytes(sha_bytes[:8], "big")
-
-        # Step 2, map the hash value to a virtual hash table whose size is PRIME using modulo operation
-        virtual_hash = sha % PRIME
-
-        # Step 3, evenly distribute the virtual hash to real buckets
-        # n is a float number representing the bucket index
-        n = virtual_hash / self.virtual_hashes_per_bucket
-        if n < self.num_buckets:
-            index = int(n)
-        else:
-            # The last bucket may have more virtual hashes than others
-            # Evenly spread the extra to the first few buckets
-            index = virtual_hash % self.num_buckets
-
-        return index
+        pass

@@ -49,31 +49,7 @@ class Cyclic(ModelController):
 
     def _maybe_cleanup_memory(self):
         """Perform memory cleanup if configured (every N rounds based on memory_gc_rounds)."""
-        if self.current_round is None:
-            return
-        if self.memory_gc_rounds > 0 and (self.current_round + 1) % self.memory_gc_rounds == 0:
-            cleanup_memory()
+        pass
 
     def run(self) -> None:
-        self.info("Start Cyclic.")
-
-        model = self.load_model()
-        model.start_round = self.start_round
-        model.total_rounds = self.num_rounds
-
-        for self.current_round in range(self.start_round, self.start_round + self.num_rounds):
-            self.info(f"Round {self.current_round} started.")
-            model.current_round = self.current_round
-
-            clients = self.sample_clients(self.num_clients)
-
-            for client in clients:
-                result = self.send_model_and_wait(targets=[client], data=model)[0]
-                model.params, model.meta = result.params, result.meta
-
-            self.save_model(model)
-
-            # Memory cleanup at end of round (if configured)
-            self._maybe_cleanup_memory()
-
-        self.info("Finished Cyclic.")
+        pass

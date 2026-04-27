@@ -84,36 +84,10 @@ class TensorProducer(ObjectProducer):
         Raises:
             Warning: If no tensors are found in the FLContext.
         """
-        data = Shareable()
-        try:
-            parent_keys, tensors = next(self.chunks_generator, (None, None))
-        except StopIteration:
-            return None, self.tensor_send_timeout
-        else:
-            if tensors is None:
-                self.last = True
-                self.log_completion(fl_ctx)
-                return None, self.tensor_send_timeout
-
-            tensors_blob = save_tensors(tensors)
-            data[TensorBlobKeys.SAFETENSORS_BLOB] = tensors_blob
-            data[TensorBlobKeys.TENSOR_KEYS] = list(tensors.keys())
-            data[TensorBlobKeys.PARENT_KEYS] = parent_keys
-            data[TensorBlobKeys.TASK_ID] = self.task_id
-            self.total_bytes += len(tensors_blob)
-            self.num_tensors += len(tensors)
-
-        return data, self.tensor_send_timeout
+        pass
 
     def log_completion(self, fl_ctx: FLContext):
-        peer_name = fl_ctx.get_peer_context().get_identity_name()
-        msg = (
-            f"Peer '{fl_ctx.get_identity_name()}': produced blobs for peer '{peer_name}' "
-            f"with {self.num_tensors} tensors, total size: "
-            f"{round(self.total_bytes / (1024 * 1024), 2)} Mbytes ({self.total_bytes} bytes). "
-            f"Task ID: {self.task_id}"
-        )
-        self.logger.info(msg)
+        pass
 
     def process_replies(
         self,
@@ -133,21 +107,4 @@ class TensorProducer(ObjectProducer):
                  False if there was an error in any reply,
                  None if more tensors need to be sent.
         """
-        has_error = False
-        for target, reply in replies.items():
-            rc = reply.get_return_code(ReturnCode.OK)
-            if rc != ReturnCode.OK:
-                self.logger.error(f"error from target {target}: {rc}")
-                has_error = True
-
-        if has_error:
-            # done - failed
-            del self.chunks_generator  # free memory
-            return False
-        elif self.last:
-            # done - succeeded
-            del self.chunks_generator  # free memory
-            return True
-        else:
-            # not done yet - continue streaming
-            return None
+        pass

@@ -66,8 +66,7 @@ class SVMAssembler(Assembler):
             Dictionary with keys 'support_x' and 'support_y' containing
             the support vectors and their labels
         """
-        data = dxo.data
-        return {"support_x": data["support_x"], "support_y": data["support_y"]}
+        pass
 
     def assemble(self, data: dict[str, dict], fl_ctx: FLContext) -> DXO:
         """Assemble the federated SVM model from client contributions.
@@ -90,25 +89,4 @@ class SVMAssembler(Assembler):
             self.collection is populated by the parent Assembler class before this
             method is called. It contains the processed client models from get_model_params().
         """
-        current_round = fl_ctx.get_prop(AppConstants.CURRENT_ROUND)
-        if current_round == 0:
-            # First round, collect all support vectors from clients
-            # Note: self.collection is populated by parent Assembler class
-            support_x = []
-            support_y = []
-            for client in self.collection:
-                client_model = self.collection[client]
-                support_x.append(client_model["support_x"])
-                support_y.append(client_model["support_y"])
-            global_x = np.concatenate(support_x)
-            global_y = np.concatenate(support_y)
-            # perform one round of SVM to produce global model
-            svm_global = SVC(kernel=self.kernel)
-            svm_global.fit(global_x, global_y)
-            # get global support vectors
-            index = svm_global.support_
-            self.support_x = global_x[index]
-            self.support_y = global_y[index]
-        params = {"support_x": self.support_x, "support_y": self.support_y}
-        dxo = DXO(data_kind=self.expected_data_kind, data=params)
-        return dxo
+        pass

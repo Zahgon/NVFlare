@@ -174,13 +174,7 @@ class NumpyFedAvgRecipe(UnifiedFedAvgRecipe):
         Normalizes job.to_server() return (e.g. None or non-string) so the parent's
         has_persistor = persistor_id != \"\" and model_params assignment remain correct.
         """
-        if self._np_model is not None or self._np_initial_ckpt is not None:
-            return self._setup_numpy_model_and_persistor(
-                job,
-                model=self._np_model,
-                initial_ckpt=self._np_initial_ckpt,
-            )
-        return ""
+        pass
 
     def add_cse_validator_if_needed(self):
         """Add NPValidator for cross-site evaluation if not already configured.
@@ -193,30 +187,4 @@ class NumpyFedAvgRecipe(UnifiedFedAvgRecipe):
         This method checks if a dedicated validator is already configured.
         If only wildcard executors exist, adds NPValidator.
         """
-        from nvflare.app_common.app_constant import AppConstants
-        from nvflare.app_common.np.np_validator import NPValidator
-
-        # Check if validation task is explicitly configured (not just via wildcard)
-        has_explicit_validator = False
-        if hasattr(self.job, "_deploy_map"):
-            for target, app in self.job._deploy_map.items():
-                if target == "server":
-                    continue
-
-                if hasattr(app, "app_config") and hasattr(app.app_config, "executors"):
-                    for executor_def in app.app_config.executors:
-                        if hasattr(executor_def, "tasks"):
-                            try:
-                                # Check if validation is explicitly listed (not just wildcard)
-                                if AppConstants.TASK_VALIDATION in executor_def.tasks:
-                                    has_explicit_validator = True
-                                    break
-                            except (TypeError, AttributeError):
-                                continue
-                if has_explicit_validator:
-                    break
-
-        if not has_explicit_validator:
-            # No explicit validator found - add NPValidator for cross-site evaluation
-            validator = NPValidator()
-            self.job.to_clients(validator, tasks=[AppConstants.TASK_VALIDATION])
+        pass

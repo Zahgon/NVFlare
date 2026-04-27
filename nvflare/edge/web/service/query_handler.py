@@ -65,11 +65,7 @@ class QueryHandler(ABC):
         }
 
     def _to_dict(self, name: str, data: bytes) -> Optional[dict]:
-        try:
-            return json.loads(data)
-        except Exception as ex:
-            self.logger.error(f"error decoding {name} data: {secure_format_exception(ex)}")
-            return None
+        pass
 
     @abstractmethod
     def handle_job_request(self, request: JobRequest) -> JobResponse:
@@ -88,26 +84,4 @@ class QueryHandler(ABC):
         pass
 
     def handle_query(self, request: Request) -> Reply:
-        p = self.processors.get(request.type)
-        if not p:
-            self.logger.error(f"received invalid query type: {request.type}")
-            return make_reply(EdgeApiStatus.INVALID_REQUEST)
-
-        self.logger.debug(f"received request {request.type}")
-
-        payload = self._to_dict("payload", request.payload)
-        if not payload:
-            return make_reply(EdgeApiStatus.INVALID_REQUEST)
-
-        try:
-            to_request_f, process_f = p
-            error, req = to_request_f(payload)
-            if error:
-                self.logger.error(f"error in request {request.type}: {error}")
-                return make_reply(EdgeApiStatus.INVALID_REQUEST)
-            resp = process_f(req)
-            return make_reply(EdgeApiStatus.OK, resp)
-        except Exception as ex:
-            traceback.print_exc()
-            self.logger.error(f"error processing request: {secure_format_exception(ex)}")
-            return make_reply(EdgeApiStatus.ERROR)
+        pass

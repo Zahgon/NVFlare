@@ -50,18 +50,7 @@ class GrpcClient:
         Returns: None
 
         """
-        if self.started:
-            return
-
-        self.started = True
-
-        self.channel = create_channel(
-            server_addr=self.server_addr,
-            grpc_options=self.grpc_options,
-            ready_timeout=ready_timeout,
-            test_only=False,
-        )
-        self.stub = GrpcAdapterStub(self.channel)
+        pass
 
     def send_request(self, request: pb2.MessageContainer):
         """Send Flower request to gRPC server
@@ -72,17 +61,7 @@ class GrpcClient:
         Returns: a pb2.MessageContainer object
 
         """
-        self.logger.debug(f"sending {len(request.grpc_message_content)} bytes: {request.grpc_message_name=}")
-        try:
-            result = self.stub.SendReceive(request)
-        except Exception as ex:
-            self.logger.warning(f"exception occurred communicating to Flower server: {ex}")
-            return reply_should_exit()
-
-        if not isinstance(result, pb2.MessageContainer):
-            self.logger.error(f"expect reply to be pb2.MessageContainer but got {type(result)}")
-            return None
-        return result
+        pass
 
     def stop(self):
         """Stop the gRPC client
@@ -90,11 +69,4 @@ class GrpcClient:
         Returns: None
 
         """
-        ch = self.channel
-        self.channel = None  # set to None in case another thread also tries to close.
-        if ch:
-            try:
-                ch.close()
-            except:
-                # ignore errors when closing the channel
-                pass
+        pass

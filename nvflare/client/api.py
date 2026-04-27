@@ -41,12 +41,7 @@ def get_context(ctx: Optional[APIContext] = None) -> APIContext:
     Returns:
         An APIContext.
     """
-    if ctx:
-        return ctx
-    elif default_context:
-        return default_context
-    else:
-        raise RuntimeError("APIContext is None. Did you call flare.init() before using the Client API?")
+    pass
 
 
 def init(rank: Optional[Union[str, int]] = None, config_file: Optional[str] = None) -> APIContext:
@@ -60,30 +55,7 @@ def init(rank: Optional[Union[str, int]] = None, config_file: Optional[str] = No
     Returns:
         APIContext
     """
-
-    # subsequent logic assumes rank is a string
-    if rank is not None:
-        if isinstance(rank, int):
-            rank = str(rank)
-        elif isinstance(rank, str):
-            pass
-        else:
-            raise ValueError(f"rank must be a string or an integer but got {type(rank)}")
-
-    with global_context_lock:
-        global context_dict
-        global default_context
-        local_ctx = context_dict.get((rank, config_file))
-
-        if local_ctx is None:
-            local_ctx = APIContext(rank=rank, config_file=config_file)
-            context_dict[(rank, config_file)] = local_ctx
-            default_context = local_ctx
-        else:
-            logging.warning(
-                "Warning: called init() more than once with same parameters." "The subsequence calls are ignored"
-            )
-        return local_ctx
+    pass
 
 
 def receive(timeout: Optional[float] = None, ctx: Optional[APIContext] = None) -> Optional[FLModel]:
@@ -92,8 +64,7 @@ def receive(timeout: Optional[float] = None, ctx: Optional[APIContext] = None) -
     Returns:
         An FLModel received.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.receive(timeout)
+    pass
 
 
 def send(model: FLModel, clear_cache: bool = True, ctx: Optional[APIContext] = None) -> None:
@@ -103,10 +74,7 @@ def send(model: FLModel, clear_cache: bool = True, ctx: Optional[APIContext] = N
         model (FLModel): The FLModel object to be sent.
         clear_cache (bool): Whether to clear the cache after send.
     """
-    if not isinstance(model, FLModel):
-        raise TypeError("model needs to be an instance of FLModel")
-    local_ctx = get_context(ctx)
-    return local_ctx.api.send(model, clear_cache)
+    pass
 
 
 def system_info(ctx: Optional[APIContext] = None) -> Dict:
@@ -122,8 +90,7 @@ def system_info(ctx: Optional[APIContext] = None) -> Dict:
        A dict of system information.
 
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.system_info()
+    pass
 
 
 def get_config(ctx: Optional[APIContext] = None) -> Dict:
@@ -132,8 +99,7 @@ def get_config(ctx: Optional[APIContext] = None) -> Dict:
     Returns:
         A dict of the configuration used in Client API.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.get_config()
+    pass
 
 
 def get_job_id(ctx: Optional[APIContext] = None) -> str:
@@ -142,8 +108,7 @@ def get_job_id(ctx: Optional[APIContext] = None) -> str:
     Returns:
         The current job id.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.get_job_id()
+    pass
 
 
 def get_site_name(ctx: Optional[APIContext] = None) -> str:
@@ -152,8 +117,7 @@ def get_site_name(ctx: Optional[APIContext] = None) -> str:
     Returns:
         The site name of this client.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.get_site_name()
+    pass
 
 
 def get_task_name(ctx: Optional[APIContext] = None) -> str:
@@ -162,8 +126,7 @@ def get_task_name(ctx: Optional[APIContext] = None) -> str:
     Returns:
         The task name.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.get_task_name()
+    pass
 
 
 def is_running(ctx: Optional[APIContext] = None) -> bool:
@@ -172,8 +135,7 @@ def is_running(ctx: Optional[APIContext] = None) -> bool:
     Returns:
         True, if the system is up and running. False, otherwise.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.is_running()
+    pass
 
 
 def is_train(ctx: Optional[APIContext] = None) -> bool:
@@ -182,8 +144,7 @@ def is_train(ctx: Optional[APIContext] = None) -> bool:
     Returns:
         True, if the current task is a training task. False, otherwise.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.is_train()
+    pass
 
 
 def is_evaluate(ctx: Optional[APIContext] = None) -> bool:
@@ -192,8 +153,7 @@ def is_evaluate(ctx: Optional[APIContext] = None) -> bool:
     Returns:
         True, if the current task is an evaluate task. False, otherwise.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.is_evaluate()
+    pass
 
 
 def is_submit_model(ctx: Optional[APIContext] = None) -> bool:
@@ -202,8 +162,7 @@ def is_submit_model(ctx: Optional[APIContext] = None) -> bool:
     Returns:
         True, if the current task is a submit_model. False, otherwise.
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.is_submit_model()
+    pass
 
 
 def log(key: str, value: Any, data_type: AnalyticsDataType, ctx: Optional[APIContext] = None, **kwargs):
@@ -220,17 +179,14 @@ def log(key: str, value: Any, data_type: AnalyticsDataType, ctx: Optional[APICon
     Returns:
         whether the key value pair is logged successfully
     """
-    local_ctx = get_context(ctx)
-    return local_ctx.api.log(key, value, data_type, **kwargs)
+    pass
 
 
 def clear(ctx: Optional[APIContext] = None):
     """Clears the cache."""
-    local_ctx = get_context(ctx)
-    return local_ctx.api.clear()
+    pass
 
 
 def shutdown(ctx: Optional[APIContext] = None):
     """Releases all threads and resources used by the API and stops operation."""
-    local_ctx = get_context(ctx)
-    return local_ctx.api.shutdown()
+    pass

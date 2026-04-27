@@ -14,5 +14,4 @@
 
 
 def replace_chars(s: str, replace_char: str = "_"):
-    translation_table = str.maketrans({":": replace_char, " ": replace_char, ".": replace_char})
-    return s.translate(translation_table)
+    pass

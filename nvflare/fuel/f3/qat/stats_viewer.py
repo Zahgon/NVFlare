@@ -29,63 +29,32 @@ class StatsViewer(cmd.Cmd):
         StatsPoolManager.from_dict(pools)
 
     def do_list_pools(self, arg):
-        headers, rows = StatsPoolManager.get_table()
-        self._show_table(headers, rows)
+        pass
 
     def do_show_pool(self, arg: str):
-        args = arg.split()
-        if len(args) < 1:
-            self.write_string("Error: missing pool name")
-            return
-        name = args[0]
-        mode = ""
-        if len(args) > 1:
-            mode = args[1]
-        mode = parse_hist_mode(mode)
-        if not mode:
-            self.write_string(f"Error: invalid model {args[1]} - must be one of {VALID_HIST_MODES}")
-            return
-        pool = StatsPoolManager.get_pool(name)
-        if not pool:
-            self.write_string(f"Error: pool '{name}' does not exist")
-            return
-
-        headers, rows = pool.get_table(mode)
-        self._show_table(headers, rows)
+        pass
 
     def _show_table(self, headers, rows):
-        t = Table(headers)
-        for r in rows:
-            t.add_row(r)
-        t.write(self.stdout)
+        pass
 
     def do_bye(self, arg):
-        return True
+        pass
 
     def emptyline(self):
-        return
+        pass
 
     def run(self):
-        self.cmdloop(self.intro)
+        pass
 
     def _write(self, content: str):
-        self.stdout.write(content)
+        pass
 
     def write_string(self, data: str):
-        content = data + "\n"
-        self._write(content)
+        pass
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--stats_file", "-f", type=str, help="stats file name", required=True)
-    args = parser.parse_args()
-
-    with open(args.stats_file) as f:
-        d = json.load(f)
-
-    viewer = StatsViewer(d)
-    viewer.run()
+    pass
 
 
 if __name__ == "__main__":

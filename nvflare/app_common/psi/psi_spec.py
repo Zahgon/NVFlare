@@ -43,11 +43,7 @@ class PSI(InitFinalComponent, ABC):
         self.intersection: Optional[List[str]] = None
 
     def initialize(self, fl_ctx: FLContext):
-        self.fl_ctx = fl_ctx
-        engine = fl_ctx.get_engine()
-        psi_writer: PSIWriter = engine.get_component(self.psi_writer_id)
-        check_component_type(psi_writer, PSIWriter)
-        self.psi_writer = psi_writer
+        pass
 
     @abstractmethod
     def load_items(self) -> List[str]:
@@ -64,12 +60,10 @@ class PSI(InitFinalComponent, ABC):
 
         Returns: Intersection result or None
         """
-        return self.intersection
+        pass
 
     def save(self, intersection: List[str]):
-        self.intersection = intersection
-        if self.psi_writer:
-            self.psi_writer.save(intersection=intersection, overwrite_existing=True, fl_ctx=self.fl_ctx)
+        pass
 
     def finalize(self, fl_ctx: FLContext):
         pass

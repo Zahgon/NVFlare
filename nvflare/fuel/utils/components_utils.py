@@ -20,14 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_classes_table_static():
-    class_table = {}
-    try:
-        file = os.path.join(os.path.dirname(__file__), COMPONENT_CLASS_FILE)
-        with open(file, "r") as f:
-            class_table = json.load(f)
-    except Exception as ex:
-        logger.warning(f"Exception occurred when loading class table from {file}: {ex}")
-    return class_table
+    pass
 
 
 if __name__ == "__main__":

@@ -47,16 +47,12 @@ class _XGBVerticalValidator(BaseModel):
     @field_validator("label_owner")
     @classmethod
     def check_label_owner(cls, v):
-        if not v.startswith("site-"):
-            raise ValueError("label_owner must be in format 'site-X' (e.g., 'site-1')")
-        return v
+        pass
 
     @field_validator("num_rounds")
     @classmethod
     def check_num_rounds(cls, v):
-        if v < 1:
-            raise ValueError("num_rounds must be at least 1")
-        return v
+        pass
 
 
 class XGBVerticalRecipe(Recipe):
@@ -220,61 +216,4 @@ class XGBVerticalRecipe(Recipe):
 
     def configure(self):
         """Configure the federated job for vertical XGBoost training."""
-
-        # Create FedJob
-        job = FedJob(name=self.name, min_clients=self.min_clients)
-
-        # Configure controller for vertical mode
-        controller_kwargs = {
-            "num_rounds": self.num_rounds,
-            "data_split_mode": 1,  # 1 = vertical (column split)
-            "secure_training": self.secure,
-            "xgb_options": {"early_stopping_rounds": self.early_stopping_rounds, "use_gpus": self.use_gpus},
-            "xgb_params": self.xgb_params,
-        }
-
-        # Add client_ranks if secure training is enabled
-        if self.secure and self.client_ranks:
-            controller_kwargs["client_ranks"] = self.client_ranks
-            controller_kwargs["in_process"] = True  # Required for secure training
-
-        controller = XGBFedController(**controller_kwargs)
-        job.to_server(controller, id="xgb_controller")
-
-        # Add TensorBoard receiver to server
-
-        tb_receiver = TBAnalyticsReceiver(tb_folder="tb_events")
-        job.to_server(tb_receiver, id="tb_receiver")
-
-        # Add executor and components
-
-        # Add all components per site (executor, metrics, event converter, data loader)
-        for site_name, site_config in self.per_site_config.items():
-            data_loader = site_config.get("data_loader")
-            if data_loader is None:
-                raise ValueError(f"per_site_config for '{site_name}' must include 'data_loader' key")
-
-            # Add executor
-            executor = FedXGBHistogramExecutor(
-                data_loader_id=self.data_loader_id,
-                metrics_writer_id=self.metrics_writer_id,
-                in_process=True if self.secure else self.in_process,
-                model_file_name=self.model_file_name,
-            )
-            job.to(executor, site_name, id="xgb_hist_executor", tasks=["config", "start"])
-
-            # Add metrics writer
-            metrics_writer = TBWriter(event_type="analytix_log_stats")
-            job.to(metrics_writer, site_name, id=self.metrics_writer_id)
-
-            # Add event converter
-            event_to_fed = ConvertToFedEvent(
-                events_to_convert=["analytix_log_stats"],
-                fed_event_prefix="fed.",
-            )
-            job.to(event_to_fed, site_name, id="event_to_fed")
-
-            # Add data loader
-            job.to(data_loader, site_name, id=self.data_loader_id)
-
-        return job
+        pass

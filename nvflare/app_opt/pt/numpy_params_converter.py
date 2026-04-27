@@ -22,49 +22,9 @@ from nvflare.app_common.abstract.params_converter import ParamsConverter
 
 class NumpyToPTParamsConverter(ParamsConverter):
     def convert(self, params: Dict, fl_ctx) -> Dict:
-        tensor_shapes = fl_ctx.get_prop("tensor_shapes")
-        exclude_vars = fl_ctx.get_prop("exclude_vars")
-
-        return_params = {}
-        if tensor_shapes:
-            return_params = {
-                k: torch.as_tensor(np.reshape(v, tensor_shapes[k])) if k in tensor_shapes else torch.as_tensor(v)
-                for k, v in params.items()
-            }
-        else:
-            return_params = {k: torch.as_tensor(v) for k, v in params.items()}
-
-        if exclude_vars:
-            for k, v in exclude_vars.items():
-                return_params[k] = v
-
-        return return_params
+        pass
 
 
 class PTToNumpyParamsConverter(ParamsConverter):
     def convert(self, params: Dict, fl_ctx) -> Dict:
-        return_tensors = {}
-        tensor_shapes = {}
-        exclude_vars = {}
-        for k, v in params.items():
-            if isinstance(v, torch.Tensor):
-                # Try to convert to numpy and catch exception if it fails
-                try:
-                    return_tensors[k] = v.cpu().numpy()
-                except Exception as e:
-                    error_msg = f"Exception while converting torch tensor to numpy: {e} \n"
-                    additional_info = "Most possibly caused by unsupported data type for numpy transmission, please use pytorch exchange format or convert params to a supported data type (fp32, fp16, etc.)"
-                    raise ValueError(f"{error_msg} {additional_info}")
-                tensor_shapes[k] = v.shape
-            else:
-                exclude_vars[k] = v
-
-        if tensor_shapes:
-            fl_ctx.set_prop("tensor_shapes", tensor_shapes)
-        if exclude_vars:
-            fl_ctx.set_prop("exclude_vars", exclude_vars)
-            self.logger.warning(
-                f"{len(exclude_vars)} vars excluded as they were non-tensor type: " f"{list(exclude_vars.keys())}"
-            )
-
-        return return_tensors
+        pass

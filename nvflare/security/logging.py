@@ -29,12 +29,7 @@ def is_secure() -> bool:
     Returns:
         A boolean indicates whether logging is set in secure mode.
     """
-    secure_logging = os.environ.get(SECURE_LOGGING_VAR_NAME, False)
-    if isinstance(secure_logging, str):
-        secure_logging = secure_logging.lower()
-        return secure_logging == "1" or secure_logging == "true"
-    else:
-        return False
+    pass
 
 
 class _Frame(object):
@@ -51,33 +46,7 @@ def _format_exc_securely() -> str:
         A formatted string of current exception and call stack.
 
     """
-    exc_type, exc_obj, tb = sys.exc_info()
-    result = ["Traceback (most recent call last):"]
-    frames = []
-    last_frame = None
-
-    # traceback (tb) stack is a linked list of frames
-    while tb:
-        file_name = tb.tb_frame.f_code.co_filename
-        func_name = tb.tb_frame.f_code.co_name
-        line = tb.tb_lineno
-        line_text = f'File "{file_name}", line {line}, in {func_name}'
-
-        if not last_frame or last_frame.line_text != line_text:
-            last_frame = _Frame(line_text)
-            frames.append(last_frame)
-        else:
-            # same text as last frame
-            last_frame.count += 1
-        tb = tb.tb_next
-
-    for f in frames:
-        result.append(f.line_text)
-        if f.count > 1:
-            result.append(f"[Previous line repeated {f.count - 1} more times]")
-
-    text = "\r\n  ".join(result)
-    return "{}\r\n{}".format(text, f"Exception Type: {exc_type}")
+    pass
 
 
 def secure_format_traceback() -> str:
@@ -90,10 +59,7 @@ def secure_format_traceback() -> str:
     Returns:
         A formatted string
     """
-    if is_secure():
-        return _format_exc_securely()
-    else:
-        return traceback.format_exc()
+    pass
 
 
 def secure_log_traceback(logger: logging.Logger = None):
@@ -107,12 +73,7 @@ def secure_log_traceback(logger: logging.Logger = None):
        logger: if not None, this logger is used to log the traceback detail. If None, the root logger will be used.
 
     """
-    exc_detail = secure_format_traceback()
-
-    if not logger:
-        logger = logging.getLogger()
-
-    logger.error(exc_detail)
+    pass
 
 
 def secure_format_exception(e: Exception) -> str:
@@ -127,7 +88,4 @@ def secure_format_exception(e: Exception) -> str:
     Returns:
         A formatted exception string.
     """
-    if is_secure():
-        return str(type(e))
-    else:
-        return f"{type(e).__name__}: {str(e)}"
+    pass

@@ -39,29 +39,10 @@ class PTFileModelLocator(ModelLocator):
         self.model_inventory = {}
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._initialize(fl_ctx)
+        pass
 
     def _initialize(self, fl_ctx: FLContext):
-        if not self.pt_persistor_id:
-            raise ValueError(
-                "PTFileModelLocator requires a valid pt_persistor_id, but got empty string. "
-                "Ensure your PyTorch recipe includes an model to create a persistor."
-            )
-
-        engine = fl_ctx.get_engine()
-        self.model_persistor: PTFileModelPersistor = engine.get_component(self.pt_persistor_id)
-        if self.model_persistor is None:
-            raise ValueError(
-                f"No component found with ID '{self.pt_persistor_id}'. "
-                f"Ensure the PTFileModelPersistor is registered in the recipe."
-            )
-        if not isinstance(self.model_persistor, PTFileModelPersistor):
-            raise ValueError(
-                f"Component '{self.pt_persistor_id}' must be PTFileModelPersistor, "
-                f"but got: {type(self.model_persistor)}"
-            )
-        fobs.register(TensorDecomposer)
+        pass
 
     def get_model_names(self, fl_ctx: FLContext) -> List[str]:
         """Returns the list of model names that should be included from server in cross site validation.add().
@@ -72,8 +53,7 @@ class PTFileModelLocator(ModelLocator):
         Returns:
             List[str]: List of model names.
         """
-        self.model_inventory: dict = self.model_persistor.get_model_inventory(fl_ctx)
-        return list(self.model_inventory.keys())
+        pass
 
     def locate_model(self, model_name, fl_ctx: FLContext) -> DXO:
         """Call to locate and load the model weights of model_name.
@@ -85,10 +65,4 @@ class PTFileModelLocator(ModelLocator):
         Returns: model_weight DXO
 
         """
-        if model_name not in list(self.model_inventory.keys()):
-            raise ValueError(f"model inventory does not contain: {model_name}")
-
-        model_learnable = self.model_persistor.get(model_name, fl_ctx)
-        dxo = model_learnable_to_dxo(model_learnable)
-
-        return dxo
+        pass

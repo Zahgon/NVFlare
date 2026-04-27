@@ -126,18 +126,7 @@ class IPCAgent:
         Returns: None
 
         """
-        if self.is_started:
-            self.logger.warning("the agent is already started")
-            return
-
-        if self.is_stopped:
-            raise defs.CallStateError("cannot start the agent since it is already stopped")
-
-        self.is_started = True
-        self.logger.info(f"starting agent {self.cell_name} ...")
-        self.cell.start()
-        t = threading.Thread(target=self._monitor, daemon=True)
-        t.start()
+        pass
 
     def stop(self):
         """Stop the agent. After this is called, there will be no more communications between CJ and agent.
@@ -145,153 +134,31 @@ class IPCAgent:
         Returns: None
 
         """
-        if not self.is_started:
-            self.logger.warning("cannot stop the agent since it is not started")
-            return
-
-        if self.is_stopped:
-            self.logger.warning("agent is already stopped")
-            return
-
-        self.is_stopped = True
-        self.cell.stop()
-        self.net_agent.close()
+        pass
 
     def _monitor(self):
-        while True:
-            since_last_msg = time.time() - self.last_msg_time
-            if since_last_msg > self.flare_site_connection_timeout:
-                if self.is_connected:
-                    self.logger.error(
-                        "flare site disconnected since no message received "
-                        f"for {self.flare_site_connection_timeout} seconds"
-                    )
-                self.is_connected = False
-
-            if self.flare_site_heartbeat_timeout and since_last_msg > self.flare_site_heartbeat_timeout:
-                self.logger.error(
-                    f"flare site is dead since no message received for {self.flare_site_heartbeat_timeout} seconds"
-                )
-                self.is_done = True
-                return
-
-            time.sleep(_SHORT_SLEEP_TIME)
+        pass
 
     def _handle_bye(self, request: Message) -> Union[None, Message]:
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        self.logger.info(f"got goodbye from {peer}")
-        self.is_done = True
-        return make_reply(ReturnCode.OK)
+        pass
 
     def _msg_received(self, request: Message):
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        if self.peer_fqcn and self.peer_fqcn != peer:
-            # this could happen when a new job is started for the same training
-            self.logger.warning(f"got peer FQCN '{peer}' while expecting '{self.peer_fqcn}'")
-
-        self.peer_fqcn = peer
-        self.last_msg_time = time.time()
-        if not self.is_connected:
-            self.is_connected = True
-            self.logger.info(f"connected to flare site {peer}")
+        pass
 
     def _handle_heartbeat(self, request: Message) -> Union[None, Message]:
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        self.logger.debug(f"got heartbeat from {peer}")
-        return make_reply(ReturnCode.OK)
+        pass
 
     def _handle_abort_task(self, request: Message) -> Union[None, Message]:
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        task_id = request.get_header(defs.MsgHeader.TASK_ID)
-        task_name = request.get_header(defs.MsgHeader.TASK_NAME)
-        self.logger.warning(f"received from {peer} to abort {task_name=} {task_id=}")
-        with self.task_lock:
-            if self.current_task and task_id == self.current_task.task_id:
-                self.current_task.aborted = True
-            elif self.pending_task and task_id == self.pending_task.task_id:
-                self.pending_task = None
-        return make_reply(ReturnCode.OK)
+        pass
 
     def _receive_task(self, request: Message) -> Union[None, Message]:
-        with self.task_lock:
-            return self._do_receive_task(request)
+        pass
 
     def _create_task(self, request: Message):
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        task_id = request.get_header(defs.MsgHeader.TASK_ID)
-        task_name = request.get_header(defs.MsgHeader.TASK_NAME)
-        self.logger.info(f"received task from {peer}: {task_name=} {task_id=}")
-
-        task_data = request.payload
-        if not isinstance(task_data, dict):
-            self.logger.error(f"bad task data from {peer}: expect dict but got {type(task_data)}")
-            return None
-
-        data = task_data.get(defs.PayloadKey.DATA)
-        if not data:
-            self.logger.error(f"bad task data from {peer}: missing {defs.PayloadKey.DATA}")
-            return None
-
-        meta = task_data.get(defs.PayloadKey.META)
-        if not meta:
-            self.logger.error(f"bad task data from {peer}: missing {defs.PayloadKey.META}")
-            return None
-
-        return defs.Task(task_name, task_id, meta, data)
+        pass
 
     def _do_receive_task(self, request: Message) -> Union[None, Message]:
-        peer = request.get_header(MessageHeaderKey.ORIGIN)
-        task_id = request.get_header(defs.MsgHeader.TASK_ID)
-        task_name = request.get_header(defs.MsgHeader.TASK_NAME)
-
-        # create a new task
-        new_task = self._create_task(request)
-        if not new_task:
-            return make_reply(ReturnCode.INVALID_REQUEST)
-
-        if self.pending_task:
-            assert isinstance(self.pending_task, defs.Task)
-            if task_id == self.pending_task.task_id:
-                return make_reply(ReturnCode.OK)
-            else:
-                # this could happen when the CJ is restarted
-                self.logger.warning(f"got new task from {peer} while already having a pending task!")
-
-                # replace the pending task
-                self.pending_task = new_task
-                return make_reply(ReturnCode.OK)
-
-        current_task = self.current_task
-        if current_task:
-            assert isinstance(current_task, defs.Task)
-            if task_id == current_task.task_id:
-                self.logger.info(f"received duplicate task {task_id} from {peer}")
-                return make_reply(ReturnCode.OK)
-
-            if current_task.last_send_result_time:
-                # we already tried to send result back
-                # assume that the flare site has received
-                # we set the flag so the sending process will end quickly
-                # in the meanwhile we ask flare site to retry later
-                current_task.already_received = True
-            else:
-                # error - one task at a time
-                self.logger.warning(
-                    f"got task {task_name} {task_id} from {peer} "
-                    f"while still working on {current_task.task_name} {current_task.task_id}"
-                )
-
-                # this could happen when CJ is restarted while we are processing current task
-                # we set the current_task to be aborted. App should check this flag frequently to abort processing
-                current_task.aborted = True
-
-            # treat the new task as pending task - it will become current after the current_task is submitted
-            self.pending_task = new_task
-            return make_reply(ReturnCode.OK)
-        else:
-            # no current task
-            self.current_task = new_task
-            return make_reply(ReturnCode.OK)
+        pass
 
     def get_task(self, timeout=None):
         """Get a task from FLARE. This is a blocking call.
@@ -311,36 +178,7 @@ class IPCAgent:
         has been submitted.
 
         """
-        if timeout is not None:
-            if not isinstance(timeout, (int, float)):
-                raise TypeError(f"timeout must be (int, float) but got {type(timeout)}")
-            if timeout <= 0:
-                raise ValueError(f"timeout must > 0, but got {timeout}")
-
-        start = time.time()
-        while True:
-            if self.is_done or self.is_stopped:
-                self.logger.info("no more tasks - agent closed")
-                raise defs.AgentClosed("flare agent is closed")
-
-            with self.task_lock:
-                current_task = self.current_task
-                if current_task:
-                    assert isinstance(current_task, defs.Task)
-                    if current_task.aborted:
-                        pass
-                    elif current_task.status == defs.Task.NEW:
-                        current_task.status = defs.Task.FETCHED
-                        return current_task
-                    else:
-                        raise defs.CallStateError(
-                            f"application called get_task while the current task is in status {current_task.status}"
-                        )
-            if timeout and time.time() - start > timeout:
-                # no task available before timeout
-                self.logger.info(f"get_task timeout after {timeout} seconds")
-                return None
-            time.sleep(_SHORT_SLEEP_TIME)
+        pass
 
     def submit_result(self, result: defs.TaskResult) -> bool:
         """Submit the result of the current task.
@@ -357,101 +195,10 @@ class IPCAgent:
         made a single time regardless whether the submission is successful.
 
         """
-        try:
-            result_submitted = self._do_submit_result(result)
-        except Exception as ex:
-            self.logger.error(f"exception encountered: {ex}")
-            result_submitted = False
-
-        with self.task_lock:
-            self.current_task = None
-            if self.pending_task:
-                # a new task is waiting for the current task to finish
-                self.current_task = self.pending_task
-                self.pending_task = None
-        return result_submitted
+        pass
 
     def _do_submit_result(self, result: defs.TaskResult) -> bool:
-        if not isinstance(result, defs.TaskResult):
-            raise TypeError(f"result must be TaskResult but got {type(result)}")
-
-        with self.task_lock:
-            current_task = self.current_task
-            if current_task:
-                if current_task.aborted:
-                    return False
-                if current_task.status != defs.Task.FETCHED:
-                    raise defs.CallStateError(
-                        f"submit_result is called while current task is in status {current_task.status}"
-                    )
-                current_task.status = defs.Task.PROCESSED
-            elif self.num_results_submitted > 0:
-                self.logger.error("submit_result is called but there is no current task!")
-                return False
-            else:
-                # if the agent is restarted, it may pick up from previous checkpoint and continue training.
-                # then it can send the result after finish training.
-                pass
-            self.num_results_submitted += 1
-        try:
-            return self._send_result(current_task, result)
-        except:
-            self.logger.error(f"exception submitting result to {current_task.sender}")
-            traceback.print_exc()
-            return False
+        pass
 
     def _send_result(self, current_task: defs.Task, result: defs.TaskResult):
-        meta = result.meta
-        rc = result.return_code
-        data = result.data
-
-        msg = Message(
-            headers={
-                defs.MsgHeader.TASK_NAME: current_task.task_name if current_task else "",
-                defs.MsgHeader.TASK_ID: current_task.task_id if current_task else "",
-                defs.MsgHeader.RC: rc,
-            },
-            payload={
-                defs.PayloadKey.META: meta,
-                defs.PayloadKey.DATA: data,
-            },
-        )
-
-        last_send_time = 0
-        while True:
-            if self.is_done or self.is_stopped:
-                self.logger.error(f"quit submitting result for task {current_task} since agent is closed")
-                raise defs.AgentClosed("agent is stopped")
-
-            if current_task and current_task.already_received:
-                if not current_task.last_send_result_time:
-                    self.logger.warning(f"task {current_task} was marked already_received but has been sent!")
-                return True
-
-            if current_task and current_task.aborted:
-                self.logger.error(f"quit submitting result for task {current_task} since it is aborted")
-                return False
-
-            if self.is_connected and time.time() - last_send_time > self.resend_result_interval:
-                self.logger.info(f"sending result to {self.peer_fqcn} for task {current_task}")
-                if current_task:
-                    current_task.last_send_result_time = time.time()
-                reply = self.cell.send_request(
-                    channel=defs.CHANNEL,
-                    topic=defs.TOPIC_SUBMIT_RESULT,
-                    target=self.peer_fqcn,
-                    request=msg,
-                    timeout=self.submit_result_timeout,
-                )
-                last_send_time = time.time()
-                if reply:
-                    rc = reply.get_header(MessageHeaderKey.RETURN_CODE)
-                    peer = reply.get_header(MessageHeaderKey.ORIGIN)
-                    if rc == ReturnCode.OK:
-                        return True
-                    elif rc == ReturnCode.INVALID_REQUEST:
-                        self.logger.error(f"received return code from {peer}: {rc}")
-                        return False
-                    else:
-                        self.logger.info(f"failed to send to {self.peer_fqcn}: {rc} - will retry")
-            time.sleep(_SHORT_SLEEP_TIME)
+        pass

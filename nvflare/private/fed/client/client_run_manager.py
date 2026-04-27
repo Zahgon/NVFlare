@@ -131,88 +131,64 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         self.logger = get_obj_logger(self)
 
     def get_task_assignment(self, fl_ctx: FLContext, timeout=None) -> TaskAssignment:
-        pull_success, task_name, return_shareable = self.client.fetch_task(fl_ctx, timeout)
-        task = None
-        if pull_success:
-            shareable = self.client.extract_shareable(return_shareable, fl_ctx)
-            task_id = shareable.get_header(key=FLContextKey.TASK_ID)
-            task = TaskAssignment(name=task_name, task_id=task_id, data=shareable)
-        return task
+        pass
 
     def new_context(self) -> FLContext:
-        return self.fl_ctx_mgr.new_context()
+        pass
 
     def send_task_result(self, result: Shareable, fl_ctx: FLContext, timeout=None) -> bool:
-        push_result = self.client.push_results(result, fl_ctx, timeout)  # push task execution results
-        if push_result == CellReturnCode.OK:
-            return True
-        else:
-            self.logger.error(f"failed to send task result: {push_result}")
-            return False
+        pass
 
     def get_workspace(self) -> Workspace:
-        return self.workspace
+        pass
 
     def get_run_info(self) -> ClientRunInfo:
-        return self.run_info
+        pass
 
     def show_errors(self) -> ClientRunInfo:
-        return self.run_info
+        pass
 
     def reset_errors(self) -> ClientRunInfo:
-        return self.run_info
+        pass
 
     def dispatch(self, topic: str, request: Shareable, fl_ctx: FLContext) -> Shareable:
-        return self.aux_runner.dispatch(topic=topic, request=request, fl_ctx=fl_ctx)
+        pass
 
     def add_component(self, component_id: str, component):
-        self.client.runner_config.add_component(component_id, component)
+        pass
 
     def get_component(self, component_id: str) -> object:
-        return self.components.get(component_id)
+        pass
 
     def get_all_components(self) -> dict:
-        return self.components
+        pass
 
     def validate_targets(self, inputs) -> ([], []):
-        valid_inputs = []
-        invalid_inputs = []
-        for item in inputs:
-            if item == FQCN.ROOT_SERVER:
-                valid_inputs.append(item)
-            else:
-                client = self.get_client_from_name(item)
-                if client:
-                    valid_inputs.append(item)
-                else:
-                    invalid_inputs.append(item)
-        return valid_inputs, invalid_inputs
+        pass
 
     def get_client_from_name(self, client_name):
-        return self.name_to_clients.get(client_name)
+        pass
 
     def get_clients(self):
-        return self.all_clients
+        pass
 
     def persist_components(self, fl_ctx: FLContext, completed: bool):
-        self.logger.warning(f"will not persist components, not supported by {self.__class__.__name__}")
+        pass
 
     def get_widget(self, widget_id: str) -> Widget:
-        return self.widgets.get(widget_id)
+        pass
 
     def fire_event(self, event_type: str, fl_ctx: FLContext):
-        fire_event(event=event_type, handlers=self.handlers, ctx=fl_ctx)
+        pass
 
     def add_handler(self, handler: FLComponent):
-        self.handlers.append(handler)
+        pass
 
     def build_component(self, config_dict):
-        if not self.conf:
-            raise RuntimeError("No configurator set up.")
-        return self.conf.build_component(config_dict)
+        pass
 
     def get_cell(self):
-        return self.cell
+        pass
 
     def send_aux_request(
         self,
@@ -224,65 +200,13 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         optional=False,
         secure=False,
     ) -> dict:
-        msg_targets = self._to_aux_msg_targets(targets)
-        if msg_targets:
-            return self.aux_runner.send_aux_request(
-                msg_targets,
-                topic,
-                request,
-                timeout,
-                fl_ctx,
-                optional=optional,
-                secure=secure,
-            )
-        else:
-            return {}
+        pass
 
     def _get_aux_msg_target(self, name: str):
-        if name.lower() == SiteType.SERVER:
-            return AuxMsgTarget.server_target()
-
-        c = self.get_client_from_name(name)
-        if c:
-            return AuxMsgTarget.client_target(c)
-        else:
-            return None
+        pass
 
     def _to_aux_msg_targets(self, target_names: List[str]):
-        if not target_names:
-            return [AuxMsgTarget.server_target()]
-
-        if isinstance(target_names, str):
-            if target_names == SiteType.ALL:
-                msg_targets = [AuxMsgTarget.server_target()]
-                for c in self.all_clients:
-                    if c.name != self.client.client_name:
-                        msg_targets.append(AuxMsgTarget.client_target(c))
-                return msg_targets
-            else:
-                msg_target = self._get_aux_msg_target(target_names)
-                if msg_target:
-                    return [msg_target]
-                else:
-                    self.logger.error(f"invalid targe {target_names}")
-                    return None
-
-        elif not isinstance(target_names, list):
-            raise TypeError(f"invalid target_names {type(target_names)}")
-
-        # targets is a list: make sure every target is valid
-        msg_targets = []
-        for t in target_names:
-            if not isinstance(t, str):
-                raise TypeError(f"target name must be str but got {type(t)}")
-
-            msg_target = self._get_aux_msg_target(t)
-            if msg_target:
-                msg_targets.append(msg_target)
-            else:
-                self.logger.error(f"invalid target {t}")
-                return None
-        return msg_targets
+        pass
 
     def multicast_aux_requests(
         self,
@@ -293,20 +217,7 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         optional: bool = False,
         secure: bool = False,
     ) -> dict:
-        if not target_requests:
-            return {}
-
-        msg_targets = []
-        for name, req in target_requests.items():
-            msg_target = self._get_aux_msg_target(name)
-            if not msg_target:
-                self.logger.error(f"invalid target {name}")
-                return {}
-            msg_targets.append((msg_target, req))
-
-        return self.aux_runner.multicast_aux_requests(
-            topic, msg_targets, timeout, fl_ctx, optional=optional, secure=secure
-        )
+        pass
 
     def get_job_clients(self, fl_ctx: FLContext):
         """Get participating clients of the job.
@@ -319,32 +230,15 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         Returns:
 
         """
-        job_meta = fl_ctx.get_prop(FLContextKey.JOB_META)
-        if not isinstance(job_meta, dict):
-            raise RuntimeError(f"invalid job meta type: expected dict but got {type(job_meta)}")
-
-        job_clients = job_meta.get(JobMetaKey.JOB_CLIENTS)
-        if job_clients is None:
-            raise RuntimeError(f"missing {JobMetaKey.JOB_CLIENTS} in job meta")
-        if not isinstance(job_clients, list):
-            raise RuntimeError(f"invalid {JobMetaKey.JOB_CLIENTS} type: expected list but got {type(job_clients)}")
-
-        self.all_clients = [from_dict(d) for d in job_clients]
-        for c in self.all_clients:
-            self.name_to_clients[c.name] = c
-
-        forest = build_client_hierarchy(self.all_clients)
-        fl_ctx.set_prop(FLContextKey.CLIENT_HIERARCHY, forest, private=True, sticky=True)
+        pass
 
     def register_aux_message_handler(self, topic: str, message_handle_func):
-        self.aux_runner.register_aux_message_handler(topic, message_handle_func)
+        pass
 
     def fire_and_forget_aux_request(
         self, topic: str, request: Shareable, fl_ctx: FLContext, optional=False, secure=False
     ) -> dict:
-        return self.send_aux_request(
-            targets=None, topic=topic, request=request, timeout=0.0, fl_ctx=fl_ctx, optional=optional, secure=secure
-        )
+        pass
 
     def stream_objects(
         self,
@@ -357,19 +251,7 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         optional=False,
         secure=False,
     ):
-        if not self.object_streamer:
-            raise RuntimeError("object streamer has not been created")
-
-        return self.object_streamer.stream(
-            channel=channel,
-            topic=topic,
-            stream_ctx=stream_ctx,
-            targets=self._to_aux_msg_targets(targets),
-            producer=producer,
-            fl_ctx=fl_ctx,
-            secure=secure,
-            optional=optional,
-        )
+        pass
 
     def register_stream_processing(
         self,
@@ -380,26 +262,13 @@ class ClientRunManager(ClientEngineExecutorSpec, StreamableEngine):
         consumed_cb=None,
         **cb_kwargs,
     ):
-        if not self.object_streamer:
-            raise RuntimeError("object streamer has not been created")
-
-        self.object_streamer.register_stream_processing(
-            channel=channel,
-            topic=topic,
-            factory=factory,
-            stream_done_cb=stream_done_cb,
-            consumed_cb=consumed_cb,
-            **cb_kwargs,
-        )
+        pass
 
     def shutdown_streamer(self):
-        if self.object_streamer:
-            self.object_streamer.shutdown()
+        pass
 
     def abort_app(self, job_id: str, fl_ctx: FLContext):
-        runner = fl_ctx.get_prop(key=FLContextKey.RUNNER, default=None)
-        if isinstance(runner, ClientRunner):
-            runner.abort()
+        pass
 
     def create_job_processing_context_properties(self, workspace, job_id):
-        return create_job_processing_context_properties(workspace, job_id)
+        pass

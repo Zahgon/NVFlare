@@ -30,7 +30,7 @@ class CommandFilter(object):
 
         Returns: True to continue filter chain or False to not
         """
-        return True
+        pass
 
     def post_command(self, conn: Connection, args: List[str]) -> bool:
         """Code to execute after executing a command."""
@@ -54,10 +54,7 @@ class ServerCommandRegister(CommandRegister):
         self.closed = False
 
     def add_filter(self, cmd_filter: CommandFilter):
-        assert isinstance(cmd_filter, CommandFilter), "cmd_filter must be CommandFilter but got {}.".format(
-            type(cmd_filter)
-        )
-        self.filters.append(cmd_filter)
+        pass
 
     def _do_command(self, conn: Connection, command: str):
         """Executes command.
@@ -65,56 +62,10 @@ class ServerCommandRegister(CommandRegister):
         Getting the command from the command registry, invoke filters and call the handler function, passing along conn
         and the args split from the command.
         """
-        conn.app_ctx = self.app_ctx
-        args = split_to_args(command)
-        conn.args = args
-        conn.command = command
-
-        cmd_name = args[0]
-        entries = self.get_command_entries(cmd_name)
-        if len(entries) <= 0:
-            conn.append_error('Unknown command "{}"'.format(cmd_name))
-            return
-        elif len(entries) == 1:
-            conn.set_prop(ConnProps.CMD_ENTRY, entries[0])
-            handler = entries[0].handler
-        else:
-            conn.append_error('Command "{}" exists in multiple scopes. Please use full command name'.format(cmd_name))
-            return
-
-        if handler is None:
-            conn.append_error('Unknown command "{}"'.format(cmd_name))
-            return
-
-        # invoke pre filters
-        if len(self.filters) > 0:
-            for f in self.filters:
-                ok = f.pre_command(conn, args)
-                if not ok:
-                    return
-
-        handler(conn, args)
-
-        # invoke post filters
-        if len(self.filters) > 0:
-            for f in self.filters:
-                f.post_command(conn, args)
+        pass
 
     def process_command(self, conn: Connection, command: str):
-        try:
-            self._do_command(conn, command)
-        except Exception as e:
-            secure_log_traceback()
-            conn.append_error(f"Exception Occurred: {secure_format_exception(e)}")
+        pass
 
     def close(self):
-        if self.closed:
-            return
-
-        for f in self.filters:
-            f.close()
-
-        for m in self.modules:
-            m.close()
-
-        self.closed = True
+        pass

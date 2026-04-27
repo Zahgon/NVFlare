@@ -71,26 +71,7 @@ class EdgeJob(FedJob):
         Returns: None
 
         """
-        if self.server_config_added:
-            raise RuntimeError("server config is already added")
-
-        check_object_type("assessor", assessor, Assessor)
-        check_positive_int("num_rounds", num_rounds)
-        check_str("task_name", task_name)
-
-        assessor_id = self.to_server(assessor, id="wf_assessor")
-
-        controller = ScatterAndGatherForEdge(
-            assessor_id=assessor_id,
-            num_rounds=num_rounds,
-            task_name=task_name,
-            task_check_period=0.5,
-            assess_interval=assess_interval,
-            update_interval=update_interval,
-        )
-
-        self.to_server(controller, id="sage")
-        self.server_config_added = True
+        pass
 
     def configure_client(
         self,
@@ -112,37 +93,10 @@ class EdgeJob(FedJob):
         Returns: None
 
         """
-        if self.client_config_added:
-            raise RuntimeError("client config is already added")
-
-        # check the validity of max_model_versions if not None
-        if max_model_versions:
-            check_positive_int("max_model_versions", max_model_versions)
-
-        check_object_type("aggregator_factory", aggregator_factory, AggregatorFactory)
-        check_positive_number("update_timeout", update_timeout)
-        check_str("executor_task_name", executor_task_name)
-
-        if simulation_config_file:
-            check_str("simulation_config_file", simulation_config_file)
-
-        self.to_clients(EdgeTaskReceiver(), id="edge_task_receiver")
-
-        aggr_factory_id = self.to_clients(aggregator_factory, id="aggr_factory")
-        executor = self._configure_executor(
-            aggr_factory_id=aggr_factory_id, max_model_versions=max_model_versions, update_timeout=update_timeout
-        )
-        self.to_clients(executor, id="executor", tasks=[executor_task_name])
-
-        if simulation_config_file:
-            self.configure_simulation_with_file(simulation_config_file)
-
-        self.client_config_added = True
+        pass
 
     def _configure_executor(self, aggr_factory_id, max_model_versions, update_timeout):
-        return EdgeModelExecutor(
-            aggr_factory_id=aggr_factory_id, max_model_versions=max_model_versions, update_timeout=update_timeout
-        )
+        pass
 
     def configure_simulation_with_file(self, simulation_config_file: str):
         """Configure simulation with a config file.
@@ -153,24 +107,7 @@ class EdgeJob(FedJob):
         Returns:
 
         """
-        if self.simulation_set:
-            raise RuntimeError("simulation is already configured")
-
-        if not os.path.isfile(simulation_config_file):
-            raise ValueError(f"file {simulation_config_file} does not exist or is not a valid file")
-
-        try:
-            with open(simulation_config_file, "r") as f:
-                json.load(f)
-        except Exception as ex:
-            raise ValueError(f"file {simulation_config_file} is not a valid JSON file: {ex}")
-
-        self.to_clients(FileSource(simulation_config_file, app_folder_type="config"))
-
-        base_name = os.path.basename(simulation_config_file)
-        conf_file = "{JOB_CONFIG_DIR}/" + f"{base_name}"
-        self.to_clients(TPRunner(conf_file), id="tp_runner")
-        self.simulation_set = True
+        pass
 
     def configure_simulation(
         self,
@@ -190,10 +127,4 @@ class EdgeJob(FedJob):
         Returns: None
 
         """
-        if self.simulation_set:
-            raise RuntimeError("simulation is already configured")
-
-        tp_id = self.to_clients(task_processor, "task_processor")
-        runner = TPORunner(tp_id, job_timeout, num_devices, num_workers)
-        self.to_clients(runner, "tpo_runner")
-        self.simulation_set = True
+        pass

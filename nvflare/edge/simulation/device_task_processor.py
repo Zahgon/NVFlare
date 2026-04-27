@@ -30,27 +30,27 @@ class DeviceTaskProcessor(ABC):
 
     @property
     def device_info(self):
-        return self.device.get_device_info() if self.device else None
+        pass
 
     @property
     def user_info(self):
-        return self.device.get_user_info() if self.device else None
+        pass
 
     @property
     def job_id(self):
-        return self.device.job_id
+        pass
 
     @property
     def job_name(self):
-        return self.device.job_name
+        pass
 
     @property
     def job_data(self):
-        return self.device.job_data
+        pass
 
     @property
     def job_method(self):
-        return self.device.job_method
+        pass
 
     @abstractmethod
     def setup(self, job: JobResponse) -> None:

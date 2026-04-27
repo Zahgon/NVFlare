@@ -30,45 +30,17 @@ def load_tenseal_context_from_workspace(ctx_file_name: str, fl_ctx: FLContext):
         TenSEAL context
 
     """
-    is_secure_mode = fl_ctx.get_prop(FLContextKey.SECURE_MODE, True)
-    data, rc = SecurityContentService.load_content(ctx_file_name)
-
-    bad_rcs = [LoadResult.INVALID_CONTENT, LoadResult.NO_SUCH_CONTENT]
-    if is_secure_mode:
-        bad_rcs.extend([LoadResult.INVALID_SIGNATURE, LoadResult.NOT_SIGNED])
-
-    if rc in bad_rcs:
-        raise ValueError("Cannot load tenseal_context {}: {}".format(ctx_file_name, rc))
-
-    context = ts.context_from(data)
-    return context
+    pass
 
 
 def count_encrypted_layers(encrypted_layers: dict):
     """Count number of encrypted layers homomorphic encryption (HE) layers/variables."""
-    n_total = len(encrypted_layers)
-    n_encrypted = 0
-    for e in encrypted_layers.keys():
-        if encrypted_layers[e]:
-            n_encrypted += 1
-    return n_encrypted, n_total
+    pass
 
 
 def serialize_nested_dict(d):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            serialize_nested_dict(v)
-        else:
-            if isinstance(v, ts.CKKSVector):
-                d[k] = v.serialize()
-    return d
+    pass
 
 
 def deserialize_nested_dict(d, context):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            deserialize_nested_dict(v, context)
-        else:
-            if isinstance(v, bytes):
-                d[k] = ts.ckks_vector_from(context, v)
-    return d
+    pass

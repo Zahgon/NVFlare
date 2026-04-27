@@ -41,47 +41,10 @@ class TDXAuthorizer(CCAuthorizer):
         self.config_file = os.path.join(self.config_dir, TDX_CLI_CONFIG)
 
     def generate(self) -> str:
-        token_file = os.path.join(self.config_dir, TOKEN_FILE)
-        out = open(token_file, "w")
-        error_file = os.path.join(self.config_dir, ERROR_FILE)
-        err_out = open(error_file, "w")
-
-        command = ["sudo", self.tdx_cli_command, "-c", self.config_file, "token", "--no-eventlog"]
-        subprocess.run(command, preexec_fn=os.setsid, stdout=out, stderr=err_out)
-
-        if not os.path.exists(error_file) or not os.path.exists(token_file):
-            return ""
-
-        try:
-            with open(error_file, "r") as e_f:
-                if "Error:" in e_f.read():
-                    return ""
-                else:
-                    with open(token_file, "r") as t_f:
-                        token = t_f.readline()
-                    return token
-        except:
-            return ""
+        pass
 
     def verify(self, token: str) -> bool:
-        out = open(os.path.join(self.config_dir, VERIFY_FILE), "w")
-        error_file = os.path.join(self.config_dir, ERROR_FILE)
-        err_out = open(error_file, "w")
-
-        command = [self.tdx_cli_command, "verify", "--config", self.config_file, "--token", token]
-        subprocess.run(command, preexec_fn=os.setsid, stdout=out, stderr=err_out)
-
-        if not os.path.exists(error_file):
-            return False
-
-        try:
-            with open(error_file, "r") as f:
-                if "Error:" in f.read():
-                    return False
-        except:
-            return False
-
-        return True
+        pass
 
     def get_namespace(self) -> str:
-        return TDX_NAMESPACE
+        pass

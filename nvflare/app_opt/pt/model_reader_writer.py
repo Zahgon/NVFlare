@@ -26,21 +26,7 @@ class PTModelReaderWriter(ModelProcessor):
         self.logger = get_obj_logger(self)
 
     def extract_model(self, network, multi_processes: bool, model_vars: dict, fl_ctx: FLContext) -> dict:
-        net = network
-        if multi_processes:
-            net = net.module
-        local_state_dict = net.state_dict()
-
-        self.logger.debug("setup local_model_dict")
-        local_model_dict = {}
-        for var_name in local_state_dict:
-            try:
-                local_model_dict[var_name] = local_state_dict[var_name].cpu().numpy()
-            except Exception as e:
-                raise ValueError(f"Did not work: {secure_format_exception(e)}")
-        self.logger.debug(f"local_model_dict {len(local_model_dict)}")
-
-        return local_model_dict
+        pass
 
     def apply_model(self, network, multi_processes: bool, model_params: dict, fl_ctx: FLContext, options=None):
         """Set the local model according to model_data.
@@ -56,15 +42,4 @@ class PTModelReaderWriter(ModelProcessor):
         Returns:
             a list of ops applied to model
         """
-        try:
-            net = network
-            if multi_processes:
-                net = net.module
-            assign_ops, updated_local_model = feed_vars(net, model_params)
-            self.logger.debug(f"assign_ops: {len(assign_ops)}")
-            self.logger.debug(f"updated_local_model: {len(updated_local_model)}")
-            # self.fitter.net.load_state_dict(updated_local_model)
-            net.load_state_dict(updated_local_model)
-            return assign_ops
-        except Exception as e:
-            raise RuntimeError(f"load_state_dict Exception: {secure_format_exception(e)}")
+        pass

@@ -50,31 +50,15 @@ def _cell_fqcn(mode, site_name, token, parent_fqcn):
     # We use the combination of mode, site_name, and token to derive the value of FQCN
     # Since the token is usually used across all sites, the "site_name" differentiate cell on one site from another.
     # The two peer pipes on the same site share the same site_name and token, but are differentiated by their modes.
-    base = f"{site_name}_{token}_{mode}"
-    if parent_fqcn == FQCN.ROOT_SERVER:
-        return base
-    else:
-        return FQCN.join([parent_fqcn, base])
+    pass
 
 
 def _to_cell_message(msg: Message, extra=None) -> CellMessage:
-    headers = {_HEADER_MSG_TYPE: msg.msg_type, _HEADER_MSG_ID: msg.msg_id, _HEADER_START_TIME: time.time()}
-    if extra:
-        headers.update(extra)
-    if msg.req_id:
-        headers[_HEADER_REQ_ID] = msg.req_id
-
-    return CellMessage(headers=headers, payload=msg.data)
+    pass
 
 
 def _from_cell_message(cm: CellMessage) -> Message:
-    return Message(
-        msg_id=cm.get_header(_HEADER_MSG_ID),
-        msg_type=cm.get_header(_HEADER_MSG_TYPE),
-        topic=cm.get_header(MessageHeaderKey.TOPIC),
-        req_id=cm.get_header(_HEADER_REQ_ID),
-        data=cm.payload,
-    )
+    pass
 
 
 class _CellInfo:
@@ -93,25 +77,13 @@ class _CellInfo:
         self.lock = threading.Lock()
 
     def start(self):
-        with self.lock:
-            if not self.started:
-                self.cell.start()
-                self.started = True
+        pass
 
     def add_pipe(self, p):
-        with self.lock:
-            self.pipes.append(p)
+        pass
 
     def close_pipe(self, p):
-        with self.lock:
-            try:
-                self.pipes.remove(p)
-                if len(self.pipes) == 0:
-                    # all pipes are closed - close cell and agent
-                    self.net_agent.close()
-                    self.cell.stop()
-            except:
-                pass
+        pass
 
 
 class CellPipe(Pipe):
@@ -137,53 +109,7 @@ class CellPipe(Pipe):
         Returns:
 
         """
-        with cls._lock:
-            ci = cls._cells_info.get(fqcn)
-            if not ci:
-                if secure_mode:
-                    root_cert_path = search_file(SSL_ROOT_CERT, workspace_dir)
-                    if not root_cert_path:
-                        raise ValueError(f"cannot find {SSL_ROOT_CERT} from config path {workspace_dir}")
-
-                    credentials = {
-                        DriverParams.CA_CERT.value: root_cert_path,
-                    }
-                else:
-                    credentials = {}
-
-                conn_sec = parent_conn_props.get(ConnPropKey.CONNECTION_SECURITY)
-                if conn_sec:
-                    credentials[DriverParams.CONNECTION_SECURITY.value] = conn_sec
-
-                parent_url = parent_conn_props.get(ConnPropKey.URL)
-
-                if FQCN.get_parent(fqcn):
-                    # the cell has a parent: connect to the parent
-                    cell_root = None
-                    cell_parent_url = parent_url
-                else:
-                    # the cell has no parent: the parent_url is the root of the cellnet
-                    cell_root = parent_url
-                    cell_parent_url = None
-
-                cell = Cell(
-                    fqcn=fqcn,
-                    root_url=cell_root,
-                    secure=secure_mode,
-                    credentials=credentials,
-                    parent_url=cell_parent_url,
-                    create_internal_listener=False,
-                )
-
-                auth_token = get_scope_property(scope_name=site_name, key=FLMetaKey.AUTH_TOKEN, default="NA")
-                token_signature = get_scope_property(site_name, FLMetaKey.AUTH_TOKEN_SIGNATURE, default="NA")
-
-                net_agent = NetAgent(cell)
-                ci = _CellInfo(site_name, cell, net_agent, auth_token, token_signature)
-                cls._cells_info[fqcn] = ci
-
-                set_add_auth_headers_filters(cell, ci.site_name, ci.auth_token, ci.token_signature)
-            return ci
+        pass
 
     def __init__(
         self,
@@ -302,26 +228,15 @@ class CellPipe(Pipe):
         self.pass_through_on_send: bool = False
 
     def _update_peer_active_time(self, msg: CellMessage, ch_name: str, msg_type: str):
-        origin = msg.get_header(MessageHeaderKey.ORIGIN)
-        if origin == self.peer_fqcn:
-            self.logger.debug(f"{time.time()}: _update_peer_active_time: {ch_name=} {msg_type=} {msg.headers}")
-            self.last_peer_active_time = time.time()
+        pass
 
     def get_last_peer_active_time(self):
-        return self.last_peer_active_time
+        pass
 
     def set_cell_cb(self, channel_name: str):
         # This allows multiple pipes over the same cell (e.g. one channel for tasks, another for metrics),
         # as long as different pipes use different cell message channels
-        self.channel = f"{_PREFIX}{channel_name}"
-        self.cell.register_request_cb(channel=self.channel, topic="*", cb=self._receive_message)
-        self.cell.core_cell.add_incoming_request_filter(
-            channel="*", topic="*", cb=self._update_peer_active_time, ch_name=channel_name, msg_type="req"
-        )
-        self.cell.core_cell.add_incoming_reply_filter(
-            channel="*", topic="*", cb=self._update_peer_active_time, ch_name=channel_name, msg_type="reply"
-        )
-        self.logger.info(f"registered CellPipe request CB for {self.channel}")
+        pass
 
     def send(self, msg: Message, timeout=None) -> bool:
         """Sends the specified message to the peer.
@@ -334,100 +249,7 @@ class CellPipe(Pipe):
         Returns:
             Whether the message is read by the peer.
         """
-        with self.pipe_lock:
-            if self.closed:
-                raise BrokenPipeError("pipe closed")
-
-        # Note: the following code must not be within the lock scope
-        # Otherwise only one message can be sent at a time!
-        optional = False
-        if msg.topic in [Topic.END, Topic.ABORT, Topic.HEARTBEAT]:
-            optional = True
-
-        if not timeout and msg.topic in [Topic.END, Topic.ABORT]:
-            timeout = 5.0  # need to keep the connection for some time; otherwise the msg may not go out
-
-        if msg.topic == Topic.HEARTBEAT:
-            # Heartbeats are fire-and-forget; always create a fresh CellMessage so
-            # the timestamp header reflects the actual send time.
-            extra_headers = {_HEADER_HB_SEQ: self.hb_seq}
-            self.hb_seq += 1
-
-            # don't need to wait for reply!
-            self.cell.fire_and_forget(
-                channel=self.channel,
-                topic=msg.topic,
-                targets=[self.peer_fqcn],
-                message=_to_cell_message(msg, extra_headers),
-                optional=optional,
-            )
-            return True
-
-        # Serialize the message ONCE and cache the result on the Message object.
-        #
-        # Why: PipeHandler retries the same `msg` object on every failed send.
-        # Without caching, each retry calls _to_cell_message(msg) → FOBS encodes
-        # msg.data (the Shareable/numpy result) → creates a new ArrayDownloadable
-        # transaction in DownloadService.  With a 5 GiB model and 14+ retries this
-        # produces 70–135 GiB of live transactions simultaneously (OOM crash).
-        #
-        # How it works: cell.send_request() calls encode_payload() which checks
-        # whether the CellMessage's encoding header is already set.  On the first
-        # call it encodes (FOBS) and mutates request.payload to bytes, then sets the
-        # header.  On every subsequent call with the same CellMessage object,
-        # encode_payload() sees the header is already set and skips re-serialization,
-        # so no new ArrayDownloadable is created.
-        if not hasattr(msg, "_cached_cell_msg"):
-            msg._cached_cell_msg = _to_cell_message(msg)
-        request = msg._cached_cell_msg
-        request.set_header(MessageHeaderKey.MSG_ROOT_ID, msg.msg_id)
-        # For REPLY messages (subprocess→CJ result direction), stamp MSG_ROOT_TTL so
-        # via_downloader._create_downloader() keeps the subprocess's DownloadService
-        # transaction alive long enough for the server to pull tensors directly from
-        # the subprocess.
-        #
-        # When pass_through_on_send is active (reverse PASS_THROUGH path), use
-        # _dl_ttl stamped by FlareAgent._do_submit_result() — this is
-        # download_complete_timeout (default 1800s), the actual transfer budget.
-        # Mirrors the forward direction where the server uses task.timeout.
-        #
-        # Fall back to `timeout` (= submit_result_timeout, the CJ-ACK timeout)
-        # for non-PASS_THROUGH REPLY messages where no tensor transfer occurs.
-        if msg.msg_type == Message.REPLY:
-            dl_ttl = getattr(msg, "_dl_ttl", None) if self.pass_through_on_send else None
-            ttl = dl_ttl if dl_ttl and dl_ttl > 0 else timeout
-            if ttl is not None and ttl > 0:
-                request.set_header(MessageHeaderKey.MSG_ROOT_TTL, float(ttl))
-        # Stamp PASS_THROUGH on every outgoing task/result message when the
-        # caller has opted in.  Adapter.call() on the receiving side reads this
-        # header and builds a per-call FOBS decode context with
-        # FOBSContextKey.PASS_THROUGH=True so that large tensors arrive as
-        # LazyDownloadRef placeholders rather than being downloaded inline.
-        # Heartbeat messages do not carry model data and always skip this path
-        # (they use fire_and_forget above).
-        if self.pass_through_on_send:
-            request.set_header(MessageHeaderKey.PASS_THROUGH, True)
-        reply = self.cell.send_request(
-            channel=self.channel,
-            topic=msg.topic,
-            target=self.peer_fqcn,
-            request=request,
-            timeout=timeout,
-            optional=optional,
-        )
-        if reply:
-            rc = reply.get_header(MessageHeaderKey.RETURN_CODE)
-            if rc == ReturnCode.OK:
-                return True
-            else:
-                err = f"failed to send '{msg.topic}' to '{self.peer_fqcn}' in channel '{self.channel}': {rc}"
-                if optional:
-                    self.logger.debug(err)
-                else:
-                    self.logger.error(err)
-                return False
-        else:
-            return False
+        pass
 
     def _receive_message(self, request: CellMessage) -> Union[None, CellMessage]:
         # Return the pipe-level ACK as quickly as possible.
@@ -441,29 +263,13 @@ class CellPipe(Pipe):
         # The conversion (_from_cell_message) is deferred to receive() time so that
         # this callback – and therefore the cell-level ACK path – performs the
         # absolute minimum work before returning ReturnCode.OK to the sender.
-        sender = request.get_header(MessageHeaderKey.ORIGIN)
-        topic = request.get_header(MessageHeaderKey.TOPIC)
-        self.logger.debug(f"got msg from peer {sender}: {topic}")
-
-        if self.peer_fqcn != sender:
-            raise RuntimeError(f"peer FQCN mismatch: expect {self.peer_fqcn} but got {sender}")
-        self.received_msgs.put_nowait(request)
-        return make_reply(ReturnCode.OK)
+        pass
 
     def receive(self, timeout=None) -> Union[None, Message]:
-        try:
-            if timeout:
-                cm = self.received_msgs.get(block=True, timeout=timeout)
-            else:
-                cm = self.received_msgs.get_nowait()
-        except queue.Empty:
-            return None
-        # Convert the raw CellMessage to a Message at dequeue time.
-        return _from_cell_message(cm)
+        pass
 
     def clear(self):
-        while not self.received_msgs.empty():
-            self.received_msgs.get_nowait()
+        pass
 
     def release_send_cache(self, msg: Message):
         """Clear the cached CellMessage that was attached to *msg* by send().
@@ -474,37 +280,16 @@ class CellPipe(Pipe):
         and any lingering references to be reclaimed by GC promptly, rather than
         waiting for the Message object itself to go out of scope.
         """
-        msg.__dict__.pop("_cached_cell_msg", None)
+        pass
 
     def can_resend(self) -> bool:
-        return True
+        pass
 
     def open(self, name: str):
-        with self.pipe_lock:
-            if self.closed:
-                raise BrokenPipeError("pipe already closed")
-            self.ci.start()
-            self.set_cell_cb(name)
+        pass
 
     def close(self):
-        with self.pipe_lock:
-            if self.closed:
-                return
-            self.ci.close_pipe(self)
-            self.closed = True
+        pass
 
     def export(self, export_mode: str) -> Tuple[str, dict]:
-        if export_mode == ExportMode.SELF:
-            mode = self.mode
-        else:
-            mode = Mode.ACTIVE if self.mode == Mode.PASSIVE else Mode.PASSIVE
-
-        export_args = {
-            "mode": mode,
-            "site_name": self.site_name,
-            "token": self.token,
-            "root_url": self.root_url,
-            "secure_mode": self.cell.core_cell.secure,
-            "workspace_dir": self.workspace_dir,
-        }
-        return f"{self.__module__}.{self.__class__.__name__}", export_args
+        pass

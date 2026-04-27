@@ -51,60 +51,15 @@ class MetricRelay(Widget, AttributesExportable):
         self._fed_event = fed_event
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABOUT_TO_START_RUN:
-            engine = fl_ctx.get_engine()
-            pipe = engine.get_component(self.pipe_id)
-            if not isinstance(pipe, Pipe):
-                self.log_error(fl_ctx, f"component {self.pipe_id} must be Pipe but got {type(pipe)}")
-                self.system_panic(f"bad component {self.pipe_id}", fl_ctx)
-                return
-            self._fl_ctx = fl_ctx
-            self.pipe = pipe
-            self.pipe.open(self.pipe_channel_name)
-        elif event_type == EventType.BEFORE_TASK_EXECUTION:
-            if self.pipe_handler:
-                self.pipe_handler.stop(close_pipe=False)
-            self._create_pipe_handler()
-            self.pipe_handler.start()
-        elif event_type == EventType.ABOUT_TO_END_RUN:
-            self.log_debug(fl_ctx, "Stopping pipe handler")
-            if self.pipe_handler:
-                self.pipe_handler.notify_end("end_of_job")
-                self.pipe_handler.stop(close_pipe=False)
+        pass
 
     def _create_pipe_handler(self):
-        handler = PipeHandler(
-            pipe=self.pipe,
-            read_interval=self._read_interval,
-            heartbeat_interval=self._heartbeat_interval,
-            heartbeat_timeout=self._heartbeat_timeout,
-        )
-
         def _bound_status_cb(msg, _h=handler):
-            if self.pipe_handler is not _h:
-                self.logger.debug(f"Ignoring late {msg.topic} from a previous pipe handler")
-                return
-            self.logger.info(f"{self.pipe_channel_name} pipe status changed to {msg.topic}: {msg.data}")
-            _h.stop(close_pipe=False)
-
-        handler.set_status_cb(_bound_status_cb)
-        handler.set_message_cb(self._pipe_msg_cb)
-        self.pipe_handler = handler
+            pass
+        pass
 
     def _pipe_msg_cb(self, msg: Message):
-        if not isinstance(msg.data, DXO):
-            self.logger.error(f"bad metric data: expect DXO but got {type(msg.data)}")
-            return
-        send_analytic_dxo(self, msg.data, self._fl_ctx, self._event_type, fire_fed_event=self._fed_event)
+        pass
 
     def export(self, export_mode: str) -> Tuple[str, dict]:
-        pipe_export_class, pipe_export_args = self.pipe.export(export_mode)
-        config_dict = {
-            ConfigKey.PIPE_CHANNEL_NAME: self.pipe_channel_name,
-            ConfigKey.PIPE: {
-                ConfigKey.CLASS_NAME: pipe_export_class,
-                ConfigKey.ARG: pipe_export_args,
-            },
-            ConfigKey.HEARTBEAT_TIMEOUT: self._heartbeat_timeout,
-        }
-        return ConfigKey.METRICS_EXCHANGE, config_dict
+        pass

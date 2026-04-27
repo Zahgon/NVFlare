@@ -59,21 +59,7 @@ class TensorSender:
         Args:
             fl_ctx (FLContext): The FLContext for the current operation.
         """
-        peer_name = fl_ctx.get_peer_context().get_identity_name()
-        task_id = fl_ctx.get_prop(FLContextKey.TASK_ID, None)
-        if not task_id:
-            raise ValueError("No task_id found in FLContext.")
-
-        try:
-            dxo = get_dxo_from_ctx(fl_ctx, self.ctx_prop_key, self.tasks)
-        except ValueError as exc:
-            self.logger.warning(f"{exc} Nothing to send.")
-            return False
-
-        params = dxo.data
-        self.task_params[task_id] = params
-        self.logger.info(f"Stored reference to params to be sent to peer '{peer_name}'. Task ID: '{task_id}'.")
-        del params
+        pass
 
     def send(
         self,
@@ -86,34 +72,8 @@ class TensorSender:
             fl_ctx (FLContext): The FLContext for the current operation.
             tensor_send_timeout (float): Timeout for each tensor entry transfer.
         """
-        peer_name = fl_ctx.get_peer_context().get_identity_name()
-        task_id = fl_ctx.get_prop(FLContextKey.TASK_ID, None)
-        if not task_id:
-            raise ValueError("No task_id found in FLContext.")
-        targets = get_targets_from_ctx_and_prop_key(fl_ctx, self.ctx_prop_key)
-
-        # Important: pop the tensors to release memory after sending
-        # Each task_id is unique per client, so we only send once per task_id
-        params = self.task_params.pop(task_id, None)
-        if not params:
-            raise ValueError(f"No tensors stored for peer '{peer_name}'. Task ID: '{task_id}'.")
-
-        producer = TensorProducer(params, task_id, tensor_send_timeout)
-        msg = f"Starting to send tensors to peer '{peer_name}'."
-        msg += f" Task ID: '{task_id}'."
-        self.logger.info(msg)
-        self._send_tensors(targets, producer, fl_ctx)
+        pass
 
     def _send_tensors(self, targets: list[str], producer: TensorProducer, fl_ctx: FLContext):
         """Send tensors to the peer using the StreamableEngine."""
-        stream_ctx = StreamContext()
-        self.engine.stream_objects(
-            channel=self.channel,
-            topic=get_topic_for_ctx_prop_key(self.ctx_prop_key),
-            stream_ctx=stream_ctx,
-            targets=targets,
-            producer=producer,
-            fl_ctx=fl_ctx,
-            optional=False,
-            secure=False,
-        )
+        pass

@@ -29,20 +29,8 @@ class TaskRequest(BaseModel):
 
     @classmethod
     def validate(cls, d: dict) -> str:
-        return cls.check_keys(d, [EdgeProtoKey.JOB_ID, EdgeProtoKey.DEVICE_INFO])
+        pass
 
     @classmethod
     def from_dict(cls, d: dict):
-        error = cls.validate(d)
-        if error:
-            return error, None
-
-        error, device_info = DeviceInfo.extract_from_dict(d)
-        if error:
-            return error, None
-
-        _, user_info = UserInfo.extract_from_dict(d)
-
-        task_req = TaskRequest(device_info, user_info, d.pop(EdgeProtoKey.JOB_ID), d.pop(EdgeProtoKey.COOKIE, {}))
-        task_req.update(d)
-        return "", task_req
+        pass

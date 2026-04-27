@@ -33,10 +33,7 @@ def find_file_in_dir(file_basename, path) -> Union[None, str]:
 
     Returns: the full path of the file, if found; None if not found
     """
-    for root, dirs, files in os.walk(path):
-        if file_basename in files:
-            return os.path.join(root, file_basename)
-    return None
+    pass
 
 
 def search_file(file_basename: str, dirs: List[str]) -> Union[None, str]:
@@ -50,13 +47,7 @@ def search_file(file_basename: str, dirs: List[str]) -> Union[None, str]:
     Returns: the full path of the file, if found; None if not found
 
     """
-    if isinstance(dirs, str):
-        dirs = [dirs]
-    for d in dirs:
-        f = find_file_in_dir(file_basename, d)
-        if f:
-            return f
-    return None
+    pass
 
 
 class ConfigService:
@@ -94,40 +85,7 @@ class ConfigService:
         Returns:
 
         """
-        if not isinstance(section_files, dict):
-            raise TypeError(f"section_files must be dict but got {type(section_files)}")
-
-        if not isinstance(config_path, list):
-            raise TypeError(f"config_dirs must be list but got {type(config_path)}")
-
-        if not config_path:
-            raise ValueError("config_dirs is empty")
-
-        if var_dict and not isinstance(var_dict, dict):
-            raise ValueError(f"var_dict must dict but got {type(var_dict)}")
-
-        for d in config_path:
-            if not isinstance(d, str):
-                raise ValueError(f"config_dirs must contain str but got {type(d)}")
-
-            if not os.path.exists(d):
-                raise ValueError(f"'directory {d}' does not exist")
-
-            if not os.path.isdir(d):
-                raise ValueError(f"'{d}' is not a valid directory")
-
-        for d in config_path:
-            if d not in cls._config_path:
-                cls._config_path.append(d)
-
-        for section, file_basename in section_files.items():
-            cls._sections[section] = cls.load_config_dict(file_basename, cls._config_path)
-
-        cls._var_dict = var_dict
-        if parsed_args:
-            if not isinstance(parsed_args, argparse.Namespace):
-                raise ValueError(f"parsed_args must be argparse.Namespace but got {type(parsed_args)}")
-            cls._cmd_args = dict(parsed_args.__dict__)
+        pass
 
     @classmethod
     def reset(cls):
@@ -137,11 +95,7 @@ class ConfigService:
         Returns:
 
         """
-        cls._sections = {}
-        cls._config_path = []
-        cls._cmd_args = None
-        cls._var_dict = None
-        cls._var_values = {}
+        pass
 
     @classmethod
     def get_section(cls, name: str):
@@ -153,7 +107,7 @@ class ConfigService:
         Returns: the section of the specified name, or None if the section is not found.
 
         """
-        return cls._sections.get(name)
+        pass
 
     @classmethod
     def add_section(cls, section_name: str, data: dict, overwrite_existing: bool = True):
@@ -168,13 +122,7 @@ class ConfigService:
         Returns: None
 
         """
-        if not isinstance(section_name, str):
-            raise TypeError(f"section name must be str but got {type(section_name)}")
-        if not isinstance(data, dict):
-            raise TypeError(f"config data must be dict but got {type(data)}")
-
-        if overwrite_existing or section_name not in cls._sections:
-            cls._sections[section_name] = data
+        pass
 
     @classmethod
     def load_configuration(cls, file_basename: str) -> Optional[Config]:
@@ -187,8 +135,7 @@ class ConfigService:
         Returns: config data loaded, or None if the config file is not found.
 
         """
-        result = ConfigFactory.load_config(file_basename, cls._config_path)
-        return result
+        pass
 
     @classmethod
     def load_config_dict(
@@ -212,21 +159,11 @@ class ConfigService:
         Returns: Dictionary from the configuration
                 if not found, exception will be raised.
         """
-        conf = ConfigFactory.load_config(file_basename, search_dirs)
-        if conf:
-            return conf.to_dict()
-        else:
-            if raise_exception:
-                raise FileNotFoundError(cls.config_not_found_msg(file_basename, search_dirs))
-            return None
+        pass
 
     @classmethod
     def config_not_found_msg(cls, file_basename, search_dirs):
-        basename = os.path.splitext(file_basename)[0]
-        conf_exts = "|".join(ConfigFormat.config_ext_formats().keys())
-        msg = f"cannot find file '{basename}[{conf_exts}]'"
-        msg = f"{msg} from search paths: '{search_dirs}'" if search_dirs else msg
-        return msg
+        pass
 
     @classmethod
     def find_file(cls, file_basename: str) -> Union[None, str]:
@@ -240,92 +177,31 @@ class ConfigService:
         Returns: full name of the file if found; None if not.
 
         """
-        if not isinstance(file_basename, str):
-            raise TypeError(f"file_basename must be str but got {type(file_basename)}")
-        return search_file(file_basename, cls._config_path)
+        pass
 
     @classmethod
     def _get_from_config(cls, func, name: str, conf, default):
-        v, src = cls._get_var_from_source(name, conf)
-        cls.logger.debug(f"got var {name} from {src}")
-        if v is None:
-            return default
-
-        # convert to right data type
-        return func(name, v)
+        pass
 
     @classmethod
     def _any_var(cls, func, name, conf, default):
-        if name in cls._var_values:
-            return cls._var_values.get(name)
-        v = cls._get_from_config(func, name, conf, default)
-        if v is not None:
-            cls._var_values[name] = v
-        return v
+        pass
 
     @staticmethod
     def _get_var_from_os_env(name: str):
-        if not name.startswith(ENV_VAR_PREFIX):
-            env_var_name = ENV_VAR_PREFIX + name
-        else:
-            env_var_name = name
-
-        env_var_name = env_var_name.upper()
-        if env_var_name in os.environ:
-            return os.environ.get(env_var_name)
-        else:
-            return None
+        pass
 
     @classmethod
     def _get_var_from_config_sources(cls, name: str, conf):
-        if conf is None:
-            return None
-
-        # conf could be:
-        #   a single config source (a section name or a dict)
-        #   a list of config sources
-        if not isinstance(conf, list):
-            conf = [conf]
-
-        # check each conf source until the var is found
-        for src in conf:
-            if isinstance(src, str):
-                # this is a section name
-                src = cls.get_section(src)
-
-            if isinstance(src, dict):
-                v = src.get(name)
-                if v is not None:
-                    return v
-
-        # No source has this var
-        return None
+        pass
 
     @classmethod
     def _get_var_from_source(cls, name: str, conf):
-        if not isinstance(name, str):
-            raise ValueError(f"var name must be str but got {type(name)}")
-
-        # see whether command args have it
-        if cls._cmd_args and name in cls._cmd_args:
-            return cls._cmd_args.get(name), "cmd_args"
-
-        if cls._var_dict and name in cls._var_dict:
-            return cls._var_dict.get(name), "var_dict"
-
-        value = cls._get_var_from_config_sources(name, conf)
-        if value is not None:
-            return value, "config"
-
-        # finally check os env
-        return cls._get_var_from_os_env(name), "env"
+        pass
 
     @classmethod
     def _to_int(cls, name: str, v):
-        try:
-            return int(v)
-        except Exception as e:
-            raise ValueError(f"var {name}'s value '{v}' cannot be converted to int: {e}")
+        pass
 
     @classmethod
     def get_int_var(cls, name: str, conf=None, default=None):
@@ -339,14 +215,11 @@ class ConfigService:
         Returns: configured value of the var, or the default value if var is not configured
 
         """
-        return cls._any_var(cls._to_int, name, conf, default)
+        pass
 
     @classmethod
     def _to_float(cls, name: str, v):
-        try:
-            return float(v)
-        except Exception as e:
-            raise ValueError(f"var {name}'s value '{v}' cannot be converted to float: {e}")
+        pass
 
     @classmethod
     def get_float_var(cls, name: str, conf=None, default=None):
@@ -360,18 +233,11 @@ class ConfigService:
         Returns: configured value of the var, or the default value if var is not configured
 
         """
-        return cls._any_var(cls._to_float, name, conf, default)
+        pass
 
     @classmethod
     def _to_bool(cls, name: str, v):
-        if isinstance(v, bool):
-            return v
-        if isinstance(v, int):
-            return v != 0
-        if isinstance(v, str):
-            v = v.lower()
-            return v in ["true", "t", "yes", "y", "1"]
-        raise ValueError(f"var {name}'s value '{v}' cannot be converted to bool")
+        pass
 
     @classmethod
     def get_bool_var(cls, name: str, conf=None, default=None):
@@ -385,14 +251,11 @@ class ConfigService:
         Returns: configured value of the var, or the default value if var is not configured
 
         """
-        return cls._any_var(cls._to_bool, name, conf, default)
+        pass
 
     @classmethod
     def _to_str(cls, name: str, v):
-        try:
-            return str(v)
-        except Exception as e:
-            raise ValueError(f"var {name}'s value '{v}' cannot be converted to str: {e}")
+        pass
 
     @classmethod
     def get_str_var(cls, name: str, conf=None, default=None):
@@ -406,25 +269,11 @@ class ConfigService:
         Returns: configured value of the var, or the default value if var is not configured
 
         """
-        return cls._any_var(cls._to_str, name, conf, default)
+        pass
 
     @classmethod
     def _to_dict(cls, name: str, v):
-        if isinstance(v, dict):
-            return v
-
-        if isinstance(v, str):
-            # assume it's a json str
-            try:
-                v2 = json.loads(v)
-            except Exception as e:
-                raise ValueError(f"var {name}'s value '{v}' cannot be converted to dict: {e}")
-
-            if not isinstance(v2, dict):
-                raise ValueError(f"var {name}'s value '{v}' does not represent a dict")
-            return v2
-        else:
-            raise ValueError(f"var {name}'s value '{v}' does not represent a dict")
+        pass
 
     @classmethod
     def get_dict_var(cls, name: str, conf=None, default=None):
@@ -438,7 +287,7 @@ class ConfigService:
         Returns: configured value of the var, or the default value if var is not configured
 
         """
-        return cls._any_var(cls._to_dict, name, conf, default)
+        pass
 
     @classmethod
     def get_var_values(cls):
@@ -447,4 +296,4 @@ class ConfigService:
         Returns:
 
         """
-        return cls._var_values
+        pass

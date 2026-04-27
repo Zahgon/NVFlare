@@ -33,8 +33,7 @@ class _GPUConsumer(_Consumer):
 
         Note that this class did not check physically if those GPUs exist.
         """
-        gpu_numbers = [str(x) for x in resources]
-        os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(gpu_numbers)
+        pass
 
 
 class ListResourceConsumer(ResourceConsumerSpec):
@@ -47,6 +46,4 @@ class ListResourceConsumer(ResourceConsumerSpec):
         self.resource_consumer_map = {"gpu": _GPUConsumer()}
 
     def consume(self, resources: dict):
-        for key, consumer in self.resource_consumer_map.items():
-            if key in resources:
-                consumer.consume(resources[key])
+        pass

@@ -56,22 +56,7 @@ class BaseDistOptExecutor(Executor, ABC):
         fl_ctx: FLContext,
         abort_signal: Signal,
     ):
-        if task_name == "config":
-            # Load local network config
-            self.config = LocalConfig(**from_shareable(shareable).data)
-            self.neighbors = self.config.neighbors
-            self._weight = 1.0 - sum([n.weight for n in self.neighbors])
-            return make_reply(ReturnCode.OK)
-
-        elif task_name == "run_algorithm":
-            # Run the algorithm
-            self._pre_algorithm_run(fl_ctx, shareable, abort_signal)
-            self.run_algorithm(fl_ctx, shareable, abort_signal)
-            self._post_algorithm_run(fl_ctx, shareable, abort_signal)
-            return make_reply(ReturnCode.OK)
-        else:
-            self.log_warning(fl_ctx, f"Unknown task name: {task_name}")
-            return make_reply(ReturnCode.TASK_UNKNOWN)
+        pass
 
     @abstractmethod
     def run_algorithm(self, fl_ctx: FLContext, shareable: Shareable, abort_signal: Signal):
@@ -133,7 +118,7 @@ class BaseDistOptExecutor(Executor, ABC):
         Returns:
             any: The converted message.
         """
-        return x
+        pass
 
     def _from_message(self, x):
         """Converts a received message back to its original value format.
@@ -144,9 +129,7 @@ class BaseDistOptExecutor(Executor, ABC):
         Returns:
             any: The original value.
         """
-        return x
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.client_name = fl_ctx.get_identity_name()
-            self.id = int(self.client_name.split("-")[1])
+        pass

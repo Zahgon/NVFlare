@@ -22,22 +22,7 @@ def main():
     TODO: should this file be removed?
 
     """
-    user_name = input("User Name: ")
-
-    pwd = getpass.getpass("Password (8 or more chars): ")
-
-    if len(pwd) < 8:
-        print("Invalid password - must have at least 8 chars")
-        return
-
-    pwd2 = getpass.getpass("Confirm Password: ")
-
-    if pwd != pwd2:
-        print("Passwords mismatch")
-        return
-
-    result = hash_password(user_name + pwd)
-    print("Password Hash: {}".format(result))
+    pass
 
 
 if __name__ == "__main__":

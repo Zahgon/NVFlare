@@ -20,7 +20,7 @@ class Checksum:
         self.current_value = 0
 
     def update(self, data):
-        self.current_value = zlib.crc32(data, self.current_value)
+        pass
 
     def result(self):
-        return self.current_value & 0xFFFFFFFF
+        pass

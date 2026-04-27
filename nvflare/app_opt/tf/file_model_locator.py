@@ -37,28 +37,10 @@ class TFFileModelLocator(ModelLocator):
         self.model_inventory = {}
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self._initialize(fl_ctx)
+        pass
 
     def _initialize(self, fl_ctx: FLContext):
-        if not self.tf_persistor_id:
-            raise ValueError(
-                "TFFileModelLocator requires a valid tf_persistor_id, but got empty string. "
-                "Ensure your TensorFlow recipe includes a model to create a persistor."
-            )
-
-        engine = fl_ctx.get_engine()
-        self.model_persistor: TFModelPersistor = engine.get_component(self.tf_persistor_id)
-        if self.model_persistor is None:
-            raise ValueError(
-                f"No component found with ID '{self.tf_persistor_id}'. "
-                f"Ensure the TFModelPersistor is registered in the recipe."
-            )
-        if not isinstance(self.model_persistor, TFModelPersistor):
-            raise ValueError(
-                f"Component '{self.tf_persistor_id}' must be TFModelPersistor, "
-                f"but got: {type(self.model_persistor)}"
-            )
+        pass
 
     def get_model_names(self, fl_ctx: FLContext) -> List[str]:
         """Returns the list of model names that should be included from server in cross site validation.
@@ -69,8 +51,7 @@ class TFFileModelLocator(ModelLocator):
         Returns:
             List[str]: List of model names.
         """
-        self.model_inventory: dict = self.model_persistor.get_model_inventory(fl_ctx)
-        return list(self.model_inventory.keys())
+        pass
 
     def locate_model(self, model_name, fl_ctx: FLContext) -> DXO:
         """Call to locate and load the model weights of model_name.
@@ -82,10 +63,4 @@ class TFFileModelLocator(ModelLocator):
         Returns: model_weight DXO
 
         """
-        if model_name not in list(self.model_inventory.keys()):
-            raise ValueError(f"model inventory does not contain: {model_name}")
-
-        model_learnable = self.model_persistor.get(model_name, fl_ctx)
-        dxo = model_learnable_to_dxo(model_learnable)
-
-        return dxo
+        pass

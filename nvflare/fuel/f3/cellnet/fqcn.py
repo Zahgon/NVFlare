@@ -29,4 +29,4 @@ class FqcnInfo:
 
 
 def same_family(info1: FqcnInfo, info2: FqcnInfo):
-    return info1.root == info2.root
+    pass

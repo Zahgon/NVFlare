@@ -162,7 +162,7 @@ class ServerEngineSpec(EngineSpec, ABC):
     def fire_and_forget_aux_request(
         self, targets: [], topic: str, request: Shareable, fl_ctx: FLContext, optional=False, secure=False
     ) -> dict:
-        return self.send_aux_request(targets, topic, request, 0.0, fl_ctx, optional, secure=secure)
+        pass
 
     @abstractmethod
     def get_widget(self, widget_id: str) -> Widget:

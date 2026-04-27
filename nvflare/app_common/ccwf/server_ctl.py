@@ -174,373 +174,47 @@ class ServerSideController(Controller):
             raise ValueError(f"Not enough participating_clients: must > 1, but got {participating_clients}")
 
     def start_controller(self, fl_ctx: FLContext):
-        wf_id = fl_ctx.get_prop(FLContextKey.WORKFLOW)
-        self.log_debug(fl_ctx, f"starting controller for workflow {wf_id}")
-        if not wf_id:
-            raise RuntimeError("workflow ID is missing from FL context")
-        self.workflow_id = wf_id
-
-        all_clients = self._engine.get_clients()
-        if len(all_clients) < 2:
-            raise RuntimeError(f"this workflow requires at least 2 clients, but only got {all_clients}")
-
-        all_client_names = [t.name for t in all_clients]
-        self.participating_clients = validate_candidates(
-            var_name="participating_clients",
-            candidates=self.participating_clients,
-            base=all_client_names,
-            default_policy=DefaultValuePolicy.ALL,
-            allow_none=False,
-        )
-
-        self.log_info(fl_ctx, f"Using participating clients: {self.participating_clients}")
-
-        num_participating = len(self.participating_clients)
-        if self.min_clients > 0 and self.min_clients > num_participating:
-            raise RuntimeError(
-                f"min_clients ({self.min_clients}) exceeds the number of participating clients "
-                f"({num_participating}): {self.participating_clients}"
-            )
-
-        self.starting_client = validate_candidate(
-            var_name="starting_client",
-            candidate=self.starting_client,
-            base=self.participating_clients,
-            default_policy=self.starting_client_policy,
-            allow_none=True,
-        )
-        self.log_info(fl_ctx, f"Starting client: {self.starting_client}")
-
-        self.result_clients = validate_candidates(
-            var_name="result_clients",
-            candidates=self.result_clients,
-            base=self.participating_clients,
-            default_policy=self.result_clients_policy,
-            allow_none=True,
-        )
-
-        for c in self.participating_clients:
-            self.client_statuses[c] = ClientStatus()
+        pass
 
     def prepare_config(self) -> dict:
-        return {}
+        pass
 
     def sub_flow(self, abort_signal: Signal, fl_ctx: FLContext):
         pass
 
     def control_flow(self, abort_signal: Signal, fl_ctx: FLContext):
         # wait for every client to become ready
-        self.log_info(fl_ctx, f"Waiting for clients to be ready: {self.participating_clients}")
-
-        # GET STARTED
-        self.log_info(fl_ctx, f"Configuring clients {self.participating_clients} for workflow {self.workflow_id}")
-
-        learn_config = {
-            Constant.PRIVATE_P2P: self.private_p2p,
-            Constant.TASK_NAME_PREFIX: self.task_name_prefix,
-            Constant.CLIENTS: self.participating_clients,
-            Constant.START_CLIENT: self.starting_client,
-            Constant.RESULT_CLIENTS: self.result_clients,
-            AppConstants.NUM_ROUNDS: self.num_rounds,
-            Constant.START_ROUND: self.start_round,
-            FLContextKey.WORKFLOW: self.workflow_id,
-        }
-
-        extra_config = self.prepare_config()
-        if extra_config:
-            learn_config.update(extra_config)
-
-        self.log_info(fl_ctx, f"Workflow Config: {learn_config}")
-
-        # configure all clients
-        shareable = Shareable()
-        shareable[Constant.CONFIG] = learn_config
-
-        task = Task(
-            name=self.configure_task_name,
-            data=shareable,
-            timeout=self.configure_task_timeout,
-            result_received_cb=self._process_configure_reply,
-        )
-
-        total_clients = len(self.participating_clients)
-        required = self.min_clients if self.min_clients > 0 else total_clients
-        self.log_info(fl_ctx, f"sending task {self.configure_task_name} to clients {self.participating_clients}")
-        start_time = time.time()
-        self.broadcast_and_wait(
-            task=task,
-            targets=self.participating_clients,
-            min_responses=required,
-            fl_ctx=fl_ctx,
-            abort_signal=abort_signal,
-        )
-
-        time_taken = time.time() - start_time
-        self.log_info(fl_ctx, f"client configuration took {time_taken} seconds")
-
-        failed_clients = [c for c, cs in self.client_statuses.items() if not cs.ready_time]
-        configured_count = total_clients - len(failed_clients)
-        if configured_count < required:
-            self.system_panic(
-                f"failed to configure clients {failed_clients}: only {configured_count}/{total_clients} configured, need {required}",
-                fl_ctx,
-            )
-            return
-
-        if failed_clients:
-            self.log_warning(
-                fl_ctx,
-                f"clients {failed_clients} did not configure within timeout but min_clients={self.min_clients} "
-                f"allows proceeding; they remain as participants and may rejoin in a later round",
-            )
-
-        self.log_info(fl_ctx, f"successfully configured clients {self.participating_clients}")
-
-        # starting the starting_client
-        if self.starting_client:
-            shareable = Shareable()
-            task = Task(
-                name=self.start_task_name,
-                data=shareable,
-                timeout=self.start_task_timeout,
-                result_received_cb=self._process_start_reply,
-            )
-
-            self.log_info(fl_ctx, f"sending task {self.start_task_name} to client {self.starting_client}")
-
-            self.send_and_wait(
-                task=task,
-                targets=[self.starting_client],
-                fl_ctx=fl_ctx,
-                abort_signal=abort_signal,
-            )
-
-            if not self.cw_started:
-                self.system_panic(
-                    f"failed to start workflow {self.workflow_id} on client {self.starting_client}",
-                    fl_ctx,
-                )
-                return
-
-            self.log_info(fl_ctx, f"started workflow {self.workflow_id} on client {self.starting_client}")
-
-        # a subclass could provide additional control flow
-        self.sub_flow(abort_signal, fl_ctx)
-
-        self.log_info(fl_ctx, f"Waiting for clients to finish workflow {self.workflow_id}  ...")
-        while not abort_signal.triggered and not self.asked_to_stop:
-            time.sleep(self.job_status_check_interval)
-            done = self._check_job_status(fl_ctx)
-            if done:
-                break
-
-        self.log_info(fl_ctx, f"Workflow {self.workflow_id} finished on all clients")
-
-        # ask all clients to end the workflow
-        self.log_info(fl_ctx, f"asking all clients to end workflow {self.workflow_id}")
-        engine = fl_ctx.get_engine()
-        end_wf_request = Shareable()
-        resp = engine.send_aux_request(
-            targets=self.participating_clients,
-            topic=topic_for_end_workflow(self.workflow_id),
-            request=end_wf_request,
-            timeout=self.end_workflow_timeout,
-            fl_ctx=fl_ctx,
-            secure=False,
-        )
-
-        assert isinstance(resp, dict)
-        num_errors = 0
-        for c in self.participating_clients:
-            reply = resp.get(c)
-            if not reply:
-                self.log_warning(fl_ctx, f"no reply from client {c} for ending workflow {self.workflow_id}")
-                num_errors += 1
-                continue
-
-            assert isinstance(reply, Shareable)
-            rc = reply.get_return_code(ReturnCode.OK)
-            if rc != ReturnCode.OK:
-                self.log_warning(fl_ctx, f"client {c} failed to end workflow {self.workflow_id}: {rc}")
-                num_errors += 1
-
-        total = len(self.participating_clients)
-        successful = total - num_errors
-        required = self.min_clients if self.min_clients > 0 else total
-        if successful < required:
-            self.system_panic(
-                f"failed to end workflow {self.workflow_id}: only {successful}/{total} clients responded, "
-                f"need {required} (min_clients={self.min_clients})",
-                fl_ctx,
-            )
-        elif num_errors > 0:
-            self.log_warning(
-                fl_ctx,
-                f"workflow {self.workflow_id} ended with {num_errors} non-responding client(s) "
-                f"({successful}/{total} successful, min_clients={required})",
-            )
-
-        self.log_info(fl_ctx, f"Workflow {self.workflow_id} done!")
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.BEFORE_PROCESS_TASK_REQUEST:
-            self._update_client_status(fl_ctx)
+        pass
 
     def process_config_reply(self, client_name: str, reply: Shareable, fl_ctx: FLContext) -> bool:
-        return True
+        pass
 
     def _process_configure_reply(self, client_task: ClientTask, fl_ctx: FLContext):
-        result = client_task.result
-        client_name = client_task.client.name
-
-        rc = result.get_return_code()
-        if rc == ReturnCode.OK:
-            self.log_info(fl_ctx, f"successfully configured client {client_name}")
-
-            try:
-                ok = self.process_config_reply(client_name, result, fl_ctx)
-                if not ok:
-                    return
-            except:
-                self.log_error(
-                    fl_ctx, f"exception processing config reply from client {client_name}: {secure_format_traceback()}"
-                )
-                return
-            cs = self.client_statuses.get(client_name)
-            if cs:
-                assert isinstance(cs, ClientStatus)
-                cs.ready_time = time.time()
-        else:
-            error = result.get(Constant.ERROR, "?")
-            self.log_error(fl_ctx, f"client {client_task.client.name} failed to configure: {rc}: {error}")
+        pass
 
     def client_started(self, client_task: ClientTask, fl_ctx: FLContext):
-        return True
+        pass
 
     def _process_start_reply(self, client_task: ClientTask, fl_ctx: FLContext):
-        result = client_task.result
-
-        rc = result.get_return_code()
-        if rc == ReturnCode.OK:
-            try:
-                ok = self.client_started(client_task, fl_ctx)
-                if not ok:
-                    return
-            except:
-                self.log_info(fl_ctx, f"exception in client_started: {secure_format_traceback()}")
-                return
-
-            self.cw_started = True
-        else:
-            error = result.get(Constant.ERROR, "?")
-            self.log_error(
-                fl_ctx, f"client {client_task.client.name} couldn't start workflow {self.workflow_id}: {rc}: {error}"
-            )
+        pass
 
     def is_sub_flow_done(self, fl_ctx: FLContext) -> bool:
-        return False
+        pass
 
     def _check_job_status(self, fl_ctx: FLContext):
         # see whether the server side thinks it's done
-        if self.is_sub_flow_done(fl_ctx):
-            return True
-
-        now = time.time()
-        overall_last_progress_time = 0.0  # will be set to max(cs.last_progress_time) across active clients
-        silent_clients = []
-
-        for client_name, cs in self.client_statuses.items():
-            assert isinstance(cs, ClientStatus)
-            assert isinstance(cs.status, StatusReport)
-
-            if cs.status.all_done:
-                self.log_info(fl_ctx, f"Got ALL_DONE from client {client_name}")
-                return True
-
-            if now - cs.last_report_time > self.max_status_report_interval:
-                if self.min_clients == 0:
-                    # all clients required — panic immediately on first silent client
-                    self.system_panic(
-                        f"client {client_name} didn't report status for {self.max_status_report_interval} seconds",
-                        fl_ctx,
-                    )
-                    return True
-                silent_clients.append(client_name)
-            else:
-                if overall_last_progress_time < cs.last_progress_time:
-                    overall_last_progress_time = cs.last_progress_time
-
-        if self.min_clients > 0:
-            active_count = len(self.client_statuses) - len(silent_clients)
-            if active_count < self.min_clients:
-                self.system_panic(
-                    f"not enough active clients ({active_count}) to meet min_clients={self.min_clients}; "
-                    f"silent clients: {silent_clients}",
-                    fl_ctx,
-                )
-                return True
-
-        if time.time() - overall_last_progress_time > self.progress_timeout:
-            self.system_panic(
-                f"the workflow {self.workflow_id} has no progress for {self.progress_timeout} seconds",
-                fl_ctx,
-            )
-            return True
-
-        return False
+        pass
 
     def _update_client_status(self, fl_ctx: FLContext):
-        peer_ctx = fl_ctx.get_peer_context()
-        assert isinstance(peer_ctx, FLContext)
-        client_name = peer_ctx.get_identity_name()
-
-        # see whether status is available
-        reports = peer_ctx.get_prop(Constant.STATUS_REPORTS)
-        if not reports:
-            self.log_debug(fl_ctx, f"no status report from client {client_name}")
-            return
-
-        my_report = reports.get(self.workflow_id)
-        if not my_report:
-            return
-
-        if client_name not in self.client_statuses:
-            self.log_debug(
-                fl_ctx, f"received status from client {client_name} not in active set (pruned or not yet configured)"
-            )
-            return
-
-        report = status_report_from_dict(my_report)
-        cs = self.client_statuses[client_name]
-        assert isinstance(cs, ClientStatus)
-        now = time.time()
-        cs.last_report_time = now
-        cs.num_reports += 1
-
-        if report.error:
-            self.asked_to_stop = True
-            self.system_panic(f"received failure report from client {client_name}: {report.error}", fl_ctx)
-            return
-
-        if cs.status != report:
-            # updated
-            cs.status = report
-            cs.last_progress_time = now
-            timestamp = datetime.fromtimestamp(report.timestamp) if report.timestamp else False
-            self.log_info(
-                fl_ctx,
-                f"updated status of client {client_name} on round {report.last_round}: "
-                f"timestamp={timestamp}, action={report.action}, all_done={report.all_done}",
-            )
-        else:
-            self.log_debug(
-                fl_ctx, f"ignored status report from client {client_name} at round {report.last_round}: no change"
-            )
+        pass
 
     def process_result_of_unknown_task(
         self, client: Client, task_name: str, client_task_id: str, result: Shareable, fl_ctx: FLContext
     ):
-        self.log_warning(fl_ctx, f"ignored unknown task {task_name} from client {client.name}")
+        pass
 
     def stop_controller(self, fl_ctx: FLContext):
         pass

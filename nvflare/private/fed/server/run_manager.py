@@ -79,37 +79,37 @@ class RunManager(EngineSpec):
         self.cell = None
 
     def get_server_name(self):
-        return self.server_name
+        pass
 
     def get_run_info(self) -> RunInfo:
-        return self.run_info
+        pass
 
     def get_handlers(self):
-        return self.handlers
+        pass
 
     def new_context(self) -> FLContext:
-        return self.fl_ctx_mgr.new_context()
+        pass
 
     def get_workspace(self) -> Workspace:
-        return self.workspace
+        pass
 
     def get_component(self, component_id: str) -> object:
-        return self.components.get(component_id)
+        pass
 
     def add_component(self, component_id: str, component):
-        self.components[component_id] = component
+        pass
 
     def fire_event(self, event_type: str, fl_ctx: FLContext):
-        fire_event(event=event_type, handlers=self.handlers, ctx=fl_ctx)
+        pass
 
     def add_handler(self, handler: FLComponent):
-        self.handlers.append(handler)
+        pass
 
     def get_cell(self):
-        return self.cell
+        pass
 
     def validate_targets(self, client_names: List[str]) -> Tuple[List[Client], List[str]]:
-        return self.client_manager.get_all_clients_from_inputs(client_names)
+        pass
 
     def create_job_processing_context_properties(self, workspace, job_id):
-        return create_job_processing_context_properties(workspace, job_id)
+        pass

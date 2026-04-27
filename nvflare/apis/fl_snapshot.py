@@ -35,7 +35,7 @@ class RunSnapshot:
         Returns:
             A component state dict.
         """
-        return self.component_states.get(component_id)
+        pass
 
     def set_component_snapshot(self, component_id: str, component_state: dict):
         """Set the snapshot of a particular FL component.
@@ -44,10 +44,10 @@ class RunSnapshot:
             component_id: Component ID
             component_state: component state dict
         """
-        self.component_states[component_id] = component_state
+        pass
 
     def get_snapshot(self) -> dict:
-        return self.component_states
+        pass
 
 
 class FLSnapshot:
@@ -71,7 +71,7 @@ class FLSnapshot:
         Returns:
 
         """
-        self.run_snapshots[job_id] = snapshot
+        pass
 
     def get_snapshot(self, job_id: str) -> RunSnapshot:
         """Get the RunSnapshot for job_id to the FLSnapshot.
@@ -82,7 +82,7 @@ class FLSnapshot:
         Returns: Snapshot of the Run
 
         """
-        return self.run_snapshots.get(job_id)
+        pass
 
     def remove_snapshot(self, job_id: str):
         """Remove the RunSnapshot of job_id from the FLSnapshot.
@@ -93,5 +93,4 @@ class FLSnapshot:
         Returns:
 
         """
-        if job_id in self.run_snapshots.keys():
-            self.run_snapshots.pop(job_id)
+        pass

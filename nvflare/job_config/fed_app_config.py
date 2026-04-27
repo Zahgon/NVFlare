@@ -32,20 +32,7 @@ class ClientAppConfig(BaseAppConfig):
         self.executors: [_ExecutorDef] = []
 
     def add_executor(self, tasks: List[str], executor: Executor):
-        if not isinstance(executor, Executor):
-            raise RuntimeError(f"workflow must be type of Executor, but got {executor.__class__}")
-
-        task_set = set(tasks)
-        for item in self.executors:
-            b_set = set(item.tasks)
-            dup_tasks = task_set.intersection(b_set)
-            if len(dup_tasks) > 0:
-                raise RuntimeError(f"executor for tasks {dup_tasks} already exist.")
-
-        e = _ExecutorDef()
-        e.tasks = tasks
-        e.executor = executor
-        self.executors.append(e)
+        pass
 
 
 class ServerAppConfig(BaseAppConfig):
@@ -61,19 +48,7 @@ class ServerAppConfig(BaseAppConfig):
         self.ids = []
 
     def add_workflow(self, cid, controller: Controller):
-        if not isinstance(controller, Controller):
-            raise RuntimeError(f"workflow must be type of Controller, but got {controller.__class__}")
-
-        # self.add_component(cid, controller)
-        if cid in self.components.keys() or cid in self.ids:
-            raise RuntimeError(f"Component with ID:{cid} already exist.")
-
-        communicator = WFCommServer()
-        self.handlers.append(communicator)
-        controller.set_communicator(communicator)
-
-        self.workflows.append(WorkFlow(cid, controller))
-        self.ids.append(cid)
+        pass
 
 
 class FedAppConfig:

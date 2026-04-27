@@ -37,31 +37,4 @@ class StatsDReporter:
 
     def process_metrics(self, topic, metrics, data_bus):
 
-        if topic == ReservedTopic.APP_METRICS:
-            try:
-                for metric in metrics:
-                    metric_name = metric.get(MetricKeys.metric_name)
-                    metric_value = metric.get(MetricKeys.value)
-
-                    tags = metric.get(MetricKeys.tags, {})
-                    metric_tags = []
-                    for k, v in tags.items():
-                        metric_tags.append(f"{k}:{v}")
-
-                    metric_type = metric.get(MetricKeys.type)
-                    metric_timestamp = metric.get(MetricKeys.timestamp)
-
-                    if metric_type == MetricTypes.COUNTER:
-                        statsd.increment(metric_name, metric_value, tags=metric_tags)
-
-                    elif metric_type == MetricTypes.GAUGE:
-                        statsd.gauge(metric_name, metric_value, tags=metric_tags)
-                    elif metric_type == MetricTypes.HISTOGRAM:
-                        pass
-                    elif metric_type == MetricTypes.SUMMARY:
-                        pass
-                    else:
-                        self.logger.warning(f"Unknown metric type: {metric_type} for metric: {metric_name}")
-
-            except Exception:
-                self.logger.warning(f"Failed to process_metrics metrics: {traceback.format_exc()}")
+        pass

@@ -74,11 +74,7 @@ class GrpcClientAdaptor(XGBClientAdaptor, FederatedServicer):
         self._pending_req = {}
 
     def initialize(self, fl_ctx: FLContext):
-        self._client_name = fl_ctx.get_identity_name()
-        self._workspace = fl_ctx.get_prop(FLContextKey.WORKSPACE_OBJECT)
-        run_number = fl_ctx.get_prop(FLContextKey.CURRENT_RUN)
-        self._run_dir = self._workspace.get_run_dir(run_number)
-        self.engine = fl_ctx.get_engine()
+        pass
 
     def _start_client(self, server_addr: str, fl_ctx: FLContext):
         """Start the XGB client runner in a separate thread or separate process based on config.
@@ -92,173 +88,38 @@ class GrpcClientAdaptor(XGBClientAdaptor, FederatedServicer):
         Returns: None
 
         """
-        runner_ctx = {
-            Constant.RUNNER_CTX_WORLD_SIZE: self.world_size,
-            Constant.RUNNER_CTX_CLIENT_NAME: self._client_name,
-            Constant.RUNNER_CTX_SERVER_ADDR: server_addr,
-            Constant.RUNNER_CTX_RANK: self.rank,
-            Constant.RUNNER_CTX_NUM_ROUNDS: self.num_rounds,
-            Constant.RUNNER_CTX_DATA_SPLIT_MODE: self.data_split_mode,
-            Constant.RUNNER_CTX_SECURE_TRAINING: self.secure_training,
-            Constant.RUNNER_CTX_XGB_PARAMS: self.xgb_params,
-            Constant.RUNNER_CTX_XGB_OPTIONS: self.xgb_options,
-            Constant.RUNNER_CTX_MODEL_DIR: self._run_dir,
-        }
-        self.start_runner(runner_ctx, fl_ctx)
+        pass
 
     def _stop_client(self):
-        self._training_stopped = True
-        self.stop_runner()
+        pass
 
     def _is_stopped(self) -> Tuple[bool, int]:
-        runner_stopped, ec = self.is_runner_stopped()
-        if runner_stopped:
-            return runner_stopped, ec
-
-        if self._training_stopped:
-            return True, 0
-
-        return False, 0
+        pass
 
     def start(self, fl_ctx: FLContext):
-        if self.rank is None:
-            raise RuntimeError("cannot start - my rank is not set")
-
-        # dynamically determine address on localhost
-        port = get_open_tcp_port(resources={})
-        if not port:
-            raise RuntimeError("failed to get a port for XGB server")
-        self.internal_server_addr = f"127.0.0.1:{port}"
-        self.log_info(fl_ctx, f"Start internal server at {self.internal_server_addr}")
-        self.internal_xgb_server = GrpcServer(self.internal_server_addr, 10, self, self.int_server_grpc_options)
-        self.internal_xgb_server.start(no_blocking=True)
-        self.log_info(fl_ctx, f"Started internal server at {self.internal_server_addr}")
-        self._start_client(self.internal_server_addr, fl_ctx)
-        self.log_info(fl_ctx, "Started external XGB Client")
+        pass
 
     def stop(self, fl_ctx: FLContext):
-        if self.stopped:
-            return
-
-        self.stopped = True
-        self._stop_client()
-
-        if self.internal_xgb_server:
-            self.log_info(fl_ctx, "Stop internal XGB Server")
-            self.internal_xgb_server.shutdown()
+        pass
 
     def _abort(self, reason: str):
         # stop the gRPC XGB client (the target)
-        self.abort_signal.trigger(True)
-
-        # abort the FL client
-        with self.engine.new_context() as fl_ctx:
-            self.system_panic(reason, fl_ctx)
+        pass
 
     def Allgather(self, request: pb2.AllgatherRequest, context):
-        try:
-            if self._check_duplicate_seq("allgather", request.rank, request.sequence_number):
-                return pb2.AllgatherReply(receive_buffer=bytes())
-
-            rcv_buf, _ = self._send_all_gather(
-                rank=request.rank,
-                seq=request.sequence_number,
-                send_buf=request.send_buffer,
-            )
-
-            return pb2.AllgatherReply(receive_buffer=rcv_buf)
-        except Exception as ex:
-            self._abort(reason=f"send_all_gather exception: {secure_format_exception(ex)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(ex))
-            return pb2.AllgatherReply(receive_buffer=None)
-        finally:
-            self._finish_pending_req("allgather", request.rank, request.sequence_number)
+        pass
 
     def AllgatherV(self, request: pb2.AllgatherVRequest, context):
-        try:
-            if self._check_duplicate_seq("allgatherv", request.rank, request.sequence_number):
-                return pb2.AllgatherVReply(receive_buffer=bytes())
-
-            rcv_buf = self._do_all_gather_v(
-                rank=request.rank,
-                seq=request.sequence_number,
-                send_buf=request.send_buffer,
-            )
-
-            return pb2.AllgatherVReply(receive_buffer=rcv_buf)
-        except Exception as ex:
-            self._abort(reason=f"send_all_gather_v exception: {secure_format_exception(ex)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(ex))
-            return pb2.AllgatherVReply(receive_buffer=None)
-        finally:
-            self._finish_pending_req("allgatherv", request.rank, request.sequence_number)
+        pass
 
     def Allreduce(self, request: pb2.AllreduceRequest, context):
-        try:
-            if self._check_duplicate_seq("allreduce", request.rank, request.sequence_number):
-                return pb2.AllreduceReply(receive_buffer=bytes())
-
-            rcv_buf, _ = self._send_all_reduce(
-                rank=request.rank,
-                seq=request.sequence_number,
-                data_type=request.data_type,
-                reduce_op=request.reduce_operation,
-                send_buf=request.send_buffer,
-            )
-
-            return pb2.AllreduceReply(receive_buffer=rcv_buf)
-        except Exception as ex:
-            self._abort(reason=f"send_all_reduce exception: {secure_format_exception(ex)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(ex))
-            return pb2.AllreduceReply(receive_buffer=None)
-        finally:
-            self._finish_pending_req("allreduce", request.rank, request.sequence_number)
+        pass
 
     def Broadcast(self, request: pb2.BroadcastRequest, context):
-        try:
-            if self._check_duplicate_seq("broadcast", request.rank, request.sequence_number):
-                return pb2.BroadcastReply(receive_buffer=bytes())
-
-            rcv_buf = self._do_broadcast(
-                rank=request.rank,
-                send_buf=request.send_buffer,
-                seq=request.sequence_number,
-                root=request.root,
-            )
-
-            return pb2.BroadcastReply(receive_buffer=rcv_buf)
-        except Exception as ex:
-            self._abort(reason=f"send_broadcast exception: {secure_format_exception(ex)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(ex))
-            return pb2.BroadcastReply(receive_buffer=None)
-        finally:
-            self._finish_pending_req("broadcast", request.rank, request.sequence_number)
+        pass
 
     def _check_duplicate_seq(self, op: str, rank: int, seq: int):
-        with self._lock:
-            event = self._pending_req.get((rank, seq), None)
-        if event:
-            self.logger.info(f"Duplicate seq {op=} {rank=} {seq=}, wait till original req is done")
-            event.wait(DUPLICATE_REQ_MAX_HOLD_TIME)
-            time.sleep(1)  # To ensure the first request is returned first
-            self.logger.info(f"Duplicate seq {op=} {rank=} {seq=} returned with empty buffer")
-            return True
-
-        with self._lock:
-            self._pending_req[(rank, seq)] = threading.Event()
-        return False
+        pass
 
     def _finish_pending_req(self, op: str, rank: int, seq: int):
-        with self._lock:
-            event = self._pending_req.get((rank, seq), None)
-            if not event:
-                self.logger.error(f"No pending req {op=} {rank=} {seq=}")
-                return
-
-            event.set()
-            del self._pending_req[(rank, seq)]
-            self.logger.info(f"Request seq {op=} {rank=} {seq=} finished processing")
+        pass

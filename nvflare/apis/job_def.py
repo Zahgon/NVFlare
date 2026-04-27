@@ -148,24 +148,15 @@ class Job:
         Returns:
             Contents of deploy_map as a dictionary of strings of app names with their corresponding sites
         """
-        return self.deploy_map
+        pass
 
     def get_application(self, app_name, fl_ctx: FLContext) -> bytes:
         """Get the application content in bytes for the specified participant."""
-        # application_name = self.get_application_name(participant)
-        engine = fl_ctx.get_engine()
-        job_def_manager = engine.get_component(SystemComponents.JOB_MANAGER)
-        # # if not isinstance(job_def_manager, JobDefManagerSpec):
-        # #     raise TypeError(f"job_def_manager must be JobDefManagerSpec type. Got: {type(job_def_manager)}")
-        return job_def_manager.get_app(self, app_name, fl_ctx)
+        pass
 
     def get_application_name(self, participant):
         """Get the application name for the specified participant."""
-        for app in self.deploy_map:
-            for site in self.deploy_map[app]:
-                if site == participant:
-                    return app
-        return None
+        pass
 
     def get_resource_requirements(self):
         """Returns app resource requirements.
@@ -173,7 +164,7 @@ class Job:
         Returns:
             A dict of {site_name: resource}
         """
-        return self.resource_spec
+        pass
 
     def __eq__(self, other):
         return self.job_id == other.job_id
@@ -188,50 +179,24 @@ def job_from_meta(meta: dict) -> Job:
     Returns:
         A Job object.
     """
-    job = Job(
-        job_id=meta.get(JobMetaKey.JOB_ID, ""),
-        resource_spec=meta.get(JobMetaKey.RESOURCE_SPEC, {}),
-        deploy_map=meta.get(JobMetaKey.DEPLOY_MAP, {}),
-        meta=meta,
-        min_sites=meta.get(JobMetaKey.MIN_CLIENTS, 1),
-        required_sites=meta.get(JobMetaKey.MANDATORY_CLIENTS, []),
-    )
-    return job
+    pass
 
 
 def new_job_id() -> str:
-    return str(uuid.uuid4())
+    pass
 
 
 def is_valid_job_id(jid: str) -> bool:
-    if not isinstance(jid, str):
-        return False
-
-    try:
-        val = uuid.UUID(jid, version=4)
-    except ValueError:
-        return False
-
-    # If the jid string is a valid hex code, but an invalid uuid4,the UUID.__init__ will convert it to a
-    # valid uuid4. This is bad for validation purposes.
-    return val.hex == jid.replace("-", "")
+    pass
 
 
 def get_job_meta_study(meta: dict) -> str:
-    if not isinstance(meta, dict):
-        return DEFAULT_STUDY
-    study = meta.get(JobMetaKey.STUDY.value)
-    if isinstance(study, str) and study:
-        return study
-    return DEFAULT_STUDY
+    pass
 
 
 def get_custom_prop(meta: dict, prop_key: str, default=None):
-    props = meta.get(JobMetaKey.CUSTOM_PROPS)
-    if not props:
-        return default
-    return props.get(prop_key, default)
+    pass
 
 
 def get_custom_props(meta: dict, default=None):
-    return meta.get(JobMetaKey.CUSTOM_PROPS, default)
+    pass

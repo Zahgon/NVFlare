@@ -27,28 +27,13 @@ class Registry:
 
     @staticmethod
     def _item_key(channel: str, topic: str) -> str:
-        return f"{channel}:{topic}"
+        pass
 
     def set(self, channel: str, topic: str, items: Any):
-        key = self._item_key(channel, topic)
-        self.reg[key] = items
+        pass
 
     def append(self, channel: str, topic: str, items: Any):
-        key = self._item_key(channel, topic)
-        item_list = self.reg.get(key)
-        if not item_list:
-            item_list = []
-            self.reg[key] = item_list
-        item_list.append(items)
+        pass
 
     def find(self, channel: str, topic: str) -> Any:
-        items = self.reg.get(self._item_key(channel, topic))
-        if not items:
-            # try topic * in channel
-            items = self.reg.get(self._item_key(channel, "*"))
-
-        if not items:
-            # try topic * in channel *
-            items = self.reg.get(self._item_key("*", "*"))
-
-        return items
+        pass

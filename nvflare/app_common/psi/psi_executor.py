@@ -25,22 +25,13 @@ class PSIExecutor(ErrorHandlingExecutor):
         self.psi_algo_id = psi_algo_id
 
     def get_data_kind(self) -> str:
-        return DataKind.PSI
+        pass
 
     def get_task_handler(self, fl_ctx: FLContext) -> TaskHandler:
-        return self.load_task_handler(self.psi_algo_id, fl_ctx)
+        pass
 
     def load_task_handler(self, psi_algo: str, fl_ctx: FLContext) -> TaskHandler:
-        engine = fl_ctx.get_engine()
-        psi_task_handler = engine.get_component(psi_algo) if psi_algo else None
-
-        self.check_psi_algo(psi_task_handler, fl_ctx)
-        psi_task_handler.initialize(fl_ctx)
-        return psi_task_handler
+        pass
 
     def check_psi_algo(self, psi_task_handler: TaskHandler, fl_ctx):
-        if not psi_task_handler:
-            self.log_error(fl_ctx, f"PSI algorithm specified by {self.psi_algo_id} is not implemented")
-            raise NotImplementedError
-
-        check_component_type(psi_task_handler, TaskHandler)
+        pass

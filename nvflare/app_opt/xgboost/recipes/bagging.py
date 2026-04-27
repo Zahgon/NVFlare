@@ -51,23 +51,17 @@ class _XGBBaggingValidator(BaseModel):
     @field_validator("training_mode")
     @classmethod
     def check_training_mode(cls, v):
-        if v not in ["bagging", "cyclic"]:
-            raise ValueError("training_mode must be 'bagging' or 'cyclic'")
-        return v
+        pass
 
     @field_validator("local_subsample")
     @classmethod
     def check_subsample(cls, v):
-        if not 0 < v <= 1.0:
-            raise ValueError("local_subsample must be between 0 and 1")
-        return v
+        pass
 
     @field_validator("lr_mode")
     @classmethod
     def check_lr_mode(cls, v):
-        if v not in ["uniform", "scaled"]:
-            raise ValueError("lr_mode must be 'uniform' or 'scaled'")
-        return v
+        pass
 
 
 class XGBBaggingRecipe(Recipe):
@@ -220,79 +214,4 @@ class XGBBaggingRecipe(Recipe):
 
     def configure(self):
         """Configure the federated job for XGBoost tree-based training."""
-        # Create FedJob
-        job = FedJob(name=self.name, min_clients=self.min_clients)
-
-        # Configure server components
-        if self.training_mode == "cyclic":
-            controller = CyclicController(
-                num_rounds=self.num_rounds,
-                persistor_id="persistor",
-                shareable_generator_id="shareable_generator",
-                task_name="train",
-                task_check_period=0.01,
-                persist_every_n_rounds=0,
-                snapshot_every_n_rounds=0,
-            )
-        else:
-            controller = ScatterAndGather(
-                min_clients=self.min_clients,
-                num_rounds=self.num_rounds,
-                start_round=0,
-                aggregator_id="aggregator",
-                persistor_id="persistor",
-                shareable_generator_id="shareable_generator",
-                wait_time_after_min_received=0,
-                train_timeout=0,
-                allow_empty_global_weights=True,
-                task_check_period=0.01,
-                persist_every_n_rounds=0,
-                snapshot_every_n_rounds=0,
-            )
-        job.to_server(controller, id="xgb_controller")
-
-        persistor = XGBModelPersistor(save_name=self.save_name)
-        job.to_server(persistor, id="persistor")
-
-        shareable_generator = XGBModelShareableGenerator()
-        job.to_server(shareable_generator, id="shareable_generator")
-
-        if self.training_mode == "bagging":
-            aggregator = XGBBaggingAggregator()
-            job.to_server(aggregator, id="aggregator")
-
-        # Add executors and data loaders per site
-        from nvflare.app_opt.xgboost.tree_based.executor import FedXGBTreeExecutor
-
-        # Site-specific executors and data loaders
-        for site_name, site_config in self.per_site_config.items():
-            data_loader = site_config.get("data_loader")
-            if data_loader is None:
-                raise ValueError(f"per_site_config for '{site_name}' must include 'data_loader' key")
-
-            # Get lr_scale from config, default to 1.0
-            lr_scale = site_config.get("lr_scale", 1.0)
-
-            # Create executor for this site
-            executor = FedXGBTreeExecutor(
-                data_loader_id=self.data_loader_id,
-                training_mode=self.training_mode,
-                num_client_bagging=self.num_client_bagging,
-                num_local_parallel_tree=self.num_local_parallel_tree,
-                local_subsample=self.local_subsample,
-                local_model_path="model.json",
-                global_model_path="model_global.json",
-                learning_rate=self.learning_rate,
-                objective=self.objective,
-                max_depth=self.max_depth,
-                eval_metric=self.eval_metric,
-                tree_method=self.tree_method,
-                use_gpus=self.use_gpus,
-                nthread=self.nthread,
-                lr_scale=lr_scale,
-                lr_mode=self.lr_mode,
-            )
-            job.to(executor, site_name, id="xgb_tree_executor")
-            job.to(data_loader, site_name, id=self.data_loader_id)
-
-        return job
+        pass

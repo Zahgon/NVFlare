@@ -86,8 +86,7 @@ class PTClientAPILauncherExecutor(ClientAPILauncherExecutor):
         )
 
     def _decomposer_prefix(self) -> str:
-        return "tensor_"
+        pass
 
     def initialize(self, fl_ctx: FLContext) -> None:
-        fobs.register(TensorDecomposer)
-        super().initialize(fl_ctx)
+        pass

@@ -25,12 +25,7 @@ from nvflare.private.fed.server.server_state import Cold2HotState, ColdState, Ho
 
 
 def register():
-    if register.registered:
-        return
-
-    fobs.register_data_classes(Message, RunInfo, HotState, ColdState, Hot2ColdState, Cold2HotState, ShutdownState)
-
-    register.registered = True
+    pass
 
 
 register.registered = False

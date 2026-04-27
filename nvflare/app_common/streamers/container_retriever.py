@@ -42,7 +42,7 @@ class ContainerRetriever(ObjectRetriever):
             name: name for the container.
             container: The container to be streamed
         """
-        self.containers[name] = container
+        pass
 
     def register_stream_processing(
         self,
@@ -64,26 +64,10 @@ class ContainerRetriever(ObjectRetriever):
         Returns:
 
         """
-        ContainerStreamer.register_stream_processing(
-            channel=channel,
-            topic=topic,
-            fl_ctx=fl_ctx,
-            stream_done_cb=stream_done_cb,
-            **cb_kwargs,
-        )
+        pass
 
     def validate_request(self, request: Shareable, fl_ctx: FLContext) -> (str, Any):
-        name = request.get("name")
-        if not name:
-            self.log_error(fl_ctx, "bad request: missing container name")
-            return ReturnCode.BAD_REQUEST_DATA, None
-
-        container = self.containers.get(name, None)
-        if not container:
-            self.log_error(fl_ctx, f"bad request: requested container {name} doesn't exist")
-            return ReturnCode.BAD_REQUEST_DATA, None
-
-        return ReturnCode.OK, container
+        pass
 
     def retrieve_container(self, from_site: str, fl_ctx: FLContext, timeout: float, name: str) -> (str, Any):
         """Retrieve a container from the specified site.
@@ -98,7 +82,7 @@ class ContainerRetriever(ObjectRetriever):
         Returns: a tuple of (ReturnCode, container)
 
         """
-        return self.retrieve(from_site=from_site, fl_ctx=fl_ctx, timeout=timeout, name=name)
+        pass
 
     def do_stream(
         self, target: str, request: Shareable, fl_ctx: FLContext, stream_ctx: StreamContext, validated_data: Any
@@ -116,16 +100,7 @@ class ContainerRetriever(ObjectRetriever):
         Returns:
 
         """
-        ContainerStreamer.stream_container(
-            targets=[target],
-            stream_ctx=stream_ctx,
-            channel=self.stream_channel,
-            topic=self.topic,
-            container=validated_data,
-            fl_ctx=fl_ctx,
-            optional=self.stream_msg_optional,
-            secure=self.stream_msg_secure,
-        )
+        pass
 
     def get_result(self, stream_ctx: StreamContext) -> (str, Any):
         """Called on the stream receiving side.
@@ -138,4 +113,4 @@ class ContainerRetriever(ObjectRetriever):
         Returns:
 
         """
-        return ContainerStreamer.get_rc(stream_ctx), ContainerStreamer.get_result(stream_ctx)
+        pass

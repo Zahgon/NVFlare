@@ -55,9 +55,7 @@ class Connector(ABC, FLComponent):
         Returns: None
 
         """
-        if not isinstance(applet, Applet):
-            raise TypeError(f"applet must be Applet but got {type(applet)}")
-        self.applet = applet
+        pass
 
     def set_abort_signal(self, abort_signal: Signal):
         """Called by Controller/Executor to set the abort_signal.
@@ -71,8 +69,7 @@ class Connector(ABC, FLComponent):
         Returns: None
 
         """
-        check_object_type("abort_signal", abort_signal, Signal)
-        self.abort_signal = abort_signal
+        pass
 
     def initialize(self, fl_ctx: FLContext):
         """Called by the Controller/Executor to initialize the connector.
@@ -83,7 +80,7 @@ class Connector(ABC, FLComponent):
         Returns: None
 
         """
-        self.engine = fl_ctx.get_engine()
+        pass
 
     @abstractmethod
     def start(self, fl_ctx: FLContext):
@@ -134,21 +131,10 @@ class Connector(ABC, FLComponent):
         Note that a non-zero return code is considered abnormal completion of the connector.
 
         """
-        return self.is_applet_stopped()
+        pass
 
     def _monitor(self, fl_ctx: FLContext, connector_stopped_cb):
-        while True:
-            if self.abort_signal.triggered:
-                # asked to abort
-                break
-
-            stopped, rc = self._is_stopped()
-            if stopped:
-                # connector already stopped - notify the caller
-                connector_stopped_cb(rc, fl_ctx)
-                return
-
-            time.sleep(self.monitor_interval)
+        pass
 
     def monitor(self, fl_ctx: FLContext, connector_stopped_cb):
         """Called by Controller/Executor to monitor the health of the connector.
@@ -166,12 +152,7 @@ class Connector(ABC, FLComponent):
         Returns: None
 
         """
-        if not callable(connector_stopped_cb):
-            raise RuntimeError(f"connector_stopped_cb must be callable but got {type(connector_stopped_cb)}")
-
-        # start the monitor in a separate daemon thread!
-        t = threading.Thread(target=self._monitor, args=(fl_ctx, connector_stopped_cb), daemon=True)
-        t.start()
+        pass
 
     def start_applet(self, app_ctx: dict, fl_ctx: FLContext):
         """Start the applet set to the connector.
@@ -183,11 +164,7 @@ class Connector(ABC, FLComponent):
         Returns: None
 
         """
-        if not self.applet:
-            raise RuntimeError("applet has not been set!")
-
-        app_ctx[Constant.APP_CTX_FL_CONTEXT] = fl_ctx
-        self.applet.start(app_ctx)
+        pass
 
     def stop_applet(self, timeout=0.0) -> int:
         """Stop the running of the applet
@@ -195,7 +172,7 @@ class Connector(ABC, FLComponent):
         Returns: exit code of the applet
 
         """
-        return self.applet.stop(timeout)
+        pass
 
     def is_applet_stopped(self) -> (bool, int):
         """Check whether the applet is already stopped
@@ -203,12 +180,7 @@ class Connector(ABC, FLComponent):
         Returns: a tuple of (whether the applet is stopped, exit code)
 
         """
-        applet = self.applet
-        if applet:
-            return applet.is_stopped()
-        else:
-            self.logger.warning("applet is not set with the connector")
-            return True, 0
+        pass
 
     def send_request(
         self,
@@ -232,23 +204,7 @@ class Connector(ABC, FLComponent):
         Returns:
             operation result
         """
-        request.set_header(Constant.MSG_KEY_OP, op)
-        if not target:
-            target = FQCN.ROOT_SERVER
-
-        if not fl_ctx:
-            fl_ctx = self.engine.new_context()
-
-        self.logger.debug(f"sending request with RM: {op=}")
-        return ReliableMessage.send_request(
-            target=target,
-            topic=Constant.TOPIC_APP_REQUEST,
-            request=request,
-            per_msg_timeout=per_msg_timeout,
-            tx_timeout=tx_timeout,
-            abort_signal=self.abort_signal,
-            fl_ctx=fl_ctx,
-        )
+        pass
 
     def process_app_request(self, op: str, req: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
         """Called by Controller/Executor to process a request from an applet on another site.

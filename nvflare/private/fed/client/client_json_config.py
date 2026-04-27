@@ -109,81 +109,13 @@ class ClientJsonConfigurator(FedJsonConfigurator):
         self._default_task_fetch_interval = 0.5
 
     def process_config_element(self, config_ctx: ConfigContext, node: Node):
-        FedJsonConfigurator.process_config_element(self, config_ctx, node)
-
-        element = node.element
-        path = node.path()
-
-        # default task fetch interval
-        if re.search(r"default_task_fetch_interval", path):
-            if not isinstance(element, int) and not isinstance(element, float):
-                raise ConfigError('"default_task_fetch_interval" must be a number, but got {}'.format(type(element)))
-
-            if element <= 0:
-                raise ConfigError('"default_task_fetch_interval" must > 0, but got {}'.format(element))
-
-            self._default_task_fetch_interval = element
-            return
-
-        # executors
-        if re.search(r"^executors\.#[0-9]+$", path):
-            self.current_exe = _ExecutorDef()
-            node.props["data"] = self.current_exe
-            node.exit_cb = self._process_executor_def
-            return
-
-        if re.search(r"^executors\.#[0-9]+\.tasks$", path):
-            self.current_exe.tasks = element
-            return
-
-        if re.search(r"^executors\.#[0-9]+\.executor$", path):
-            self.current_exe.executor = self.authorize_and_build_component(element, config_ctx, node)
-            return
+        pass
 
     def build_component(self, config_dict):
-        t = super().build_component(config_dict)
-        if isinstance(t, FLComponent):
-            self.handlers.append(t)
-        return t
+        pass
 
     def _process_executor_def(self, node: Node):
-        e = node.props["data"]
-        if not isinstance(e, _ExecutorDef):
-            raise TypeError("e must be _ExecutorDef but got {}".format(type(e)))
-        self.validate_tasks(e.tasks)
-
-        if not isinstance(e.executor, Executor):
-            raise ConfigError('"executor" must be an Executor object but got {}'.format(type(e.executor)))
-
-        self.executors.append(e)
+        pass
 
     def finalize_config(self, config_ctx: ConfigContext):
-        FedJsonConfigurator.finalize_config(self, config_ctx)
-
-        if len(self.executors) <= 0:
-            raise ConfigError("executors are not specified")
-
-        task_router = TaskRouter()
-        for e in self.executors:
-            task_router.add_executor(e.tasks, e.executor)
-
-        self.runner_config = ClientRunnerConfig(
-            task_router=task_router,
-            task_data_filters=self.data_filter_table,
-            task_result_filters=self.result_filter_table,
-            components=self.components,
-            handlers=self.handlers,
-            default_task_fetch_interval=self._default_task_fetch_interval,
-        )
-
-        ConfigService.initialize(
-            section_files={},
-            config_path=[self.app_root],
-            parsed_args=self.args,
-            var_dict=self.cmd_vars,
-        )
-
-        ConfigService.add_section(
-            section_name=SystemConfigs.APPLICATION_CONF,
-            data=self.config_data,
-        )
+        pass

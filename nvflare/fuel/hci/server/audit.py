@@ -35,12 +35,4 @@ class CommandAudit(CommandFilter):
         self.auditor = auditor
 
     def pre_command(self, conn: Connection, args: List[str]):
-        user_name = conn.get_prop(ConnProps.USER_NAME, "?")
-
-        event_id = self.auditor.add_event(
-            user=user_name,
-            action=conn.command[:100],  # at most 100 chars
-        )
-
-        conn.set_prop(ConnProps.EVENT_ID, event_id)
-        return True
+        pass

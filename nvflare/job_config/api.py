@@ -45,47 +45,23 @@ class FedApp:
         self._oid_to_cid = {}
 
     def get_app_config(self):
-        return self.app_config
+        pass
 
     def add_task_result_filter(self, tasks: List[str], task_filter: Filter):
-        self.app_config.add_task_result_filter(tasks, task_filter)
+        pass
 
     def add_task_data_filter(self, tasks: List[str], task_filter: Filter):
-        self.app_config.add_task_data_filter(tasks, task_filter)
+        pass
 
     def add_component(self, component, comp_id=None):
         # is the component already configured?
-        oid = id(component)
-        cid = self._oid_to_cid.get(oid)
-        if cid:
-            # the component is already configured
-            return cid
-
-        if comp_id is None:
-            comp_id = "component"
-        final_id = self.generate_tracked_id(comp_id)
-        self.app_config.add_component(final_id, component)
-        self._oid_to_cid[oid] = final_id
-        return final_id
+        pass
 
     def _generate_id(self, id: str = "") -> str:
-        if id not in self._used_ids:
-            return id
-        else:
-            while id in self._used_ids:
-                # increase integer counts in id
-                cnt = re.search(r"\d+", id)
-                if cnt:
-                    cnt = cnt.group()
-                    id = id.replace(cnt, str(int(cnt) + 1))
-                else:
-                    id = id + "1"
-        return id
+        pass
 
     def generate_tracked_id(self, id: str = "") -> str:
-        id = self._generate_id(id)
-        self._used_ids.append(id)
-        return id
+        pass
 
     def add_external_script(self, ext_script: str):
         """Register external script to include them in custom directory.
@@ -93,7 +69,7 @@ class FedApp:
         Args:
             ext_script: List of external scripts that need to be deployed to the client/server.
         """
-        self.app_config.add_ext_script(ext_script)
+        pass
 
     def add_external_dir(self, ext_dir: str):
         """Register external folder to include them in custom directory.
@@ -101,10 +77,10 @@ class FedApp:
         Args:
             ext_dir: external folder that need to be deployed to the client/server.
         """
-        self.app_config.add_ext_dir(ext_dir)
+        pass
 
     def add_file_source(self, src_path: str, dest_dir=None, app_folder_type=None):
-        self.app_config.add_file_source(src_path, dest_dir, app_folder_type)
+        pass
 
     def add_params(self, args: Dict[str, any]):
         """Add additional system configuration parameters to be included in the generated JSON configs.
@@ -112,21 +88,10 @@ class FedApp:
         Args:
             args: Dictionary of system configuration parameters (e.g., {"timeout": 600, "max_retries": 3})
         """
-        self.app_config.add_params(args)
+        pass
 
     def _add_resource(self, resource: str):
-        if not isinstance(resource, str):
-            raise ValueError(f"cannot add resource: resource must be a str but got {type(resource)}")
-        elif os.path.isdir(resource):
-            self.add_external_dir(resource)
-        elif os.path.isfile(resource):
-            self.add_external_script(resource)
-        elif os.path.isabs(resource):
-            # Absolute path that doesn't exist locally - add_external_script accepts absolute paths
-            # Validation based on ExecEnv will happen in each env's deploy() method
-            self.add_external_script(resource)
-        else:
-            raise ValueError(f"cannot add resource: invalid resource {resource}: it must be either a directory or file")
+        pass
 
     def add_resources(self, resources: List[str]):
         """Add resources to the job. To be used by job component programmer.
@@ -137,8 +102,7 @@ class FedApp:
         Returns:
 
         """
-        for r in resources:
-            self._add_resource(r)
+        pass
 
 
 class JobCtx:
@@ -154,9 +118,7 @@ class ClientApp(FedApp):
         super().__init__(ClientAppConfig())
 
     def add_executor(self, executor: Executor, tasks=None):
-        if not tasks:
-            tasks = ["*"]  # Add executor for any task by default
-        self.app_config.add_executor(tasks, executor)
+        pass
 
 
 class ServerApp(FedApp):
@@ -166,9 +128,7 @@ class ServerApp(FedApp):
         super().__init__(ServerAppConfig())
 
     def add_controller(self, controller: Controller, id=None):
-        if not id:
-            id = "controller"
-        self.app_config.add_workflow(self.generate_tracked_id(id), controller)
+        pass
 
 
 class FedJob:
@@ -217,7 +177,7 @@ class FedJob:
         Returns: None
 
         """
-        self.job.set_app_packages(app_packages)
+        pass
 
     def set_up_client(self, target: str):
         """Setup routine called by FedJob when first sending object to a client target.
@@ -231,12 +191,10 @@ class FedJob:
         pass
 
     def _add_server_app(self, obj: ServerApp, target: str):
-        self._deploy_map[target] = obj
+        pass
 
     def _add_client_app(self, obj: ClientApp, target: str):
-        self._deploy_map[target] = obj
-        if target not in self.clients:
-            self.clients.append(target)
+        pass
 
     def to(
         self,
@@ -269,86 +227,14 @@ class FedJob:
             result of add_to_job_method if called, or id of added component
 
         """
-        if not obj:
-            raise ValueError("cannot add empty object to job")
-
-        if isinstance(obj, (ClientApp, ServerApp)):
-            raise ValueError("adding (ClientApp, ServerApp) is not allowed")
-
-        self._validate_target(target)
-
-        target_type = JobTargetType.get_target_type(target)
-        app = self._deploy_map.get(target)
-        if not app:
-            if target_type == JobTargetType.SERVER:
-                app = ServerApp()
-                self._add_server_app(app, target)
-            else:
-                app = ClientApp()
-                self._add_client_app(app, target)
-                self.set_up_client(target)
-
-        if isinstance(obj, str):  # treat the str type object as external script
-            if os.path.isdir(obj):
-                app.add_external_dir(obj)
-            else:
-                app.add_external_script(obj)
-            return None
-
-        if isinstance(obj, dict):  # treat dict type object as additional system parameters
-            app.add_params(obj)
-            return None
-
-        get_target_type_method = getattr(obj, "get_job_target_type", None)
-        if get_target_type_method is not None:
-            expected_target_type = get_target_type_method()
-            if expected_target_type != target_type:
-                if target_type == JobTargetType.SERVER:
-                    raise ValueError(f"this object can only be assigned to server, but tried to assign to {target}")
-                else:
-                    raise ValueError(f"this object can only be assigned to client, but tried to assign to {target}")
-
-        add_to_job_method = getattr(obj, _ADD_TO_JOB_METHOD_NAME, None)
-        if add_to_job_method is not None:
-            ctx = JobCtx(obj, target, id)
-            result = add_to_job_method(self, ctx, **kwargs)
-        else:
-            # basic object
-            result = app.add_component(obj, id)
-
-        # add any other components the object might have referenced via id
-        if self._components:
-            self._add_referenced_components(obj, target)
-        return result
+        pass
 
     def _add_referenced_components(self, base_component, target):
         """Adds any other components the object might have referenced via id"""
-        # Check all arguments for ids referenced with .as_id()
-        if hasattr(base_component, "__dict__"):
-            parameters = get_component_init_parameters(base_component)
-            attrs = base_component.__dict__
-            for param in parameters:
-                attr_key = param if param in attrs.keys() else "_" + param
-                if attr_key in attrs.keys():
-                    base_id = attrs[attr_key]
-                    if isinstance(base_id, str):  # could be id
-                        if base_id in self._components:
-                            self._deploy_map[target].add_component(self._components[base_id], base_id)
-                            # add any components referenced by this component
-                            self._add_referenced_components(self._components[base_id], target)
-                            # remove already added components from tracked components
-                            self._components.pop(base_id)
+        pass
 
     def _get_app(self, ctx: JobCtx):
-        app = self._deploy_map.get(ctx.target)
-        if not app:
-            target_type = JobTargetType.get_target_type(ctx.target)
-            if target_type == JobTargetType.CLIENT:
-                app_type = "a ClientApp"
-            else:
-                app_type = "a ServerApp"
-            raise RuntimeError(f"No app found for target '{ctx.target}' - missing {app_type}")
-        return app
+        pass
 
     def add_component(self, comp_id: str, obj: Any, ctx: JobCtx):
         """Add a component to the job. To be used by job component programmer.
@@ -362,13 +248,7 @@ class FedJob:
             final id assigned to component.
 
         """
-        app = self._get_app(ctx)
-        if not comp_id:
-            comp_id = ctx.comp_id
-        final_id = app.add_component(obj, comp_id)
-        if self._components:
-            self._add_referenced_components(obj, ctx.target)
-        return final_id
+        pass
 
     def add_controller(self, obj: Controller, ctx: JobCtx):
         """Add a Controller object to the job. To be used by controller programmer.
@@ -380,12 +260,7 @@ class FedJob:
         Returns:
 
         """
-        target_type = JobTargetType.get_target_type(ctx.target)
-        app = self._get_app(ctx)
-        if target_type != JobTargetType.SERVER:  # add client-side controllers as components
-            app.add_component(obj, ctx.comp_id)
-        else:
-            app.add_controller(obj, ctx.comp_id)
+        pass
 
     def add_executor(self, obj: Executor, tasks: List[str], ctx: JobCtx):
         """Add an executor to the job. To be used by executor programmer.
@@ -398,8 +273,7 @@ class FedJob:
         Returns:
 
         """
-        app = self._get_app(ctx)
-        app.add_executor(obj, tasks=tasks)
+        pass
 
     def add_filter(self, obj: Filter, filter_type: str, tasks, ctx: JobCtx):
         """Add a filter to the job. To be used by filter programmer.
@@ -413,16 +287,7 @@ class FedJob:
         Returns:
 
         """
-        app = self._get_app(ctx)
-        if filter_type == FilterType.TASK_RESULT:
-            app.add_task_result_filter(tasks, obj)
-        elif filter_type == FilterType.TASK_DATA:
-            app.add_task_data_filter(tasks, obj)
-        else:
-            raise ValueError(
-                f"Provided a filter for {ctx.target} without specifying a valid `filter_type`. "
-                f"Select from `FilterType.TASK_RESULT` or `FilterType.TASK_DATA`."
-            )
+        pass
 
     def add_resources(self, resources: List[str], ctx: JobCtx):
         """Add resources to the job. To be used by job component programmer.
@@ -434,8 +299,7 @@ class FedJob:
         Returns:
 
         """
-        app = self._get_app(ctx)
-        app.add_resources(resources)
+        pass
 
     def add_file_source(self, src_path: str, dest_dir, app_folder_type, ctx: JobCtx):
         """Add a file source to the job. To be used by job component programmer.
@@ -449,8 +313,7 @@ class FedJob:
         Returns:
 
         """
-        app = self._get_app(ctx)
-        app.add_file_source(src_path, dest_dir, app_folder_type)
+        pass
 
     def add_params(self, args: Dict[str, any], ctx: JobCtx):
         """Add additional system configuration parameters to the job. To be used by job component programmer.
@@ -462,8 +325,7 @@ class FedJob:
         Returns:
 
         """
-        app = self._get_app(ctx)
-        app.add_params(args)
+        pass
 
     def to_server(
         self,
@@ -482,10 +344,7 @@ class FedJob:
             result of add_to_job_method if called, or id of added component
 
         """
-        if isinstance(obj, Executor):
-            raise ValueError("Use `job.to(executor, <client_name>)` or `job.to_clients(executor)` for Executors.")
-
-        return self.to(obj=obj, target=SERVER_SITE_NAME, id=id, **kwargs)
+        pass
 
     def to_clients(
         self,
@@ -504,10 +363,7 @@ class FedJob:
             result of add_to_job_method if called, or id of added component
 
         """
-        if isinstance(obj, Controller):
-            raise ValueError('Use `job.to(controller, "server")` or `job.to_server(controller)` for Controllers.')
-
-        return self.to(obj=obj, target=ALL_SITES, id=id, **kwargs)
+        pass
 
     def add_file_to(self, src_path: str, target: str, dest_dir=None, app_folder_type=None):
         """Add a file to a specific target's app directory.
@@ -519,17 +375,7 @@ class FedJob:
             app_folder_type: Type of app folder to place the file. Valid values: "custom", "config".
                 If not specified, defaults to "custom".
         """
-        self._validate_target(target)
-        target_type = JobTargetType.get_target_type(target)
-        app = self._deploy_map.get(target)
-        if not app:
-            if target_type == JobTargetType.SERVER:
-                app = ServerApp()
-                self._add_server_app(app, target)
-            else:
-                app = ClientApp()
-                self._add_client_app(app, target)
-        app.add_file_source(src_path, dest_dir, app_folder_type)
+        pass
 
     def add_file_to_server(self, src_path: str, dest_dir=None, app_folder_type=None):
         """Add a file to the server app directory.
@@ -540,7 +386,7 @@ class FedJob:
             app_folder_type: Type of app folder to place the file. Valid values: "custom", "config".
                 If not specified, defaults to "custom".
         """
-        self.add_file_to(src_path, SERVER_SITE_NAME, dest_dir, app_folder_type)
+        pass
 
     def add_file_to_clients(self, src_path: str, dest_dir=None, app_folder_type=None):
         """Add a file to all client apps' directory.
@@ -551,60 +397,19 @@ class FedJob:
             app_folder_type: Type of app folder to place the file. Valid values: "custom", "config".
                 If not specified, defaults to "custom".
         """
-        self.add_file_to(src_path, ALL_SITES, dest_dir, app_folder_type)
+        pass
 
     def _validate_target(self, target):
-        if not target:
-            raise ValueError("Must provide a valid target name")
-
-        if any(c in SPECIAL_CHARACTERS for c in target) and target != ALL_SITES:
-            raise ValueError(f"target {target} name contains invalid character")
+        pass
 
     def _set_all_app(self, client_app: ClientApp, server_app: ServerApp):
-        if not isinstance(client_app, ClientApp):
-            raise ValueError(f"`client_app` needs to be of type `ClientApp` but was type {type(client_app)}")
-        if not isinstance(server_app, ServerApp):
-            raise ValueError(f"`server_app` needs to be of type `ServerApp` but was type {type(server_app)}")
-
-        client_config = client_app.get_app_config()
-        server_config = server_app.get_app_config()
-
-        app_config = FedAppConfig(server_app=server_config, client_app=client_config)
-        app_name = "app"
-
-        self.job.add_fed_app(app_name, app_config)
-        self.job.set_site_app(ALL_SITES, app_name)
+        pass
 
     def _set_site_app(self, app: FedApp, target: str):
-        if not isinstance(app, FedApp):
-            raise ValueError(f"App needs to be of type `FedApp` but was type {type(app)}")
-
-        client_server_config = app.get_app_config()
-        if isinstance(client_server_config, ClientAppConfig):
-            app_config = FedAppConfig(server_app=None, client_app=client_server_config)
-            app_name = f"app_{target}"
-        elif isinstance(client_server_config, ServerAppConfig):
-            app_config = FedAppConfig(server_app=client_server_config, client_app=None)
-            app_name = "app_server"
-        else:
-            raise ValueError(
-                f"App needs to be of type `ClientAppConfig` or `ServerAppConfig` but was type {type(client_server_config)}"
-            )
-
-        self.job.add_fed_app(app_name, app_config)
-        self.job.set_site_app(target, app_name)
+        pass
 
     def _set_all_apps(self):
-        if not self._deployed:
-            if ALL_SITES in self._deploy_map:
-                if SERVER_SITE_NAME not in self._deploy_map:
-                    raise ValueError('Missing server components! Deploy using `to(obj, "server") or `to_server(obj)`')
-                self._set_all_app(client_app=self._deploy_map[ALL_SITES], server_app=self._deploy_map[SERVER_SITE_NAME])
-            else:
-                for target in self._deploy_map:
-                    self._set_site_app(self._deploy_map[target], target)
-
-            self._deployed = True
+        pass
 
     def export_job(self, job_root: str):
         """Export job config to `job_root` directory with name `self.name`.
@@ -616,8 +421,7 @@ class FedJob:
         Returns:
 
         """
-        self._set_all_apps()
-        self.job.generate_job_config(job_root)
+        pass
 
     def simulator_run(
         self,
@@ -641,39 +445,13 @@ class FedJob:
 
         Returns:
         """
-        if clients:
-            self.clients = clients
-        self._set_all_apps()
-
-        if ALL_SITES in self.clients and not n_clients:
-            raise ValueError("Clients were not specified using to(). Please provide the number of clients to simulate.")
-        elif ALL_SITES in self.clients and n_clients:
-            check_positive_int("n_clients", n_clients)
-            self.clients = [f"site-{i}" for i in range(1, n_clients + 1)]
-        elif self.clients and n_clients:
-            raise ValueError("You already specified clients using `to()`. Don't use `n_clients` in simulator_run.")
-
-        n_clients = len(self.clients)
-
-        if threads is None:
-            threads = n_clients
-
-        self.job.simulator_run(
-            workspace,
-            clients=",".join(self.clients),
-            n_clients=n_clients,
-            threads=threads,
-            gpu=gpu,
-            log_config=log_config,
-        )
+        pass
 
     def as_id(self, obj: Any) -> str:
         """Generate and return uuid for `obj`. For end users.
         If this id is referenced by another added object, this `obj` will also be added as a component.
         """
-        cid = str(uuid.uuid4())
-        self._components[cid] = obj
-        return cid
+        pass
 
     @staticmethod
     def check_kwargs(args_to_check: dict, args_expected: dict):
@@ -684,31 +462,11 @@ class FedJob:
             args_expected (dict): dictionary of argument name to boolean of whether argument is required (True) or optional (False).
 
         """
-        if not args_expected and not args_to_check:
-            return
-
-        if args_to_check and not args_expected:
-            raise ValueError(f"received args {list(args_to_check.keys())}, but no args expected")
-
-        args_info = {}
-        for k, required in args_expected.items():
-            args_info[k] = "required" if required else "optional"
-
-        # see whether required args are present
-        for k, required in args_expected.items():
-            if required and (not args_to_check or k not in args_to_check):
-                raise ValueError(f"Missing required arg '{k}'. " f"Supported args: {args_info}")
-
-        # see whether we got unexpected args
-        if args_to_check:
-            for k in args_to_check.keys():
-                if k not in args_expected:
-                    raise ValueError(f"Received unexpected arg '{k}'. " f"Supported args: {args_info}")
+        pass
 
 
 def has_add_to_job_method(obj: Any) -> bool:
-    add_to_job_method = getattr(obj, _ADD_TO_JOB_METHOD_NAME, None)
-    return add_to_job_method is not None and callable(add_to_job_method)
+    pass
 
 
 def validate_object_for_job(name, obj, obj_type):
@@ -723,7 +481,4 @@ def validate_object_for_job(name, obj, obj_type):
     Returns: None
 
     """
-    if has_add_to_job_method(obj):
-        return
-
-    check_object_type(name, obj, obj_type)
+    pass

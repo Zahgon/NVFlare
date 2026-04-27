@@ -23,22 +23,7 @@ def main():
     """
     Script to launch the admin client to issue admin commands to the server.
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config_dir", "-c", type=str, help="config folder", required=False, default=".")
-    parser.add_argument(
-        "--config_file", "-f", type=str, help="config file name", required=False, default="net_config.json"
-    )
-    args = parser.parse_args()
-
-    ConfigService.initialize(section_files={}, config_path=[args.config_dir])
-    net_config = NetConfig(args.config_file)
-
-    # TBD: make net_config compatible with AdminClient's admin_config!
-    admin_config = net_config.get_admin()
-    client = AdminClient(
-        admin_config=admin_config,
-    )
-    client.run()
+    pass
 
 
 if __name__ == "__main__":

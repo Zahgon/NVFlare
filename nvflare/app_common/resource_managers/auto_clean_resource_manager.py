@@ -60,7 +60,7 @@ class AutoCleanResourceManager(ResourceManagerSpec, FLComponent, ABC):
         Args:
             resources (dict): the resources to be freed.
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def _check_required_resource_available(self, resource_requirement: dict) -> bool:
@@ -72,7 +72,7 @@ class AutoCleanResourceManager(ResourceManagerSpec, FLComponent, ABC):
         Return:
             A boolean to indicate whether the current resources are enough for the required resources.
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def _reserve_resource(self, resource_requirement: dict) -> dict:
@@ -84,93 +84,29 @@ class AutoCleanResourceManager(ResourceManagerSpec, FLComponent, ABC):
         Return:
             A dict of reserved resources associated with the requested resource.
         """
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def _resource_to_dict(self) -> dict:
-        raise NotImplementedError
+        pass
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.SYSTEM_START:
-            self._cleanup_thread.start()
-        elif event_type == EventType.SYSTEM_END:
-            self._stop_event.set()
-            if self._cleanup_thread:
-                self._cleanup_thread.join()
-                self._cleanup_thread = None
+        pass
 
     def _check_expired(self):
-        while not self._stop_event.is_set():
-            time.sleep(self._check_period)
-            with self._lock:
-                tokens_to_remove = []
-                for k in self.reserved_resources:
-                    r, t = self.reserved_resources[k]
-                    t -= 1
-                    if t == 0:
-                        tokens_to_remove.append(k)
-                    else:
-                        self.reserved_resources[k] = r, t
-                for token in tokens_to_remove:
-                    reserved_resources, _ = self.reserved_resources.pop(token)
-                    self._deallocate(resources=reserved_resources)
-                self.logger.debug(f"current resources: {self.resources}, reserved_resources {self.reserved_resources}.")
+        pass
 
     def check_resources(self, resource_requirement: dict, fl_ctx: FLContext):
-        if not isinstance(resource_requirement, dict):
-            raise TypeError(f"resource_requirement should be of type dict, but got {type(resource_requirement)}.")
-
-        with self._lock:
-            is_resource_enough = self._check_required_resource_available(resource_requirement)
-            token = ""
-
-            # reserve resource only when enough resource
-            if is_resource_enough:
-                token = str(uuid.uuid4())
-                reserved_resources = self._reserve_resource(resource_requirement)
-                self.reserved_resources[token] = (reserved_resources, self.expiration_period)
-                self.log_debug(
-                    fl_ctx, f"reserving resources: {reserved_resources} for requirements {resource_requirement}."
-                )
-                self.log_debug(
-                    fl_ctx, f"current resources: {self.resources}, reserved_resources {self.reserved_resources}."
-                )
-        return is_resource_enough, token
+        pass
 
     def cancel_resources(self, resource_requirement: dict, token: str, fl_ctx: FLContext):
-        with self._lock:
-            if token and token in self.reserved_resources:
-                reserved_resources, _ = self.reserved_resources.pop(token)
-                self._deallocate(resources=reserved_resources)
-                self.log_debug(fl_ctx, f"cancelling resources: {reserved_resources}.")
-                self.log_debug(
-                    fl_ctx, f"current resources: {self.resources}, reserved_resources {self.reserved_resources}."
-                )
-            else:
-                self.log_debug(fl_ctx, f"Token {token} is not related to any reserved resources.")
-        return None
+        pass
 
     def allocate_resources(self, resource_requirement: dict, token: str, fl_ctx: FLContext) -> dict:
-        result = {}
-        with self._lock:
-            if token and token in self.reserved_resources:
-                result, _ = self.reserved_resources.pop(token)
-                self.log_debug(fl_ctx, f"allocating resources: {result} for requirements: {resource_requirement}.")
-                self.log_debug(
-                    fl_ctx, f"current resources: {self.resources}, reserved_resources {self.reserved_resources}."
-                )
-            else:
-                raise RuntimeError(f"allocate_resources: No reserved resources for token {token}.")
-        return result
+        pass
 
     def free_resources(self, resources: dict, token: str, fl_ctx: FLContext):
-        with self._lock:
-            self.log_debug(fl_ctx, f"freeing resources: {resources}.")
-            self.log_debug(
-                fl_ctx, f"current resources: {self.resources}, reserved_resources {self.reserved_resources}."
-            )
-            self._deallocate(resources=resources)
+        pass
 
     def report_resources(self, fl_ctx):
-        with self._lock:
-            return self._resource_to_dict()
+        pass

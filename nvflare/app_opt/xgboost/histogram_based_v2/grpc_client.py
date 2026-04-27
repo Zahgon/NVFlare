@@ -50,19 +50,7 @@ class GrpcClient:
         Returns: None
 
         """
-        if self.started:
-            return
-
-        self.started = True
-
-        self.channel = grpc.insecure_channel(self.server_addr, options=self.grpc_options)
-        self.stub = FederatedStub(self.channel)
-
-        # wait for channel ready
-        try:
-            grpc.channel_ready_future(self.channel).result(timeout=ready_timeout)
-        except grpc.FutureTimeoutError:
-            raise RuntimeError(f"cannot connect to server after {ready_timeout} seconds")
+        pass
 
     def send_allgather(self, seq_num, rank, data: bytes):
         """Send Allgather request to gRPC server
@@ -75,19 +63,7 @@ class GrpcClient:
         Returns: an AllgatherReply object; or None if processing error is encountered
 
         """
-        req = pb2.AllgatherRequest(
-            sequence_number=seq_num,
-            rank=rank,
-            send_buffer=data,
-        )
-
-        self.logger.info(f"Allgather is sending {len(data)} bytes Rank: {rank} Seq: {seq_num}")
-        result = self.stub.Allgather(req)
-
-        if not isinstance(result, pb2.AllgatherReply):
-            self.logger.error(f"expect reply to be pb2.AllgatherReply but got {type(result)}")
-            return None
-        return result
+        pass
 
     def send_allgatherv(self, seq_num, rank, data: bytes):
         """Send AllgatherV request to gRPC server
@@ -100,17 +76,7 @@ class GrpcClient:
         Returns: an AllgatherVReply object; or None if processing error is encountered
 
         """
-        req = pb2.AllgatherVRequest(
-            sequence_number=seq_num,
-            rank=rank,
-            send_buffer=data,
-        )
-
-        result = self.stub.AllgatherV(req)
-        if not isinstance(result, pb2.AllgatherVReply):
-            self.logger.error(f"expect reply to be pb2.AllgatherVReply but got {type(result)}")
-            return None
-        return result
+        pass
 
     def send_allreduce(self, seq_num, rank, data: bytes, data_type, reduce_op):
         """Send Allreduce request to gRPC server
@@ -125,19 +91,7 @@ class GrpcClient:
         Returns: an AllreduceReply object; or None if processing error is encountered
 
         """
-        req = pb2.AllreduceRequest(
-            sequence_number=seq_num,
-            rank=rank,
-            send_buffer=data,
-            data_type=data_type,
-            reduce_operation=reduce_op,
-        )
-
-        result = self.stub.Allreduce(req)
-        if not isinstance(result, pb2.AllreduceReply):
-            self.logger.error(f"expect reply to be pb2.AllreduceReply but got {type(result)}")
-            return None
-        return result
+        pass
 
     def send_broadcast(self, seq_num, rank, data: bytes, root):
         """Send Broadcast request to gRPC server
@@ -151,18 +105,7 @@ class GrpcClient:
         Returns: a BroadcastReply object; or None if processing error is encountered
 
         """
-        req = pb2.BroadcastRequest(
-            sequence_number=seq_num,
-            rank=rank,
-            send_buffer=data,
-            root=root,
-        )
-
-        result = self.stub.Broadcast(req)
-        if not isinstance(result, pb2.BroadcastReply):
-            self.logger.error(f"expect reply to be pb2.BroadcastReply but got {type(result)}")
-            return None
-        return result
+        pass
 
     def stop(self):
         """Stop the gRPC client
@@ -170,11 +113,4 @@ class GrpcClient:
         Returns: None
 
         """
-        ch = self.channel
-        self.channel = None  # set to None in case another thread also tries to close.
-        if ch:
-            try:
-                ch.close()
-            except:
-                # ignore errors when closing the channel
-                pass
+        pass

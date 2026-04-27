@@ -78,23 +78,7 @@ def patch(
                     self.__fl_meta__ = {"CUSTOM_VAR": "VALUE_OF_THE_VAR"}
 
     """
-    fobs.register(TensorDecomposer)
-    callbacks = trainer.callbacks
-    if isinstance(callbacks, Callback):
-        callbacks = [callbacks]
-    elif not isinstance(callbacks, list):
-        callbacks = []
-
-    if not any(isinstance(cb, FLCallback) for cb in callbacks):
-        fl_callback = FLCallback(
-            rank=trainer.global_rank, load_state_dict_strict=load_state_dict_strict, update_fit_loop=update_fit_loop
-        )
-        callbacks.append(fl_callback)
-
-    if restore_state and not any(isinstance(cb, RestoreState) for cb in callbacks):
-        callbacks.append(RestoreState())
-
-    trainer.callbacks = callbacks
+    pass
 
 
 class FLCallback(Callback):
@@ -138,54 +122,14 @@ class FLCallback(Callback):
         instance, the reset_state() needs to be called first
         Not only resets the states, also sets states for next round
         """
-        # set states for next round
-        if self.current_round is not None:
-            if self.max_epochs_per_round is None:
-                if trainer.max_epochs and trainer.max_epochs > 0:
-                    self.max_epochs_per_round = trainer.max_epochs
-                if trainer.max_steps and trainer.max_steps > 0:
-                    self.max_steps_per_round = trainer.max_steps
-
-            # record total local epochs/steps
-            self.total_local_epochs = trainer.current_epoch
-            self.total_local_steps = trainer.estimated_stepping_batches
-
-            # for next round
-            trainer.num_sanity_val_steps = 0  # Turn off sanity validation steps in following rounds of FL
-
-            if self._update_fit_loop:
-                if self.total_local_epochs and self.max_epochs_per_round is not None:
-                    trainer.fit_loop.max_epochs = self.max_epochs_per_round + self.total_local_epochs
-                if self.total_local_steps and self.max_steps_per_round is not None:
-                    trainer.fit_loop.epoch_loop.max_steps = self.max_steps_per_round + self.total_local_steps
-
-        # resets attributes
-        self.metrics = None
-        clear()
+        pass
 
     def on_train_start(self, trainer, pl_module):
         # receive the global model and update the local model with global model
-        self._receive_and_update_model(trainer, pl_module)
+        pass
 
     def on_train_end(self, trainer, pl_module):
-        if hasattr(pl_module, FL_META_KEY):
-            fl_meta = getattr(pl_module, FL_META_KEY)
-            if not isinstance(fl_meta, dict):
-                raise RuntimeError(f"The {FL_META_KEY} needs to be a dictionary")
-        else:
-            fl_meta = {}
-        if MetaKey.NUM_STEPS_CURRENT_ROUND not in fl_meta:
-            fl_meta[MetaKey.NUM_STEPS_CURRENT_ROUND] = trainer.estimated_stepping_batches
-        if self._is_training:
-            model = FLModel(params=pl_module.cpu().state_dict(), meta=fl_meta)
-            if self.train_with_evaluation:
-                if self.metrics is None:
-                    raise RuntimeError(
-                        "train with evaluation missing training metrics, please remember to call validate."
-                    )
-                model.metrics = self.metrics
-            self._send_model(model)
-            self.reset_state(trainer)
+        pass
 
     def on_validation_start(self, trainer, pl_module):
         # receive the global model and update the local model with global model
@@ -194,15 +138,10 @@ class FLCallback(Callback):
         # the metrics will be set.
         # The subsequent validate() calls will not trigger the receive update model.
         # Hence the validate() will be validating the local model.
-        if pl_module and self.metrics is None:
-            self._receive_and_update_model(trainer, pl_module)
+        pass
 
     def on_validation_end(self, trainer, pl_module):
-        if pl_module and self.metrics is None:
-            self.metrics = _extract_metrics(trainer.callback_metrics)
-            if self._is_evaluation:
-                self._send_model(FLModel(metrics=self.metrics))
-                self.reset_state(trainer)
+        pass
 
     def _receive_and_update_model(self, trainer, pl_module):
         """Receive a global model and apply the compatible portion locally.
@@ -213,70 +152,15 @@ class FLCallback(Callback):
         incoming keys that are not present locally are filtered out after a
         warning, which allows partial model updates as long as some keys match.
         """
-
-        model = self._receive_model(trainer)
-        if model:
-            if model.params:
-                try:
-                    report = inspect_model_params(pl_module.state_dict(), model.params)
-                    if report.shape_mismatches:
-                        raise RuntimeError(report.format_shape_mismatch_error())
-
-                    if not report.matched_keys:
-                        raise RuntimeError(report.format_zero_match_error())
-
-                    params_to_load = model.params
-                    if report.unexpected_keys:
-                        if self._load_state_dict_strict:
-                            raise RuntimeError(report.format_unexpected_keys_error())
-
-                        self.logger.warning(report.format_unexpected_keys_warning())
-                        params_to_load = {key: model.params[key] for key in report.matched_keys}
-
-                    result = pl_module.load_state_dict(params_to_load, strict=self._load_state_dict_strict)
-                    if result is not None:
-                        missing_keys, unexpected_keys = result
-                        if len(missing_keys) > 0:
-                            self.logger.warning(
-                                f"There were missing keys when loading the global state_dict: {missing_keys}"
-                            )
-                        if len(unexpected_keys) > 0:
-                            self.logger.warning(
-                                f"There were unexpected keys when loading the global state_dict: {unexpected_keys}"
-                            )
-                except Exception as e:
-                    self.logger.error(f"Failed to load state dict: {str(e)}")
-                    raise RuntimeError(f"Failed to load model state dict: {str(e)}")
-            if model.current_round is not None:
-                self.current_round = model.current_round
+        pass
 
     def _receive_model(self, trainer) -> FLModel:
         """Receives model from NVFlare."""
-        model = None
-        _is_training = False
-        _is_evaluation = False
-        _is_submit_model = False
-        if self.rank == 0:
-            model = receive()
-            _is_training = is_train()
-            _is_evaluation = is_evaluate()
-            _is_submit_model = is_submit_model()
-
-        model = trainer.strategy.broadcast(model, src=0)
-        self._is_training = trainer.strategy.broadcast(_is_training, src=0)
-        self._is_evaluation = trainer.strategy.broadcast(_is_evaluation, src=0)
-        self._is_submit_model = trainer.strategy.broadcast(_is_submit_model, src=0)
-        return model
+        pass
 
     def _send_model(self, output_model: FLModel):
-        try:
-            send(output_model, clear_cache=False)
-        except Exception as e:
-            raise RuntimeError(f"failed to send FL model: {e}")
+        pass
 
 
 def _extract_metrics(metrics: Dict[str, Tensor]):
-    result_metrics = {}
-    for key, t in metrics.items():
-        result_metrics[key] = t.item()
-    return result_metrics
+    pass

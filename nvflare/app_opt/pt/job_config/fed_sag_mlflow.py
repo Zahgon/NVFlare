@@ -78,7 +78,4 @@ class SAGMLFlowJob(BaseFedJob):
         self.to_server(controller)
 
     def set_up_client(self, target: str):
-        super().set_up_client(target)
-
-        ml_flow_writer = MLflowWriter(event_type="event_type")
-        self.to(id="log_writer", obj=ml_flow_writer, target=target)
+        pass

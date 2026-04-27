@@ -63,8 +63,4 @@ class HubExecutor(TaskExchanger):
         )
 
     def execute(self, task_name: str, shareable: Shareable, fl_ctx: FLContext, abort_signal: Signal) -> Shareable:
-        contrib_round = shareable.get_cookie(AppConstants.CONTRIBUTION_ROUND)
-        if contrib_round is None:
-            self.log_warning(fl_ctx, "CONTRIBUTION_ROUND Not Set in task data!")
-
-        return super().execute(task_name, shareable, fl_ctx, abort_signal)
+        pass

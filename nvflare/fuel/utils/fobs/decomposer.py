@@ -104,17 +104,7 @@ def restore_position(manager: DatumManager, datum: Datum, position):
     Returns: None
 
     """
-    target, key = position
-    original_obj = manager.get_original(target)  # also need to restore values in the original object if any
-    if datum.datum_type in (DatumType.BLOB, DatumType.TEXT):
-        target[key] = datum.value
-        if original_obj:
-            original_obj[key] = datum.value
-    else:
-        # file datum - app provided
-        target[key] = datum
-        if original_obj:
-            original_obj[key] = datum
+    pass
 
 
 class Externalizer:
@@ -127,31 +117,11 @@ class Externalizer:
         self.manager = manager
 
     def _set_position(self, ext_result: Any, target, key):
-        if isinstance(ext_result, DatumRef):
-            datum = self.manager.get_datum(ext_result.datum_id)
-            if datum:
-                datum.set_restore_func(restore_position, (target, key))
+        pass
 
     def externalize(self, target: Any):
         """Recursively go through object tree (dict or list) and externalize leaf nodes."""
-        if not self.manager:
-            return target
-
-        if isinstance(target, dict):
-            for k, v in target.items():
-                d = self.externalize(v)
-                target[k] = d
-                self._set_position(d, target, k)  # remember the position so it can be restored
-        elif isinstance(target, list):  # note: tuple is not supported since it is immutable.
-            for i, v in enumerate(target):
-                d = self.externalize(v)
-                target[i] = d
-                self._set_position(d, target, i)
-        else:
-            # leaf node
-            target = self.manager.externalize(target)
-
-        return target
+        pass
 
 
 class Internalizer:
@@ -165,19 +135,7 @@ class Internalizer:
 
     def internalize(self, target) -> Any:
         """Recursively go through object tree (dict or list) and internalize leaf nodes."""
-        if not self.manager:
-            return target
-
-        if isinstance(target, dict):
-            for k, v in target.items():
-                target[k] = self.internalize(v)
-        elif isinstance(target, list):
-            for i, v in enumerate(target):
-                target[i] = self.internalize(v)
-        else:
-            target = self.manager.internalize(target)
-
-        return target
+        pass
 
 
 class DictDecomposer(Decomposer):
@@ -187,22 +145,14 @@ class DictDecomposer(Decomposer):
         self.dict_type = dict_type
 
     def supported_type(self):
-        return self.dict_type
+        pass
 
     def decompose(self, target: dict, manager: DatumManager = None) -> Any:
         # need to create a new object; otherwise msgpack will try to decompose this object endlessly.
-        tc = target.copy()
-        manager.register_copy(tc, target)
-        externalizer = Externalizer(manager)
-        return externalizer.externalize(tc)
+        pass
 
     def recompose(self, data: dict, manager: DatumManager = None) -> dict:
-        internalizer = Internalizer(manager)
-        data = internalizer.internalize(data)
-        obj = self.dict_type()
-        for k, v in data.items():
-            obj[k] = v
-        return obj
+        pass
 
 
 class DataClassDecomposer(Decomposer):
@@ -221,31 +171,13 @@ class DataClassDecomposer(Decomposer):
         self.data_type = data_type
 
     def supported_type(self) -> Type[T]:
-        return self.data_type
+        pass
 
     def decompose(self, target: T, manager: DatumManager = None) -> Any:
-        data = {}
-
-        if hasattr(target, "__dict__"):
-            data[DATA_CONTENT] = vars(target)
-
-        if isinstance(target, dict):
-            data[DICT_CONTENT] = dict(target)
-
-        return data
+        pass
 
     def recompose(self, data: dict, manager: DatumManager = None) -> T:
-        instance = self.data_type.__new__(self.data_type)
-
-        data_content = data.get(DATA_CONTENT, None)
-        if data_content:
-            instance.__dict__.update(data_content)
-
-        dict_content = data.get(DICT_CONTENT, None)
-        if dict_content:
-            instance.update(dict_content)
-
-        return instance
+        pass
 
 
 class EnumTypeDecomposer(Decomposer):
@@ -258,10 +190,10 @@ class EnumTypeDecomposer(Decomposer):
         self.data_type = data_type
 
     def supported_type(self) -> Type[Enum]:
-        return self.data_type
+        pass
 
     def decompose(self, target: Enum, manager: DatumManager = None) -> Any:
-        return target.name
+        pass
 
     def recompose(self, data: Any, manager: DatumManager = None) -> Enum:
-        return self.data_type[data]
+        pass

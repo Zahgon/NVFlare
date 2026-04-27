@@ -69,9 +69,7 @@ class GlobalWeightsInitializer(ResponseProcessor):
         Returns: task data
 
         """
-        # reset internal state in case this processor is used multiple times
-        self.final_weights = None
-        return Shareable()
+        pass
 
     def process_client_response(self, client: Client, task_name: str, response: Shareable, fl_ctx: FLContext) -> bool:
         """Process the weights submitted by a client.
@@ -87,39 +85,7 @@ class GlobalWeightsInitializer(ResponseProcessor):
             If not acceptable, the control flow will exit.
 
         """
-        if not isinstance(response, Shareable):
-            self.log_error(
-                fl_ctx,
-                f"bad response from client {client.name}: " f"response must be Shareable but got {type(response)}",
-            )
-            return False
-
-        try:
-            dxo = from_shareable(response)
-        except Exception:
-            self.log_exception(fl_ctx, f"bad response from client {client.name}: " f"it does not contain DXO")
-            return False
-
-        if dxo.data_kind != DataKind.WEIGHTS:
-            self.log_error(
-                fl_ctx,
-                f"bad response from client {client.name}: "
-                f"data_kind should be DataKind.WEIGHTS but got {dxo.data_kind}",
-            )
-            return False
-
-        weights = dxo.data
-        if not weights:
-            self.log_error(fl_ctx, f"No model weights found from client {client.name}")
-            return False
-
-        if not self.final_weights and (
-            self.weight_method == WeightMethod.FIRST
-            or (self.weight_method == WeightMethod.CLIENT and client.name == self.client_name)
-        ):
-            self.final_weights = weights
-
-        return True
+        pass
 
     def final_process(self, fl_ctx: FLContext) -> bool:
         """Perform the final check on all the received weights from the clients.
@@ -131,10 +97,4 @@ class GlobalWeightsInitializer(ResponseProcessor):
             boolean indicating whether the final response processing is successful.
             If not successful, the control flow will exit.
         """
-        if not self.final_weights:
-            self.log_error(fl_ctx, "no weights available from clients")
-            return False
-
-        # must set sticky to True so other controllers can get it!
-        fl_ctx.set_prop(self.weights_prop_name, make_model_learnable(self.final_weights, {}), private=True, sticky=True)
-        return True
+        pass

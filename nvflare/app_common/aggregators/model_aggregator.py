@@ -33,51 +33,43 @@ class ModelAggregator(Aggregator):
         self.fl_ctx = None
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.fl_ctx = fl_ctx
+        pass
 
     @abstractmethod
     def accept_model(self, model: FLModel):
         """needs to implement logic to accept a model, e.g. add to sum, count, etc."""
-        raise NotImplementedError("Subclass must implement accept_model method")
+        pass
 
     @abstractmethod
     def aggregate_model(self) -> FLModel:
         """needs to implement aggregation logic and reset any internal stats"""
-        raise NotImplementedError("Subclass must implement aggregate_model method")
+        pass
 
     @abstractmethod
     def reset_stats(self):
         """needs to implement logic to reset any internal stats"""
-        raise NotImplementedError("Subclass must implement reset_stats method")
+        pass
 
     def accept(self, shareable: Shareable, fl_ctx: FLContext) -> bool:
         """called by ScatterAndGather"""
-        self.fl_ctx = fl_ctx
-        self.accept_model(FLModelUtils.from_shareable(shareable, fl_ctx))
-        return True
+        pass
 
     def aggregate(self, fl_ctx: FLContext) -> Shareable:
         """called by ScatterAndGather"""
-        self.fl_ctx = fl_ctx
-
-        aggregated_model = self.aggregate_model()
-
-        return FLModelUtils.to_shareable(aggregated_model)
+        pass
 
     def reset(self, fl_ctx: FLContext):
         """called by ScatterAndGather"""
-        self.fl_ctx = fl_ctx
-        self.reset_stats()
+        pass
 
     def info(self, message: str):
-        self.log_info(fl_ctx=self.fl_ctx, msg=message)
+        pass
 
     def warning(self, message: str):
-        self.log_warning(fl_ctx=self.fl_ctx, msg=message)
+        pass
 
     def error(self, message: str):
-        self.log_error(fl_ctx=self.fl_ctx, msg=message)
+        pass
 
     def exception(self, message: str):
-        self.log_exception(fl_ctx=self.fl_ctx, msg=message)
+        pass

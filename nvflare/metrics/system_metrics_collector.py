@@ -52,10 +52,10 @@ class SysMetricsCollector(MetricsCollector):
         ]
 
     def handle_event(self, event: str, fl_ctx: FLContext):
-        super().collect_event_metrics(event=event, tags=self.tags, fl_ctx=fl_ctx)
+        pass
 
     def get_single_events(self):
-        return self.single_events
+        pass
 
     def get_pair_events(self):
-        return self.pair_events
+        pass

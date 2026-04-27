@@ -22,18 +22,7 @@ class CmdTaskController(ModelController):
         self.task_name = task_name
 
     def run(self):
-        self.info(f"{self.task_name} task started.")
-
-        try:
-            # use FLModel structure, add empty model
-            task = FLModel(params={"task_name": self.task_name}, meta={"status": "request"})
-            clients = self.sample_clients()
-            self.send_task_and_wait(task_name=self.task_name, targets=clients, data=task)
-            self.info("Finished etl.")
-        except Exception as ex:
-            msg = secure_format_traceback()
-            self.panic(f"task {self.task_name} failed with exception {msg}")
-            raise ex
+        pass
 
     def send_task_and_wait(self, task_name, targets, data):
-        return self.send_model_and_wait(task_name=task_name, targets=targets, data=data)
+        pass

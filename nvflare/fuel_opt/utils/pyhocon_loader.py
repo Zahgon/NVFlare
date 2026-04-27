@@ -22,41 +22,13 @@ class PyhoconConfig(Config):
         super(PyhoconConfig, self).__init__(conf, ConfigFormat.PYHOCON, file_path)
 
     def to_dict(self, resolve: Optional[bool] = True) -> Dict:
-        return self._convert_conf_item(self.conf)
+        pass
 
     def to_str(self, element: Optional[Dict] = None) -> str:
-        from pyhocon import ConfigFactory as CF
-        from pyhocon.converter import HOCONConverter
-
-        if element is None:
-            return HOCONConverter.to_hocon(self.conf)
-        else:
-            config = CF.from_dict(element)
-            return HOCONConverter.to_hocon(config)
+        pass
 
     def _convert_conf_item(self, conf_item):
-        from pyhocon import ConfigTree
-
-        result = {}
-        if isinstance(conf_item, ConfigTree):
-            if len(conf_item) > 0:
-                for key, item in conf_item.items():
-                    new_key = key.strip('"')  # for dotted keys enclosed with "" to not be interpreted as nested key
-                    new_value = self._convert_conf_item(item)
-                    result[new_key] = new_value
-        elif isinstance(conf_item, list):
-            if len(conf_item) > 0:
-                result = [self._convert_conf_item(item) for item in conf_item]
-            else:
-                result = []
-        elif conf_item is True:
-            return True
-        elif conf_item is False:
-            return False
-        else:
-            return conf_item
-
-        return result
+        pass
 
 
 class PyhoconLoader(ConfigLoader):
@@ -64,24 +36,13 @@ class PyhoconLoader(ConfigLoader):
         super(PyhoconLoader, self).__init__(ConfigFormat.PYHOCON)
 
     def load_config(self, file_path: str) -> Config:
-        from pyhocon import ConfigTree
-
-        conf: ConfigTree = self._from_file(file_path)
-        return PyhoconConfig(conf, file_path)
+        pass
 
     def load_config_from_str(self, config_str: str) -> Config:
-        from pyhocon import ConfigFactory as CF
-
-        conf = CF.parse_string(config_str)
-        return PyhoconConfig(conf)
+        pass
 
     def load_config_from_dict(self, config_dict: dict) -> Config:
-        from pyhocon import ConfigFactory as CF
-
-        conf = CF.from_dict(config_dict)
-        return PyhoconConfig(conf)
+        pass
 
     def _from_file(self, file_path):
-        from pyhocon import ConfigFactory as CF
-
-        return CF.parse_file(file_path)
+        pass

@@ -68,123 +68,26 @@ class CCBuilder(Builder):
 
     def _load_and_validate_cc_config(self, config_path):
         """Load CC configuration from YAML file."""
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"CC config file not found: {config_path}")
-        cc_config = utils.load_yaml(config_path)
-        compute_env = cc_config.get(CCConfigKey.COMPUTE_ENV)
-
-        if compute_env not in VALID_COMPUTE_ENVS:
-            raise ValueError(f"Invalid compute environment: {compute_env}")
-        return cc_config
+        pass
 
     def _enable_participant_for_cc(self, participant, cc_config, ctx):
-        self._cc_enabled_sites.append(participant)
-        participant.set_prop(PropKey.CC_ENABLED, True)
-        participant.set_prop(PropKey.CC_CONFIG_DICT, cc_config)
-        participant.set_prop(PropKey.AUTHZ_SECTION_KEY, TemplateSectionKey.CC_AUTHZ)
-        cc_issuers = cc_config.get(CCConfigKey.CC_ISSUERS, [])
-        participant.set_prop(PropKey.CC_ISSUERS, cc_issuers)
-        # Add cc_issuers to ctx for cc manager
-        authorizers = ctx.get(CC_AUTHORIZERS_KEY, [])
-        for issuer in cc_issuers:
-            authorizers.append(
-                {
-                    "id": issuer.get(CCIssuerConfig.ID),
-                    "path": issuer.get(CCIssuerConfig.PATH),
-                    "args": issuer.get(CCIssuerConfig.ARGS, {}),
-                }
-            )
-        ctx[CC_AUTHORIZERS_KEY] = authorizers
+        pass
 
     def _create_builder_for_env(self, cc_config):
-        compute_env = cc_config.get(CCConfigKey.COMPUTE_ENV)
-        if compute_env not in self._cc_builders:
-            if compute_env not in BUILDER_CLASSES:
-                raise ValueError(f"Unsupported compute environment: {compute_env}")
-            builder_class = BUILDER_CLASSES[compute_env]
-            builder = builder_class()
-            self._cc_builders[compute_env] = builder
+        pass
 
     def initialize(self, project: Project, ctx: ProvisionContext):
         """Initialize all CC builders needed for the project."""
-        self.project_name = project.name
-        self.project = project
-        for participant in project.get_all_participants():
-            config_path = participant.get_prop(PropKey.CC_CONFIG)
-            if config_path:
-                try:
-                    cc_config = self._load_and_validate_cc_config(config_path)
-                    self._enable_participant_for_cc(participant, cc_config, ctx)
-                    self._create_builder_for_env(cc_config)
-                except Exception as e:
-                    print(f"CC is not enabled for {participant.name}: {e}")
-
-        # Initialize each builder type once
-        for builder in self._cc_builders.values():
-            builder.initialize(project, ctx)
+        pass
 
     def _build_cc_manager_component(self, participant: Participant, ctx: ProvisionContext):
         """Build CCManager component for a participant."""
-        cc_mgr_args = {CCManagerArgs.CC_ISSUERS_CONF: [], CCManagerArgs.CC_VERIFIER_IDS: []}
-        cc_enabled = participant.get_prop(PropKey.CC_ENABLED, False)
-        if not cc_enabled:
-            return
-
-        cc_config = participant.get_prop(PropKey.CC_CONFIG_DICT, {})
-        if cc_config == {}:
-            return
-
-        cc_issuers = participant.get_prop(PropKey.CC_ISSUERS)
-        for issuer in cc_issuers:
-            cc_mgr_args[CCManagerArgs.CC_ISSUERS_CONF].append(
-                {
-                    CC_ISSUER_ID: issuer.get(CCIssuerConfig.ID),
-                    TOKEN_EXPIRATION: issuer.get(CCIssuerConfig.TOKEN_EXPIRATION),
-                }
-            )
-
-        all_cc_authorizers = ctx.get(CC_AUTHORIZERS_KEY, [])
-        cc_verifier_ids = set([])
-        for authorizer in all_cc_authorizers:
-            attestation_config = cc_config.get(CCConfigKey.CC_ATTESTATION_CONFIG)
-            if attestation_config:
-                cc_mgr_args[CCManagerArgs.VERIFY_FREQUENCY] = attestation_config.get("check_frequency", 600)
-
-            cc_verifier_ids.add(authorizer.get(CCIssuerConfig.ID))
-
-        # TODO our fl_ctx.get_identity_name always return "server"
-        # check nvflare/private/fed/app/deployer/server_deployer.py
-        # and nvflare/app_opt/confidential_computing/cc_manager.py
-        cc_mgr_args[CCManagerArgs.CC_ENABLED_SITES] = [
-            e.name if e.type != "server" else "server" for e in self._cc_enabled_sites
-        ]
-        cc_mgr_args[CCManagerArgs.CC_VERIFIER_IDS] = list(cc_verifier_ids)
-
-        component = {
-            "id": self._cc_mgr_id,
-            "path": CC_MGR_PATH,
-            "args": cc_mgr_args,
-        }
-
-        dest_dir = ctx.get_local_dir(participant)
-        resources_file = os.path.join(dest_dir, f"{self._cc_mgr_id}__p_resources.json")
-        utils.add_component_to_resources(resources_file, component)
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
         """Build CC configuration for all participants."""
-        # Build CC implementation for each participant
-        for builder in self._cc_builders.values():
-            builder.build(project, ctx)
-
-        # Build CCManager for each participant
-        server = project.get_server()
-        if server:
-            self._build_cc_manager_component(server, ctx)
-
-        for client in project.get_clients():
-            self._build_cc_manager_component(client, ctx)
+        pass
 
     def finalize(self, project: Project, ctx: ProvisionContext):
         """Finalize all CC builders."""
-        for builder in self._cc_builders.values():
-            builder.finalize(project, ctx)
+        pass

@@ -24,12 +24,7 @@ def message_to_file_name(msg: Message) -> str:
     Returns:
 
     """
-    if msg.msg_type == Message.REQUEST:
-        return f"{msg.msg_type}.{msg.topic}.{msg.msg_id}"
-    elif msg.msg_type == Message.REPLY:
-        return f"{msg.msg_type}.{msg.topic}.{msg.req_id}.{msg.msg_id}"
-    else:
-        raise ValueError(f"invalid message type '{msg.msg_type}'")
+    pass
 
 
 def file_name_to_message(file_name: str) -> Message:
@@ -41,22 +36,4 @@ def file_name_to_message(file_name: str) -> Message:
     Returns: a Message object that contains meta info.
 
     """
-    parts = file_name.split(".")
-    num_parts = len(parts)
-    if num_parts < 3 or num_parts > 4:
-        raise ValueError(f"bad file name: {file_name} - wrong number of parts {num_parts}")
-    msg_type = parts[0]
-    topic = parts[1]
-    msg_id = parts[-1]
-    data = None
-    if msg_type == Message.REQUEST:
-        if num_parts != 3:
-            raise ValueError(f"bad file name for {msg_type}: {file_name} - must be 3 parts but got {num_parts}")
-        return Message.new_request(topic, data, msg_id)
-    elif msg_type == Message.REPLY:
-        if num_parts != 4:
-            raise ValueError(f"bad file name for {msg_type}: {file_name} - must be 4 parts but got {num_parts}")
-        req_id = parts[2]
-        return Message.new_reply(topic, data, req_id, msg_id)
-    else:
-        raise ValueError(f"bad file name: {file_name} - invalid msg type '{msg_type}'")
+    pass

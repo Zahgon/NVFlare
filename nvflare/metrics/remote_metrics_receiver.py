@@ -38,34 +38,4 @@ class RemoteMetricsReceiver(FLComponent):
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
 
-        if event_type in self.events:
-            data = fl_ctx.get_prop(FLContextKey.EVENT_DATA, None)
-            if data is None:
-                self.log_error(fl_ctx, "Missing event data.", fire_event=False)
-                return
-            if not isinstance(data, Shareable):
-                self.log_error(
-                    fl_ctx, f"Expect data to be an instance of Shareable but got {type(data)}", fire_event=False
-                )
-                return
-
-            # if fed event use peer name to save
-            if fl_ctx.get_prop(FLContextKey.EVENT_SCOPE) == EventScope.FEDERATION:
-                record_origin = data.get_peer_prop(ReservedKey.IDENTITY_NAME, None)
-            else:
-                record_origin = fl_ctx.get_identity_name()
-
-            if record_origin is None:
-                self.log_error(fl_ctx, "record_origin can't be None.", fire_event=False)
-                return
-
-            metrics_data = data.get("METRICS")
-            if metrics_data is None:
-                self.log_error(fl_ctx, "Missing metrics data.", fire_event=False)
-                return
-
-            metric_name = metrics_data.get(MetricKeys.metric_name)
-            metrics = metrics_data.get(MetricKeys.value)
-            tags = metrics_data.get(MetricKeys.tags)
-
-            publish_app_metrics(metrics=metrics, metric_name=metric_name, tags=tags, data_bus=self.data_bus)
+        pass

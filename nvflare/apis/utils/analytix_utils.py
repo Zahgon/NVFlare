@@ -33,19 +33,7 @@ def send_analytic_dxo(
         fl_ctx (FLContext): fl context info.
         event_type (str): Event type.
     """
-    if not isinstance(comp, FLComponent):
-        raise TypeError(f"expect comp to be an instance of FLComponent, but got {type(comp)}")
-    if not isinstance(dxo, DXO):
-        raise TypeError(f"expect dxo to be an instance of DXO, but got {type(dxo)}")
-    if not isinstance(fl_ctx, FLContext):
-        raise TypeError(f"expect fl_ctx to be an instance of FLContext, but got {type(fl_ctx)}")
-
-    shareable = dxo.to_shareable()
-    fl_ctx.set_prop(key=FLContextKey.EVENT_DATA, value=shareable, private=True, sticky=False)
-    if not fire_fed_event:
-        comp.fire_event(event_type=event_type, fl_ctx=fl_ctx)
-    else:
-        comp.fire_fed_event(event_type=event_type, event_data=shareable, fl_ctx=fl_ctx)
+    pass
 
 
 def create_analytic_dxo(
@@ -67,6 +55,4 @@ def create_analytic_dxo(
     Returns:
         A DXO object that contains the analytic data.
     """
-    data = AnalyticsData(key=tag, value=value, data_type=data_type, sender=writer, **kwargs)
-    dxo = data.to_dxo()
-    return dxo
+    pass

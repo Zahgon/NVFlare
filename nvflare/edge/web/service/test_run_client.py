@@ -32,53 +32,11 @@ class ReqInfo:
 
 
 def request_job(req: ReqInfo, client: EdgeApiClient, addr):
-    req.send_time = time.time()
-    print(f"{req.idx}: sending job request")
-
-    job_req = JobRequest(
-        device_info=DeviceInfo("aaaaa"),
-        user_info=UserInfo(user_name="john"),
-        capabilities=Capabilities(["xgb", "deep-learn"]),
-    )
-    request = job_request_to_grpc_request(job_req)
-    reply = client.query(addr, request)
-    req.rcv_time = time.time()
-    assert isinstance(reply, Reply)
-    resp = grpc_reply_to_job_response(reply)
-    print(f"{req.idx}: got response after {req.rcv_time - req.send_time} seconds: {resp}")
+    pass
 
 
 def main():
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
-
-    client = EdgeApiClient()
-    addr = "127.0.0.1:8009"
-
-    num_threads = 5
-    reqs = []
-    for i in range(num_threads):
-        req = ReqInfo(i + 1)
-        reqs.append(req)
-        t = threading.Thread(target=request_job, args=(req, client, addr), daemon=True)
-        t.start()
-
-    while True:
-        all_done = True
-        for r in reqs:
-            if not r.rcv_time:
-                all_done = False
-                break
-        if all_done:
-            break
-
-    max_duration = 0
-    for r in reqs:
-        d = r.rcv_time - r.send_time
-        if max_duration < d:
-            max_duration = d
-
-    print(f"{time.time()}: ALL DONE! {max_duration=}")
+    pass
 
 
 if __name__ == "__main__":

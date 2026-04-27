@@ -36,57 +36,11 @@ class ComponentBuilder:
 
     def is_class_config(self, config_dict: dict) -> bool:
         def has_valid_class_path():
-            try:
-                _ = self.get_class_path(config_dict)
-                # we have valid class path
-                return True
-            except ConfigError:
-                # this is not a valid class path
-                return False
-
-        # use config_type to distinguish between components and regular dictionaries
-        config_type = config_dict.get("config_type", ConfigType.COMPONENT)
-        if config_type != ConfigType.COMPONENT:
-            return False
-
-        # regardless it has args or not. if path/class_path/name and valid class path, very likely we have
-        # class config. "class_path" is accepted for consistency with recipe/model config API.
-        if ("path" in config_dict or "class_path" in config_dict or "name" in config_dict) and has_valid_class_path():
-            return True
-        else:
-            return False
+            pass
+        pass
 
     def build_component(self, config_dict):
-        if not config_dict:
-            return None
-
-        if not isinstance(config_dict, dict):
-            raise ConfigError("component config must be dict but got {}.".format(type(config_dict)))
-
-        if config_dict.get("disabled") is True:
-            return None
-
-        class_args = config_dict.get("args", dict())
-        for k, v in class_args.items():
-            if isinstance(v, dict) and self.is_class_config(v):
-                # try to replace the arg with a component
-                try:
-                    t = self.build_component(v)
-                    class_args[k] = t
-                except Exception as e:
-                    raise ValueError(f"failed to instantiate class: {secure_format_exception(e)} ")
-
-        class_path = self.get_class_path(config_dict)
-
-        # Handle the special case, if config pass in the class_attributes, use the user defined class attributes
-        # parameters directly.
-        if "class_attributes" in class_args:
-            class_args = class_args["class_attributes"]
-
-        return instantiate_class(class_path, class_args)
+        pass
 
     def get_class_path(self, config_dict):
-        return get_class_path_from_config(
-            config_dict,
-            resolve_name=lambda cn: self.get_module_scanner().get_module_name(cn),
-        )
+        pass

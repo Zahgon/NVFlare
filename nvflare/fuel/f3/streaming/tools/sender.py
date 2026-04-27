@@ -35,50 +35,15 @@ receiver_ready = threading.Event()
 
 
 def cell_connected(connected_cell: CellAgent):
-    global receiver_ready
-    log.info(f"{connected_cell.get_fqcn()} is online")
-    receiver_ready.set()
+    pass
 
 
 def create_sender_cell(url: str):
-    cell = Cell(fqcn=TX_CELL, root_url=url, secure=False, credentials={})
-    log.info(f"Sender is trying to connect to {url}")
-    cell.core_cell.set_cell_connected_cb(cell_connected)
-    cell.start()
-    return cell
+    pass
 
 
 def send_blob(url: str, buf_size: int):
-    global receiver_ready
-
-    sender = create_sender_cell(url)
-    log.info(f"Creating buffer with size {buf_size} ...")
-    buffer = make_buffer(buf_size)
-
-    try:
-        log.info("Waiting for receiver to go online")
-        receiver_ready.wait()
-
-        log.info("Starting sending buffer ...")
-        start_time = time.time()
-        headers = {TIMESTAMP: start_time}
-        result = sender.send_request(
-            channel=TEST_CHANNEL, topic=TEST_TOPIC, target=RX_CELL, request=Message(headers, buffer)
-        )
-
-        if result and result.payload:
-            log.info(f"Headers: {result.headers} Payload: {result.payload}")
-            return_start = result.get_header(TIMESTAMP)
-            curr_time = time.time()
-            log.info(
-                f"Total time: {curr_time - start_time} seconds Return time: {curr_time - return_start:.3f} seconds"
-            )
-        else:
-            log.error(f"Error sending message to {RX_CELL}")
-    except Exception as e:
-        log.exception(e)
-
-    sender.stop()
+    pass
 
 
 if __name__ == "__main__":

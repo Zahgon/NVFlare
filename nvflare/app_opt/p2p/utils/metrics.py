@@ -32,22 +32,4 @@ def compute_loss_over_dataset(
     Returns:
         The average loss over the dataset.
     """
-    # Check if all required arguments are provided
-    if model is None or loss is None or dataloader is None:
-        raise ValueError("All arguments (model, loss, dataloader) must be provided.")
-
-    model.eval()
-    epoch_loss = 0
-    with torch.no_grad():
-        # Iterate over the dataloader
-        for x, y in dataloader:
-            # Move data to the specified device
-            x, y = x.to(device), y.to(device)
-            # Make predictions
-            pred = model(x)
-            # Compute the loss
-            ls = loss(pred, y)
-            # Accumulate the loss
-            epoch_loss += ls.item() * x.size(0)
-    # Return the average loss
-    return epoch_loss / len(dataloader.dataset)
+    pass

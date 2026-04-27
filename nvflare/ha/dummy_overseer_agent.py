@@ -39,75 +39,45 @@ class DummyOverseerAgent(OverseerAgent):
         self._heartbeat_interval = heartbeat_interval
 
     def _base_init(self, sp_end_point):
-        self.sp_end_point = sp_end_point
-        name, fl_port, admin_port = self.sp_end_point.split(":")
-        self._psp = SP(name, fl_port, admin_port, DummyOverseerAgent.SSID, True)
-        psp_dict = {
-            "sp_end_point": sp_end_point,
-            "service_session_id": DummyOverseerAgent.SSID,
-            "primary": True,
-            "state": "online",
-        }
-        self.overseer_info = {
-            "primary_sp": psp_dict,
-            "sp_list": [psp_dict],
-            "system": "ready",
-        }
+        pass
 
     def initialize(self, fl_ctx: FLContext):
-        sp_end_point = fl_ctx.get_prop(FLContextKey.SP_END_POINT)
-        if sp_end_point:
-            self._base_init(sp_end_point)
+        pass
 
     def is_shutdown(self) -> bool:
         """Return whether the agent receives a shutdown request."""
-        return False
+        pass
 
     def get_primary_sp(self) -> SP:
         """Return current primary service provider. The PSP is static in the dummy agent."""
-        return self._psp
+        pass
 
     def promote_sp(self, sp_end_point, headers=None) -> Response:
         # a hack to create dummy response
-        resp = Response()
-        resp.status_code = 200
-        resp._content = json.dumps({"Error": "this functionality is not supported by the dummy agent"}).encode("utf-8")
-        return resp
+        pass
 
     def start(self, update_callback=None, conditional_cb=False):
-        self._conditional_cb = conditional_cb
-        self._update_callback = update_callback
-        self._report_and_query.start()
-        self._flag.set()
+        pass
 
     def pause(self):
-        self._flag.clear()
+        pass
 
     def resume(self):
-        self._flag.set()
+        pass
 
     def set_state(self, state) -> Response:
         # a hack to create dummy response
-        resp = Response()
-        resp.status_code = 200
-        resp._content = json.dumps({"Error": "this functionality is not supported by the dummy agent"}).encode("utf-8")
-        return resp
+        pass
 
     def end(self):
-        self._flag.set()
-        self._asked_to_exit = True
+        pass
         # self._report_and_query.join()
 
     def set_secure_context(self, ca_path: str, cert_path: str = "", prv_key_path: str = ""):
         pass
 
     def _do_callback(self):
-        if self._update_callback:
-            self._update_callback(self)
+        pass
 
     def _rnq_worker(self):
-        while not self._asked_to_exit:
-            self._flag.wait()
-            if not self._conditional_cb:
-                self._do_callback()
-            time.sleep(self._heartbeat_interval)
+        pass

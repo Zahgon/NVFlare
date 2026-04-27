@@ -18,29 +18,11 @@ import timeit
 
 def collect_time(func):
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if "reset" in kwargs and kwargs["reset"]:
-            wrapper.time_taken = 0
-            wrapper.count = 0
-        else:
-            start = timeit.default_timer()
-            result = func(*args, **kwargs)
-            wrapper.time_taken += (timeit.default_timer() - start) * 1000.0
-            wrapper.count += 1
-            return result
-
-    wrapper.time_taken = 0
-    wrapper.count = 0
-    return wrapper
+    def _stub_wrapper(*args, **kwargs):
+        pass
 
 
 def measure_time(func):
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start = timeit.default_timer()
-        result = func(*args, **kwargs)
-        duration = (timeit.default_timer() - start) * 1000.0
-        wrapper.time_taken = duration
-        return result
-
-    return wrapper
+    def _stub_wrapper(*args, **kwargs):
+        pass

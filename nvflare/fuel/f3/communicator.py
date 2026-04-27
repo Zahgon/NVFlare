@@ -36,21 +36,7 @@ driver_loaded = False
 
 
 def load_comm_drivers():
-    global driver_loaded
-
-    # Load all the drivers in the drivers module
-    driver_mgr.search_folder(os.path.dirname(drivers.__file__), drivers.__package__)
-
-    # Load custom drivers
-    driver_path = CommConfigurator().get_comm_driver_path(None)
-    if not driver_path:
-        return
-
-    for path in driver_path.split(os.pathsep):
-        log.debug(f"Custom driver folder {path} is searched")
-        driver_mgr.search_folder(path, None)
-
-    driver_loaded = True
+    pass
 
 
 class Communicator:
@@ -68,9 +54,7 @@ class Communicator:
         Raises:
             CommError: If any error encountered while starting up
         """
-        self.conn_manager.start()
-        log.debug(f"Communicator for local endpoint: {self.local_endpoint.name} is started")
-        _running_instances.add(self)
+        pass
 
     def stop(self):
         """Stop the communicator and shutdown all the connections
@@ -78,18 +62,7 @@ class Communicator:
         Raises:
             CommError: If any error encountered while shutting down
         """
-        if self.stopped:
-            return
-
-        self.conn_manager.stop()
-        self.stopped = True
-        try:
-            _running_instances.remove(self)
-        except KeyError:
-            # For weak-ref set, the entry may be removed automatically if no other ref so this is not an error
-            log.debug(f"Weak-ref for Communicator {self.local_endpoint.name} is already removed")
-
-        log.debug(f"Communicator endpoint: {self.local_endpoint.name} has stopped")
+        pass
 
     def register_monitor(self, monitor: EndpointMonitor):
         """Register a monitor for endpoint lifecycle changes
@@ -103,7 +76,7 @@ class Communicator:
         Raises:
             CommError: If any error happens while sending the request
         """
-        self.conn_manager.add_endpoint_monitor(monitor)
+        pass
 
     def find_endpoint(self, name: str) -> Optional[Endpoint]:
         """Find endpoint by name
@@ -115,7 +88,7 @@ class Communicator:
             The endpoint if found. None if not found
 
         """
-        return self.conn_manager.find_endpoint(name)
+        pass
 
     def remove_endpoint(self, name: str):
         """Remove endpoint and close all the connections associated with it
@@ -124,7 +97,7 @@ class Communicator:
             name: Endpoint name
 
         """
-        return self.conn_manager.remove_endpoint(name)
+        pass
 
     def send(self, endpoint: Endpoint, app_id: int, message: Message):
         """Send a message to endpoint for app_id, no response is expected
@@ -137,8 +110,7 @@ class Communicator:
         Raises:
             CommError: If any error happens while sending the data
         """
-
-        self.conn_manager.send_message(endpoint, app_id, message.headers, message.payload)
+        pass
 
     def register_message_receiver(self, app_id: int, receiver: MessageReceiver):
         """Register a receiver to process FCI message for the app
@@ -150,8 +122,7 @@ class Communicator:
         Raises:
             CommError: If duplicate endpoint/app or receiver is of wrong type
         """
-
-        self.conn_manager.register_message_receiver(app_id, receiver)
+        pass
 
     def add_connector(self, url: str, mode: Mode, secure: bool = False, resources=None) -> (str, dict):
         """Load a connector. The driver is selected based on the URL
@@ -168,18 +139,7 @@ class Communicator:
         Raises:
             CommError: If any errors
         """
-
-        if not driver_loaded:
-            load_comm_drivers()
-
-        driver_class = driver_mgr.find_driver_class(url)
-        if not driver_class:
-            raise CommError(CommError.NOT_SUPPORTED, f"No driver found for URL {url}")
-
-        params = parse_url(url)
-        if resources:
-            params.update(resources)
-        return self.add_connector_advanced(driver_class(), mode, params, secure, False), params
+        pass
 
     def start_listener(self, scheme: str, resources: dict) -> (str, str, dict):
         """Add and start a connector in passive mode on an address selected by the driver.
@@ -194,22 +154,7 @@ class Communicator:
         Raises:
             CommError: If any errors like invalid host or port not available
         """
-
-        if not driver_loaded:
-            load_comm_drivers()
-
-        driver_class = driver_mgr.find_driver_class(scheme)
-        if not driver_class:
-            raise CommError(CommError.NOT_SUPPORTED, f"No driver found for scheme {scheme}")
-
-        connect_url, listening_url = driver_class.get_urls(scheme, resources)
-        extra_params = parse_url(listening_url)
-        params = copy.copy(resources)
-        params.update(extra_params)
-
-        handle = self.add_connector_advanced(driver_class(), Mode.PASSIVE, params, False, True)
-
-        return handle, connect_url, params
+        pass
 
     def add_connector_advanced(
         self, driver: Driver, mode: Mode, params: dict, secure: bool, start: bool = False
@@ -229,29 +174,7 @@ class Communicator:
         Raises:
             CommError: If any errors
         """
-        original_conn_sec = params.get(DriverParams.CONNECTION_SECURITY)
-        if self.local_endpoint.conn_props:
-            params.update(self.local_endpoint.conn_props)
-
-        if original_conn_sec:
-            # we do not allow the connection sec to be overwritten by the endpoint's conn_props
-            params[DriverParams.CONNECTION_SECURITY] = original_conn_sec
-
-        params[DriverParams.SECURE] = secure
-        handle = self.conn_manager.add_connector(driver, params, mode)
-
-        if not start:
-            return handle
-
-        connector = self.conn_manager.connectors.get(handle, None)
-
-        if not connector:
-            log.error(f"Connector {driver.get_name()}:{handle} is not found")
-            raise CommError(CommError.ERROR, f"Logic error. Connector {driver.get_name()}:{handle} not found")
-
-        self.conn_manager.start_connector(connector)
-
-        return handle
+        pass
 
     def remove_connector(self, handle: str):
         """Remove the connector
@@ -262,15 +185,11 @@ class Communicator:
         Raises:
             CommError: If any errors
         """
-        self.conn_manager.remove_connector(handle)
+        pass
 
 
 def _exit_func():
-    while _running_instances:
-        c = next(iter(_running_instances))
-        # This call will remove the entry from the set
-        c.stop()
-        log.debug(f"Communicator {c.local_endpoint.name} was left running, stopped on exit")
+    pass
 
 
 atexit.register(_exit_func)

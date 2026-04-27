@@ -135,7 +135,7 @@ class DeviceManager(FLComponent, ABC):
         Returns:
             Current device selection
         """
-        return self.current_selection
+        pass
 
     def get_available_devices(self, fl_ctx: FLContext) -> Set[str]:
         """Get the available devices.
@@ -146,7 +146,7 @@ class DeviceManager(FLComponent, ABC):
         Returns:
             Set of available devices
         """
-        return self.available_devices
+        pass
 
     def get_used_devices(self, fl_ctx: FLContext) -> Set[str]:
         """Get the used devices.
@@ -157,4 +157,4 @@ class DeviceManager(FLComponent, ABC):
         Returns:
             Set of used devices
         """
-        return self.used_devices
+        pass

@@ -23,8 +23,7 @@ from .api import is_train, receive, send
 
 def _replace_func_args(func, kwargs, model: FLModel):
     # Replace only the first argument
-    first_params = next(iter(signature(func).parameters.values()))
-    kwargs[first_params.name] = model
+    pass
 
 
 class ObjectHolder:
@@ -56,36 +55,12 @@ def train(
                return new_model
 
     """
-
     def decorator(train_fn):
-        @functools.wraps(train_fn)
-        def wrapper(*args, **kwargs):
-            input_model = receive()
-            # Replace func arguments
-            _replace_func_args(train_fn, kwargs, input_model)
-            return_value = train_fn(**kwargs)
-
-            if return_value is None:
-                raise RuntimeError("return value is None!")
-            elif not isinstance(return_value, FLModel):
-                raise RuntimeError("return value needs to be an FLModel.")
-
-            global object_holder
-
-            if object_holder.metrics is not None:
-                return_value.metrics = object_holder.metrics
-                object_holder = ObjectHolder()
-
-            send(model=return_value)
-
-            return return_value
-
-        return wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
+        pass
+    @functools.wraps(train_fn)
+    def wrapper(*args, **kwargs):
+        pass
+    pass
 
 
 @deprecated("@flare.evaluate is deprecated and will be removed in a future version." "Use flare send/receive instead.")
@@ -111,29 +86,9 @@ def evaluate(
                return metrics
 
     """
-
     def decorator(eval_fn):
-        @functools.wraps(eval_fn)
-        def wrapper(*args, **kwargs):
-            input_model = receive()
-
-            _replace_func_args(eval_fn, kwargs, input_model)
-            return_value = eval_fn(**kwargs)
-
-            if return_value is None:
-                raise RuntimeError("return value is None!")
-            global object_holder
-
-            if is_train():
-                object_holder.metrics = return_value
-            else:
-                send(model=FLModel(metrics=return_value))
-
-            return return_value
-
-        return wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
+        pass
+    @functools.wraps(eval_fn)
+    def wrapper(*args, **kwargs):
+        pass
+    pass

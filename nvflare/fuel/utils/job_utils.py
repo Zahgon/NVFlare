@@ -28,8 +28,4 @@ def build_client_hierarchy(clients: List[Client]):
     Note that the client hierarchy is a Forest (not a tree) since it could have multiple root clients.
 
     """
-    return build_forest(
-        objs=clients,
-        get_fqn_f=lambda c: c.get_fqsn(),
-        get_name_f=lambda c: c.name,
-    )
+    pass

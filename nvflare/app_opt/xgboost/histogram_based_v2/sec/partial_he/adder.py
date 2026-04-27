@@ -40,40 +40,8 @@ class Adder:
             samples in the group for the feature.
 
         """
-        items = []
-
-        for f in features:
-            fid, mask, num_bins = f
-            if not sample_groups:
-                items.append((encode_sum, fid, encrypted_numbers, mask, num_bins, 0, None))
-            else:
-                for g in sample_groups:
-                    gid, sample_id_list = g
-                    items.append((encode_sum, fid, encrypted_numbers, mask, num_bins, gid, sample_id_list))
-
-        chunk_size = int((len(items) - 1) / self.num_workers) + 1
-
-        results = self.exe.map(_do_add, items, chunksize=chunk_size)
-        rl = []
-        for r in results:
-            rl.append(r)
-        return rl
+        pass
 
 
 def _do_add(item):
-    encode_sum, fid, encrypted_numbers, mask, num_bins, gid, sample_id_list = item
-    # bins = [0 for _ in range(num_bins)]
-    aggr = Aggregator()
-
-    bins = aggr.aggregate(
-        gh_values=encrypted_numbers,
-        sample_bin_assignment=mask,
-        num_bins=num_bins,
-        sample_ids=sample_id_list,
-    )
-
-    if encode_sum:
-        sums = encode_encrypted_numbers_to_str(bins)
-    else:
-        sums = bins
-    return fid, gid, sums
+    pass

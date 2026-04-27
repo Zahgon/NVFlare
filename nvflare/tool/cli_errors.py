@@ -280,10 +280,7 @@ ERROR_REGISTRY: Mapping[str, Mapping[str, str]] = MappingProxyType(_ERROR_REGIST
 
 
 def get_error_entry(code: str) -> Optional[Mapping[str, str]]:
-    entry = ERROR_REGISTRY.get(code)
-    if entry is None and os.getenv("NVFLARE_DEV") == "1":
-        raise KeyError(f"Unknown CLI error code: {code}")
-    return entry
+    pass
 
 
 def get_error(code: str, **kwargs) -> Tuple[str, str]:
@@ -292,27 +289,4 @@ def get_error(code: str, **kwargs) -> Tuple[str, str]:
     Transitional helper for legacy cert/package call sites. New CLI code should prefer
     output_error()/output_error_message(). Falls back to a generic tuple for unknown codes.
     """
-    entry = get_error_entry(code)
-    if entry is None:
-        return "Unknown error.", "Check logs for details."
-    template = entry["message"]
-    hint = entry["hint"]
-    if code == "CONNECTION_FAILED":
-        host = kwargs.get("host")
-        port = kwargs.get("port")
-        if host is not None and port is not None:
-            return f"Cannot connect to the FLARE server at {host}:{port}.", hint
-        if host is not None:
-            return f"Cannot connect to the FLARE server at {host}.", hint
-        return "Cannot connect to the FLARE server.", hint
-    if code == "AUTH_FAILED" and "username" in kwargs:
-        return f"Authentication failed for user {kwargs['username']}.", hint
-    if code == "TIMEOUT" and "timeout" in kwargs:
-        return f"Operation timed out after {kwargs['timeout']} seconds.", hint
-    if code == "INVALID_ARGS" and "detail" in kwargs:
-        return f"Invalid arguments: {kwargs['detail']}", hint
-    try:
-        message = template.format_map(kwargs)
-    except KeyError:
-        message = template
-    return message, hint
+    pass

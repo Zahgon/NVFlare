@@ -42,10 +42,10 @@ class TaskProcessingDevice(SimulatedDevice):
         processor.device = self
 
     def get_device_info(self):
-        return self.device_info
+        pass
 
     def get_user_info(self):
-        return self.user_info
+        pass
 
     def set_job(
         self,
@@ -54,22 +54,13 @@ class TaskProcessingDevice(SimulatedDevice):
         method: str,
         job_data: dict,
     ):
-        super().set_job(job_id, job_name, method, job_data)
-
-        job = JobResponse(
-            status=EdgeApiStatus.OK,
-            job_id=job_id,
-            job_name=job_name,
-            method=method,
-            job_data=job_data,
-        )
-        self.processor.setup(job)
+        pass
 
     def shutdown(self):
-        self.processor.shutdown()
+        pass
 
     def do_task(self, task: TaskResponse) -> dict:
-        return self.processor.process_task(task)
+        pass
 
 
 class TPDeviceFactory(DeviceFactory):
@@ -80,18 +71,7 @@ class TPDeviceFactory(DeviceFactory):
         self.endpoint_url = parser.get_endpoint()
 
     def make_device(self, device_id: str) -> SimulatedDevice:
-        device_info = DeviceInfo(f"{device_id}", "flare_mobile", "1.0")
-        user_info = UserInfo("demo_id", "demo_user")
-        variables = {"device_id": device_id, "user_id": user_info.user_id}
-        processor = self.parser.get_processor(variables)
-
-        return TaskProcessingDevice(
-            device_id=device_id,
-            device_info=device_info,
-            user_info=user_info,
-            processor=processor,
-            endpoint_url=self.endpoint_url,
-        )
+        pass
 
 
 class TPODeviceFactory(DeviceFactory):
@@ -101,14 +81,4 @@ class TPODeviceFactory(DeviceFactory):
         self.tpo = tpo
 
     def make_device(self, device_id: str) -> SimulatedDevice:
-        device_info = DeviceInfo(f"{device_id}", "flare_mobile", "1.0")
-        user_info = UserInfo("demo_id", "demo_user")
-        processor = copy.deepcopy(self.tpo)
-
-        return TaskProcessingDevice(
-            device_id=device_id,
-            device_info=device_info,
-            user_info=user_info,
-            processor=processor,
-            endpoint_url="",  # not used
-        )
+        pass

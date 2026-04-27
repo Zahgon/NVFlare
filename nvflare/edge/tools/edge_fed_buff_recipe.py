@@ -37,9 +37,7 @@ class _EdgeFedBuffValidator(BaseModel):
     @field_validator("initial_ckpt")
     @classmethod
     def validate_initial_ckpt(cls, v):
-        if v is not None:
-            validate_ckpt(v)
-        return v
+        pass
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -286,20 +284,10 @@ class EdgeFedBuffRecipe(Recipe):
 
     @staticmethod
     def _configure_simulation(job, c: SimulationConfig):
-        job.configure_simulation(c.task_processor, c.job_timeout, c.num_devices, c.num_workers)
+        pass
 
     def process_env(self, env: ExecEnv):
-        simulation_config = env.get_extra_prop(DEVICE_SIMULATION_ENV_KEY)
-        if not simulation_config:
-            return
-
-        if not isinstance(simulation_config, SimulationConfig):
-            raise ValueError(
-                f"invalid {DEVICE_SIMULATION_ENV_KEY} in env: expect SimulationConfig but got {type(simulation_config)}"
-            )
-
-        assert isinstance(self.job, EdgeJob)
-        self._configure_simulation(self.job, simulation_config)
+        pass
 
     def create_job(self) -> EdgeJob:
         """Create a new EdgeJob instance for cross-edge federated learning.
@@ -307,7 +295,7 @@ class EdgeFedBuffRecipe(Recipe):
         Returns:
             EdgeJob: A configured edge job instance
         """
-        return EdgeJob(name=self.job_name, edge_method=self.method_name)
+        pass
 
     def _configure_job(self, job: EdgeJob):
         """Configure the edge job with all necessary components.
@@ -319,63 +307,4 @@ class EdgeFedBuffRecipe(Recipe):
         Args:
             job: The EdgeJob instance to configure
         """
-        if self.evaluator_config:
-            # Use model instance for evaluator (dict config or model instance)
-            model_for_eval = self._model_instance if self._model_instance else self.model
-            evaluator = GlobalEvaluator(
-                model_path=model_for_eval,
-                torchvision_dataset=self.evaluator_config.torchvision_dataset,
-                eval_frequency=self.evaluator_config.eval_frequency,
-                custom_dataset=self.evaluator_config.custom_dataset,
-            )
-            job.to_server(evaluator, id="evaluator")
-
-        if self.simulation_config:
-            self._configure_simulation(job, self.simulation_config)
-
-        factory = ModelUpdateDXOAggrFactory()
-        job.configure_client(
-            aggregator_factory=factory,
-            max_model_versions=self.model_manager_config.max_num_active_model_versions,
-            update_timeout=self.model_manager_config.update_timeout,
-        )
-
-        # add persistor using PTModel (supports dict config and initial_ckpt)
-        from nvflare.app_opt.pt.job_config.model import PTModel
-        from nvflare.recipe.utils import prepare_initial_ckpt
-
-        ckpt_path = prepare_initial_ckpt(self.initial_ckpt, job)
-        pt_model = PTModel(model=self.model, initial_ckpt=ckpt_path)
-        result = job.to_server(pt_model, id="persistor")
-        persistor_id = result["persistor_id"]
-
-        model_manager = BuffModelManager(
-            num_updates_for_model=self.model_manager_config.num_updates_for_model,
-            max_model_history=self.model_manager_config.max_model_history,
-            global_lr=self.model_manager_config.global_lr,
-            staleness_weight=self.model_manager_config.staleness_weight,
-        )
-        model_manager_id = job.to_server(model_manager, id="model_manager")
-
-        device_manager = BuffDeviceManager(
-            device_selection_size=self.device_manager_config.device_selection_size,
-            min_hole_to_fill=self.device_manager_config.min_hole_to_fill,
-            device_reuse=self.device_manager_config.device_reuse,
-        )
-        device_manager_id = job.to_server(device_manager, id="device_manager")
-
-        # add model_update_assessor
-        assessor = ModelUpdateAssessor(
-            persistor_id=persistor_id,
-            model_manager_id=model_manager_id,
-            device_manager_id=device_manager_id,
-            max_model_version=self.model_manager_config.max_model_version,
-            device_wait_timeout=self.device_wait_timeout,
-        )
-        job.configure_server(
-            assessor=assessor,
-        )
-
-        if self.custom_source_root:
-            job.to_server(self.custom_source_root)
-            job.to_clients(self.custom_source_root)
+        pass

@@ -25,18 +25,11 @@ class XGBServerRunner(AppRunner):
         self._stopped = False
 
     def run(self, ctx: dict):
-        self._port = ctx.get(Constant.RUNNER_CTX_PORT)
-        self._world_size = ctx.get(Constant.RUNNER_CTX_WORLD_SIZE)
-
-        xgb_federated.run_federated_server(
-            n_workers=self._world_size,
-            port=self._port,
-        )
-        self._stopped = True
+        pass
 
     def stop(self):
         # no way to start currently
         pass
 
     def is_stopped(self) -> (bool, int):
-        return self._stopped, 0
+        pass

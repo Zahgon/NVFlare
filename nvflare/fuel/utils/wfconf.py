@@ -58,86 +58,10 @@ class _EnvUpdater(JsonObjectProcessor):
         self.num_updated = 0
 
     def process_element(self, node: Node):
-        element = node.element
-        if isinstance(element, str):
-            if self.element_filter is not None and not self.element_filter(element):
-                return
-            element = self.substitute(element)
-            parent_element = node.parent_element()
-            if node.position > 0:
-                # parent is a list
-                parent_element[node.position - 1] = element
-            else:
-                # parent is a dict
-                parent_element[node.key] = element
+        pass
 
     def substitute(self, element: str):
-        original_value = element
-
-        # Check for Simple Variable Ref (SVR)
-        # SVR is resolved to an object that is derived from the variable definition.
-        # If the variable def also contains refs, all such refs will also be resolved.
-        # If the variable def contains local vars, they are also resolved with the values from the ref.
-        # There are two kinds of SVR:
-        # - Simple ref that contains a single var name: {var_name}
-        # - Invoke a definition that contains local vars: {@var_name:n1=v1:n2=v2:...}
-        # The "@var_name" is a def that contains local vars n1, n2, ...
-        # When invoking such def, local var values could also be refs: {@var_name:n1={varp_name}}
-        is_svr = False
-        exp = element.strip()
-        if exp.startswith("{@") and exp.endswith("}"):
-            # this is a ref with local vars
-            is_svr = True
-            exp = exp[1 : len(exp) - 1]
-        else:
-            a = re.split("{|}", exp)
-            if len(a) == 3 and a[0] == "" and a[2] == "":
-                is_svr = True
-                exp = a[1]
-
-        if is_svr:
-            parts = exp.split(":")
-            var_name = parts[0]
-            params = []
-            for i, p in enumerate(parts):
-                if i > 0:
-                    params.append(p)
-
-            if params:
-                # the var_name must reference a dict
-                local_vars = parse_vars(params)
-                item = self.vars.get(var_name)
-                if item:
-                    if isinstance(item, dict):
-                        # scan the item to resolve var refs
-                        new_item = copy.deepcopy(item)
-                        scanner = JsonScanner(new_item)
-                        new_vars = copy.copy(self.vars)
-                        new_vars.update(local_vars)
-                        resolve_var_refs(scanner, new_vars)
-                        element = new_item
-                    else:
-                        raise ConfigError(
-                            f"bad parameterized expression '{element}': {var_name} must be dict but got {type(item)}"
-                        )
-                else:
-                    raise ConfigError(f"bad parameterized expression '{element}': {var_name} is not defined")
-            else:
-                # this is a single var without params
-                element = self.vars.get(var_name, None)
-        else:
-            # Treat the element as a string that may contain var replacements expressed within {}:
-            # For example: "{ROOT_DIR}"
-            # Such vars will be replaced with values defined in self.vars.
-            try:
-                element = element.format(**self.vars)
-            except:
-                # If the substitution fails, return the original value
-                element = original_value
-
-        if element != original_value:
-            self.num_updated += 1
-        return element
+        pass
 
 
 def resolve_var_refs(scanner: JsonScanner, var_values: dict):
@@ -150,25 +74,7 @@ def resolve_var_refs(scanner: JsonScanner, var_values: dict):
     Returns: None
 
     """
-    updater = _EnvUpdater(var_values)
-    max_rounds = 20
-    num_rounds = 0
-
-    # var_values may contain multi-level refs (value contains refs to other vars)
-    # we keep scanning and resolving refs until all refs are resolved, or we reached max number of rounds.
-    # The max rounds could be reached either because there are cyclic refs or the ref level is too deep.
-    while True:
-        scanner.scan(updater)
-        num_rounds += 1
-        if updater.num_updated == 0:
-            # nothing was resolved - we have resolved everything.
-            break
-        else:
-            # prepare for the next round
-            if num_rounds > max_rounds:
-                # cyclic refs or nest level too deep.
-                raise ConfigError(f"item de-ref exceeds {max_rounds} rounds - cyclic refs or ref level too deep")
-            updater.num_updated = 0
+    pass
 
 
 class Configurator(JsonObjectProcessor):
@@ -249,104 +155,25 @@ class Configurator(JsonObjectProcessor):
         self.json_scanner = JsonScanner(self.wf_config_data, wf_config_file_name)
 
     def _do_configure(self):
-        vars_from_cmd = {}
-        if self.cmd_vars:
-            vars_from_cmd = copy.copy(self.cmd_vars)
-            for key, value in vars_from_cmd.items():
-                if key.startswith("APP_") and value != "":
-                    vars_from_cmd[key] = os.path.join(self.app_root, value)
-
-        vars_from_env_config = {}
-        if self.env_config:
-            vars_from_env_config = copy.copy(self.env_config)
-            for key, value in vars_from_env_config.items():
-                if key.startswith("APP_") and value != "":
-                    vars_from_env_config[key] = os.path.join(self.app_root, value)
-
-        vars_from_wf_conf = extract_first_level_primitive(self.wf_config_data)
-
-        if "determinism" in self.wf_config_data:
-            vars_from_wf_conf["determinism"] = self.wf_config_data["determinism"]
-
-        # precedence of vars (high to low):
-        #   vars_from_cmd, vars_from_config, vars_from_wf_conf
-        # func merge_dict(d1, d2) gives d2 higher precedence for the same key
-        all_vars = merge_dict(self.default_vars, vars_from_wf_conf)
-        all_vars = merge_dict(all_vars, vars_from_env_config)
-        all_vars = merge_dict(all_vars, vars_from_cmd)
-
-        # update the wf_config with vars
-        self.all_vars = all_vars
-        self.vars_from_cmd = vars_from_cmd
-        self.vars_from_env_config = vars_from_env_config
-        self.vars_from_wf_config = vars_from_wf_conf
-
-        if self.var_processor:
-            self.var_processor.process(self.all_vars, app_root=self.app_root)
-
-        self.json_scanner.scan(_EnvUpdater(all_vars, self.element_filter))
-
-        config_ctx = ConfigContext()
-        config_ctx.vars = self.all_vars
-        config_ctx.app_root = self.app_root
-        config_ctx.config_json = self.wf_config_data
-        self.config_ctx = config_ctx
-
-        self.start_config(self.config_ctx)
-
-        # scan the wf_config again to create components
-        for i in range(self.num_passes):
-            self.config_ctx.pass_num = i + 1
-            self.json_scanner.scan(self)
-
-        # finalize configuration
-        self.finalize_config(self.config_ctx)
+        pass
 
     def configure(self):
-        try:
-            self._do_configure()
-        except ConfigError as e:
-            raise ConfigError("Config error in {}: {}".format(self.wf_config_file_name, secure_format_exception(e)))
-        except Exception as e:
-            print("Error processing config {}: {}".format(self.wf_config_file_name, secure_format_exception(e)))
-            raise e
+        pass
 
     def process_element(self, node: Node):
-        self.process_config_element(self.config_ctx, node)
+        pass
 
     def process_args(self, args: dict):
-        return args
+        pass
 
     def build_component(self, config_dict):
-        if not config_dict:
-            return None
-
-        if not isinstance(config_dict, dict):
-            raise ConfigError("component config must be dict but got {}.".format(type(config_dict)))
-
-        if config_dict.get("disabled") is True:
-            return None
-
-        class_args = config_dict.get("args", dict())
-        class_args = self.process_args(class_args)
-
-        class_path = self.get_class_path(config_dict)
-
-        # Handle the special case, if config pass in the class_attributes, use the user defined class attributes
-        # parameters directly.
-        if "class_attributes" in class_args:
-            class_args = class_args["class_attributes"]
-
-        return instantiate_class(class_path, class_args)
+        pass
 
     def get_class_path(self, config_dict):
-        return get_class_path_from_config(
-            config_dict,
-            resolve_name=lambda cn: self.module_scanner.get_module_name(cn),
-        )
+        pass
 
     def is_configured_subclass(self, config_dict, base_class):
-        return issubclass(load_class(self.get_class_path(config_dict)), base_class)
+        pass
 
     def start_config(self, config_ctx: ConfigContext):
         pass
@@ -367,23 +194,4 @@ def get_component_refs(component):
     Returns: list of component and reference
 
     """
-    if "path" in component:
-        name = component["path"]
-        key = "path"
-    elif "class_path" in component:
-        name = component["class_path"]
-        key = "class_path"
-    elif "name" in component:
-        name = component["name"]
-        key = "name"
-    else:
-        raise ConfigError('component has no "path", "class_path", or "name"')
-
-    if name is None or not isinstance(name, str):
-        raise ConfigError('component "{}" must be a non-null string, got {}'.format(key, type(name).__name__))
-    if len(name) <= 0:
-        raise ConfigError('component "{}" must not be empty'.format(key))
-
-    parts = name.split("#")
-    component[key] = parts[0]
-    return parts
+    pass

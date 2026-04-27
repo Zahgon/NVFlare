@@ -20,10 +20,7 @@ from nvflare.fuel.utils.import_utils import optional_import
 
 
 def _load_converter(module: str, name: str, format_name: str):
-    converter_cls, ok = optional_import(module=module, name=name)
-    if not ok:
-        raise RuntimeError(f"Can't import {name} for {format_name} exchange format")
-    return converter_cls
+    pass
 
 
 def create_default_params_converters(
@@ -34,39 +31,4 @@ def create_default_params_converters(
     submit_model_task_name: str,
 ) -> Tuple[Optional[ParamsConverter], Optional[ParamsConverter]]:
     """Create default from/to NVFlare converters for common Client API formats."""
-    if server_expected_format != ExchangeFormat.NUMPY:
-        return None, None
-
-    if params_exchange_format == ExchangeFormat.PYTORCH:
-        numpy_to_pt = _load_converter(
-            module="nvflare.app_opt.pt.numpy_params_converter",
-            name="NumpyToPTParamsConverter",
-            format_name=ExchangeFormat.PYTORCH,
-        )
-        pt_to_numpy = _load_converter(
-            module="nvflare.app_opt.pt.numpy_params_converter",
-            name="PTToNumpyParamsConverter",
-            format_name=ExchangeFormat.PYTORCH,
-        )
-        return (
-            numpy_to_pt([train_task_name, eval_task_name]),
-            pt_to_numpy([train_task_name, submit_model_task_name]),
-        )
-
-    if params_exchange_format == ExchangeFormat.KERAS_LAYER_WEIGHTS:
-        numpy_to_keras = _load_converter(
-            module="nvflare.app_opt.tf.params_converter",
-            name="NumpyToKerasModelParamsConverter",
-            format_name=ExchangeFormat.KERAS_LAYER_WEIGHTS,
-        )
-        keras_to_numpy = _load_converter(
-            module="nvflare.app_opt.tf.params_converter",
-            name="KerasModelToNumpyParamsConverter",
-            format_name=ExchangeFormat.KERAS_LAYER_WEIGHTS,
-        )
-        return (
-            numpy_to_keras([train_task_name, eval_task_name]),
-            keras_to_numpy([train_task_name, submit_model_task_name]),
-        )
-
-    return None, None
+    pass

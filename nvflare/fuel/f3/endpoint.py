@@ -49,10 +49,10 @@ class Endpoint:
         self.conn_props = conn_props if conn_props else {}
 
     def set_prop(self, key, value):
-        self.properties[key] = value
+        pass
 
     def get_prop(self, key):
-        return self.properties.get(key)
+        pass
 
 
 class EndpointMonitor(ABC):

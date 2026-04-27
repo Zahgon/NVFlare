@@ -32,17 +32,15 @@ class Signal(object):
         Args:
             value: set the value of the signal
         """
-        self._value = value
-        self._trigger_time = time.time()
-        self._triggered = True
+        pass
 
     @property
     def value(self):
-        return self._value
+        pass
 
     @property
     def trigger_time(self):
-        return self._trigger_time
+        pass
 
     def reset(self, value=None):
         """Reset the Signal.
@@ -50,15 +48,8 @@ class Signal(object):
         Args:
             value: reset the value of the signal
         """
-        self._value = value
-        self._trigger_time = None
-        self._triggered = False
+        pass
 
     @property
     def triggered(self):
-        if self._triggered:
-            return True
-        if self._parent:
-            return self._parent.triggered
-        else:
-            return False
+        pass

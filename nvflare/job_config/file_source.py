@@ -61,10 +61,4 @@ class FileSource:
         Returns:
 
         """
-        job.check_kwargs(args_to_check=kwargs, args_expected={})
-        job.add_file_source(
-            src_path=self.src_path,
-            dest_dir=self.dest_dir,
-            ctx=ctx,
-            app_folder_type=self.app_folder_type,
-        )
+        pass

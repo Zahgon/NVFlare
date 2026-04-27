@@ -38,29 +38,7 @@ from nvflare.private.fed.server.message_send import ClientReply, send_requests
 
 
 def new_message(conn: Connection, topic, body, require_authz: bool) -> Message:
-    msg = Message(topic=topic, body=body)
-
-    cmd_entry = conn.get_prop(ConnProps.CMD_ENTRY)
-    if cmd_entry:
-        msg.set_header(RequestHeader.ADMIN_COMMAND, cmd_entry.name)
-        msg.set_header(RequestHeader.REQUIRE_AUTHZ, str(require_authz).lower())
-
-    props_to_copy = [
-        ConnProps.EVENT_ID,
-        ConnProps.USER_NAME,
-        ConnProps.USER_ROLE,
-        ConnProps.USER_ORG,
-        ConnProps.SUBMITTER_NAME,
-        ConnProps.SUBMITTER_ORG,
-        ConnProps.SUBMITTER_ROLE,
-    ]
-
-    for p in props_to_copy:
-        prop = conn.get_prop(p, default=None)
-        if prop:
-            msg.set_header(p, prop)
-
-    return msg
+    pass
 
 
 class _Client(object):
@@ -98,48 +76,7 @@ def check_client_replies(
         RuntimeError: if no replies were received, reply count mismatches, structurally
                       missing replies (strict mode), or any client returned an explicit error.
     """
-    display_sites = ", ".join(client_sites)
-    if not replies:
-        raise RuntimeError(f"Failed to {command} to the clients {display_sites}: no replies.")
-    if len(replies) != len(client_sites):
-        raise RuntimeError(f"Failed to {command} to the clients {display_sites}: not enough replies.")
-
-    error_msg = ""
-    timed_out_clients = []
-    replies_by_client = {r.client_name: r for r in replies}
-
-    if strict:
-        missing_clients = [c for c in client_sites if c not in replies_by_client]
-        if missing_clients:
-            raise RuntimeError(
-                f"Failed to {command} to the clients {display_sites}: missing replies from {missing_clients}."
-            )
-
-        for client_name in client_sites:
-            r = replies_by_client[client_name]
-            if not r.reply:
-                # Timeout: record and continue — caller decides whether to exclude or abort.
-                timed_out_clients.append(client_name)
-                continue
-
-            return_code = r.reply.get_header(MsgHeader.RETURN_CODE, ReturnCode.OK)
-            if return_code != ReturnCode.OK:
-                detail = r.reply.body if r.reply.body else f"return code {return_code}"
-                error_msg += f"\t{client_name}: {detail}\n"
-                continue
-
-            if isinstance(r.reply.body, str) and r.reply.body.startswith(ERROR_MSG_PREFIX):
-                error_msg += f"\t{client_name}: {r.reply.body}\n"
-    else:
-        for client_name in client_sites:
-            r = replies_by_client.get(client_name)
-            if r and r.reply and isinstance(r.reply.body, str) and r.reply.body.startswith(ERROR_MSG_PREFIX):
-                error_msg += f"\t{client_name}: {r.reply.body}\n"
-
-    if error_msg:
-        raise RuntimeError(f"Failed to {command} to the following clients: \n{error_msg}")
-
-    return timed_out_clients
+    pass
 
 
 class FedAdminServer(AdminServer):
@@ -237,13 +174,7 @@ class FedAdminServer(AdminServer):
         Returns:
             Client.
         """
-        with self.client_lock:
-            client = self.clients.get(token)
-            if not client:
-                client = _Client(token, name, fqcn)
-                self.clients[token] = client
-            client.last_heard_time = time.time()
-            return client
+        pass
 
     def client_dead(self, token):
         """Remove dead client.
@@ -251,27 +182,14 @@ class FedAdminServer(AdminServer):
         Args:
             token: the session token of the client
         """
-        with self.client_lock:
-            self.clients.pop(token, None)
+        pass
 
     def get_client_tokens(self) -> []:
         """Get tokens of existing clients."""
-        result = []
-        with self.client_lock:
-            for token in self.clients.keys():
-                result.append(token)
-        return result
+        pass
 
     def send_request_to_client(self, req: Message, client_token: str, timeout_secs=2.0) -> Optional[ClientReply]:
-        if not isinstance(req, Message):
-            raise TypeError("request must be Message but got {}".format(type(req)))
-        reqs = {client_token: req}
-        with self.sai.new_context() as fl_ctx:
-            replies = self.send_requests(reqs, fl_ctx, timeout_secs=timeout_secs)
-            if replies is None or len(replies) <= 0:
-                return None
-            else:
-                return replies[0]
+        pass
 
     def send_requests_and_get_reply_dict(self, requests: dict, timeout_secs=2.0) -> dict:
         """Send requests to clients
@@ -283,16 +201,7 @@ class FedAdminServer(AdminServer):
         Returns:
             A dict of {client token: reply}, where reply is a Message or None (no reply received)
         """
-        result = {}
-        if requests:
-            for token, _ in requests.items():
-                result[token] = None
-
-            with self.sai.new_context() as fl_ctx:
-                replies = self.send_requests(requests, fl_ctx, timeout_secs=timeout_secs)
-                for r in replies:
-                    result[r.client_token] = r.reply
-        return result
+        pass
 
     def send_requests(self, requests: dict, fl_ctx: FLContext, timeout_secs=2.0, optional=False) -> [ClientReply]:
         """Send requests to clients.
@@ -312,22 +221,7 @@ class FedAdminServer(AdminServer):
         Returns:
             A list of ClientReply
         """
-
-        for _, request in requests.items():
-            # with self.sai.new_context() as fl_ctx:
-            self.sai.fire_event(EventType.BEFORE_SEND_ADMIN_COMMAND, fl_ctx)
-            shared_fl_ctx = gen_new_peer_ctx(fl_ctx)
-            request.set_header(ServerCommandKey.PEER_FL_CONTEXT, shared_fl_ctx)
-
-        return send_requests(
-            cell=self.cell,
-            command="admin",
-            requests=requests,
-            clients=self.clients,
-            timeout_secs=timeout_secs,
-            optional=optional,
-        )
+        pass
 
     def stop(self):
-        super().stop()
-        self.sai.close()
+        pass

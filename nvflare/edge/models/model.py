@@ -43,11 +43,7 @@ def export_model_to_bytes(net: nn.Module, input_shape, output_shape):
     Returns:
         The exported model (.pte) in bytes.
     """
-
-    input_tensor = torch.randn(input_shape)
-    label_tensor = torch.ones(output_shape, dtype=torch.int64)
-    model_buffer = export_model(net, input_tensor, label_tensor).buffer
-    return model_buffer
+    pass
 
 
 def export_model(net: nn.Module, input_tensor_example, label_tensor_example):
@@ -67,16 +63,7 @@ def export_model(net: nn.Module, input_tensor_example, label_tensor_example):
     Returns:
         ExportedProgram: The final lowered and exported Executorch model.
     """
-    # Captures the forward graph. The graph will look similar to the model definition now.
-    # Will move to export_for_training soon which is the api planned to be supported in the long term.
-    ep = export(net, (input_tensor_example, label_tensor_example), strict=True)
-    # Captures the backward graph. The exported_program now contains the joint forward and backward graph.
-    ep = _export_forward_backward(ep)
-    # Lower the graph to edge dialect.
-    ep = to_edge(ep)
-    # Lower the graph to executorch.
-    ep = ep.to_executorch()
-    return ep
+    pass
 
 
 # On device training requires the loss to be embedded in the model (and be the first output).
@@ -89,5 +76,4 @@ class DeviceModel(nn.Module):
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, input, label):
-        pred = self.net(input)
-        return self.loss(pred, label), pred.detach().argmax(dim=1)
+        pass

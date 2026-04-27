@@ -79,14 +79,10 @@ class FlareRunner:
         pass
 
     def run(self):
-        while True:
-            sess_done = self._do_one_job()
-            if sess_done:
-                return
+        pass
 
     def stop(self):
-        if self.abort_signal:
-            self.abort_signal.trigger(True)
+        pass
 
     def _get_job(self, ctx: Context, abort_signal: Signal) -> dict:
         """Repeatedly try to get job from host
@@ -108,13 +104,7 @@ class FlareRunner:
         pass
 
     def _do_filtering(self, data: DXO, filters, ctx) -> DXO:
-        if filters:
-            for f in filters:
-                assert isinstance(f, Filter)
-                data = f.filter(data, ctx, self.abort_signal)
-                if self.abort_signal.triggered:
-                    break
-        return data
+        pass
 
     def _do_one_job(self) -> bool:
         """Work with the host to do one job
@@ -122,104 +112,4 @@ class FlareRunner:
         Returns: whether whole session is done.
 
         """
-        ctx = Context()
-        ctx[ContextKey.RUNNER] = self
-        ctx[ContextKey.DATA_SOURCE] = self.data_source
-
-        # try to get job
-        job = self._get_job(ctx, self.abort_signal)
-        if not job:
-            # No job for me.
-            return True
-
-        self.job_name = job.get("job_name")
-        self.job_id = job.get("job_id")
-        job_data = job.get("job_data")
-
-        # the job_data in the job contains trainer config!
-        train_config = process_train_config(job_data, self.resolver_registry)
-        ctx[ContextKey.COMPONENTS] = train_config.objects
-        ctx[ContextKey.EVENT_HANDLERS] = train_config.event_handlers
-
-        in_filters = []
-        if self.app_in_filters:
-            in_filters.extend(self.app_in_filters)
-
-        if train_config.in_filters:
-            in_filters.extend(train_config.in_filters)
-
-        out_filters = []
-        if self.app_out_filters:
-            out_filters.extend(self.app_out_filters)
-
-        if train_config.out_filters:
-            out_filters.extend(train_config.out_filters)
-
-        while True:
-            task, sess_done = self._get_task(ctx, self.abort_signal)
-            if self.abort_signal.triggered:
-                return True
-
-            if not task:
-                # no more work for this job
-                return sess_done
-
-            # create a new context for each task!
-            task_ctx = copy.copy(ctx)
-
-            # task is a dict
-            assert isinstance(task, dict)
-            self.cookie = task.get("cookie")
-            task_name = task.get("task_name")
-
-            # task data is DXO format
-            task_data = task.get("task_data")
-            task_dxo = from_dict(task_data)
-
-            # find the right executor
-            executor = train_config.find_executor(task_name)
-            if not executor:
-                raise RuntimeError(f"cannot find executor for task {task_name}")
-
-            if not isinstance(executor, Executor):
-                raise RuntimeError(f"bad executor for task {task_name}: expect Executor but got {type(executor)}")
-
-            task_ctx[ContextKey.TASK_ID] = task.get("task_id")
-            task_ctx[ContextKey.TASK_NAME] = task_name
-            task_ctx[ContextKey.TASK_DATA] = task_data
-            task_ctx[ContextKey.EXECUTOR] = executor
-
-            # filter the input
-            task_dxo = self._do_filtering(task_dxo, in_filters, task_ctx)
-            if not isinstance(task_dxo, DXO):
-                raise RuntimeError(f"task data after filtering is not valid DXO: {type(task_dxo)}")
-
-            if self.abort_signal.triggered:
-                return True
-
-            task_ctx.fire_event(EventType.BEFORE_TRAIN, time.time(), self.abort_signal)
-            output = executor.execute(task_dxo, task_ctx, self.abort_signal)
-
-            # output must follow DXO format
-            if not isinstance(output, DXO):
-                raise RuntimeError(f"output from {type(executor)} is not a valid DXO: {type(output)}")
-
-            task_ctx.fire_event(EventType.AFTER_TRAIN, (time.time(), output), self.abort_signal)
-
-            if self.abort_signal.triggered:
-                return True
-
-            # filter the output
-            output = self._do_filtering(output, out_filters, task_ctx)
-            if not isinstance(output, DXO):
-                raise RuntimeError(f"output after filtering for task {task_name} is not a valid DXO: {type(output)}")
-
-            if self.abort_signal.triggered:
-                return True
-
-            sess_done = self._report_result(output.to_dict(), task_ctx, self.abort_signal)
-            if sess_done:
-                return sess_done
-
-            if self.abort_signal.triggered:
-                return True
+        pass

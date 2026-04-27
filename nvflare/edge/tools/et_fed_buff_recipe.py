@@ -99,23 +99,7 @@ class ETFedBuffRecipe(EdgeFedBuffRecipe):
         )
 
     def create_job(self):
-        return ETJob(
-            name=self.job_name,
-            edge_method=self.method_name,
-            device_model=self.device_model,
-            input_shape=self.input_shape,
-            output_shape=self.output_shape,
-        )
+        pass
 
     def _configure_job(self, job):
-        super()._configure_job(job)
-
-        # add device training config file if specified
-        if self.device_training_params:
-            trainer_config = {"type": "Trainer.DLTrainer", "name": _TRAINER_NAME, "args": self.device_training_params}
-            device_config = {"components": [trainer_config], "executors": {"train": f"@{_TRAINER_NAME}"}}
-
-            with open(_DEVICE_CONFIG_FILE_NAME, "w") as f:
-                json.dump(device_config, f, indent=2)
-
-            job.to_server(FileSource(_DEVICE_CONFIG_FILE_NAME, app_folder_type="config"))
+        pass

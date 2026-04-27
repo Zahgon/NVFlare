@@ -28,18 +28,8 @@ class Encryptor:
             numbers: clear text numbers to be encrypted
         Returns: list of encrypted numbers
         """
-        items = [(self.pubkey, numbers[i]) for i in range(len(numbers))]
-        chunk_size = int(len(items) / self.max_workers)
-        if chunk_size == 0:
-            chunk_size = 1
-
-        results = self.exe.map(_do_enc, items, chunksize=chunk_size)
-        rl = []
-        for r in results:
-            rl.append(r)
-        return rl
+        pass
 
 
 def _do_enc(item):
-    pubkey, num = item
-    return pubkey.encrypt(num)
+    pass

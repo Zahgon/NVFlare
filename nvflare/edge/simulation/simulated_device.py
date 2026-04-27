@@ -41,15 +41,10 @@ class SimulatedDevice(ABC):
         self.logger = get_obj_logger(self)
 
     def get_device_info(self):
-        return DeviceInfo(
-            device_id=self.device_id,
-            app_name="device_runner",
-            app_version="1.0",
-            platform="flare",
-        )
+        pass
 
     def get_user_info(self):
-        return UserInfo(user_id=self.device_id)
+        pass
 
     def set_job(
         self,
@@ -58,16 +53,13 @@ class SimulatedDevice(ABC):
         method: str,
         job_data: dict,
     ):
-        self.job_id = job_id
-        self.job_name = job_name
-        self.job_method = method
-        self.job_data = job_data
+        pass
 
     def get_job_id(self):
-        return self.job_id
+        pass
 
     def get_capabilities(self) -> Capabilities:
-        return Capabilities(methods=["edge"])
+        pass
 
     def shutdown(self):
         pass
@@ -80,7 +72,7 @@ class SimulatedDevice(ABC):
 class DeviceFactory(ABC):
 
     def make_device(self, device_id: str) -> SimulatedDevice:
-        return SimulatedDevice(device_id)
+        pass
 
     def shutdown(self):
         pass

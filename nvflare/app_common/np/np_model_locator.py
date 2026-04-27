@@ -65,41 +65,7 @@ class NPModelLocator(ModelLocator):
         Returns:
             List[str]: List of model names.
         """
-        return list(self.model_name.keys())
+        pass
 
     def locate_model(self, model_name, fl_ctx: FLContext) -> DXO:
-        dxo = None
-        engine = fl_ctx.get_engine()
-
-        if model_name in list(self.model_name.keys()):
-            try:
-                model_file = self.model_name[model_name]
-
-                # Check if the path is absolute or relative
-                if os.path.isabs(model_file):
-                    # Absolute path - use directly
-                    model_load_path = model_file
-                else:
-                    # Relative path - resolve relative to run_dir/model_dir
-                    job_id = fl_ctx.get_prop(FLContextKey.CURRENT_RUN)
-                    run_dir = engine.get_workspace().get_run_dir(job_id)
-                    model_path = os.path.join(run_dir, self.model_dir)
-                    model_load_path = os.path.join(model_path, model_file)
-
-                np_data = None
-                try:
-                    np_data = np.load(model_load_path, allow_pickle=False)
-                    self.log_info(fl_ctx, f"Loaded {model_name} model from {model_load_path}.")
-                except Exception as e:
-                    self.log_error(fl_ctx, f"Unable to load NP Model: {secure_format_exception(e)}.")
-
-                if np_data is not None:
-                    weights = {NPConstants.NUMPY_KEY: np_data}
-                    dxo = DXO(data_kind=DataKind.WEIGHTS, data=weights, meta={})
-            except Exception as e:
-                self.log_exception(
-                    fl_ctx,
-                    f"Exception in retrieving {NPModelLocator.SERVER_MODEL_NAME} model: {secure_format_exception(e)}.",
-                )
-
-        return dxo
+        pass

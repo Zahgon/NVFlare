@@ -50,98 +50,20 @@ class DockerLauncherBuilder(Builder):
 
     def _inject_launcher(self, dest_dir: str, path: str, args: dict):
         """Replace any existing job launcher component with DockerJobLauncher."""
-        resources_file = os.path.join(dest_dir, ProvFileName.RESOURCES_JSON_DEFAULT)
-        with open(resources_file, "rt") as f:
-            resources = json.load(f)
-
-        launcher_ids = {"process_launcher", "docker_launcher", "k8s_launcher"}
-        components = resources.get("components", [])
-        resources["components"] = [c for c in components if c.get("id") not in launcher_ids]
-        resources["components"].append({"id": "docker_launcher", "path": path, "args": args})
-        utils.write(resources_file, json.dumps(resources, indent=4), "t")
+        pass
 
     def _set_internal_listener_host(self, participant: Participant):
         """Override internal listener host to 0.0.0.0 so SJ/CJ containers on the Docker network can connect."""
-        comm_config_args = participant.get_prop(PropKey.COMM_CONFIG_ARGS)
-        if comm_config_args is not None:
-            comm_config_args[CommConfigArg.HOST] = "0.0.0.0"
+        pass
 
     def _build_server(self, server: Participant, ctx: ProvisionContext):
-        fed_learn_port = ctx.get(CtxKey.FED_LEARN_PORT)
-
-        # Inject launcher config — workspace resolved at runtime from NVFL_DOCKER_WORKSPACE
-        dest_dir = ctx.get_local_dir(server)
-        self._inject_launcher(
-            dest_dir,
-            path=ServerDockerJobLauncher.__module__ + ".ServerDockerJobLauncher",
-            args={
-                "network": "nvflare-network",
-                "python_path": "/usr/local/bin/python",
-            },
-        )
-
-        # Auto-inject 0.0.0.0 binding so SJ containers can reach SP via Docker DNS
-        self._set_internal_listener_host(server)
-
-        dest_dir = ctx.get_kit_dir(server)
-        ctx.build_from_template(
-            dest_dir,
-            TemplateSectionKey.DOCKER_LAUNCHER_SERVER_SH,
-            ProvFileName.DOCKER_LAUNCHER_SH,
-            replacement={
-                "fed_learn_port": fed_learn_port,
-                "server_name": server.name,
-                "docker_image": self.docker_image,
-            },
-            exe=True,
-        )
+        pass
 
     def _build_client(self, client: Participant, ctx: ProvisionContext):
-        fed_learn_port = ctx.get(CtxKey.FED_LEARN_PORT)
-
-        # Inject launcher config — workspace resolved at runtime from NVFL_DOCKER_WORKSPACE
-        dest_dir = ctx.get_local_dir(client)
-        self._inject_launcher(
-            dest_dir,
-            path=ClientDockerJobLauncher.__module__ + ".ClientDockerJobLauncher",
-            args={
-                "network": "nvflare-network",
-                "python_path": "/usr/local/bin/python",
-            },
-        )
-
-        # Auto-inject 0.0.0.0 binding so CJ containers can reach CP via Docker DNS
-        self._set_internal_listener_host(client)
-
-        dest_dir = ctx.get_kit_dir(client)
-        ctx.build_from_template(
-            dest_dir,
-            TemplateSectionKey.DOCKER_LAUNCHER_CLIENT_SH,
-            ProvFileName.DOCKER_LAUNCHER_SH,
-            replacement={
-                "fed_learn_port": fed_learn_port,
-                "docker_image": self.docker_image,
-                "client_name": client.name,
-            },
-            exe=True,
-        )
+        pass
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        ctx.load_templates("docker_launcher_template.yml")
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
-        fed_learn_port = ctx.get(CtxKey.FED_LEARN_PORT)
-        admin_port = ctx.get(CtxKey.ADMIN_PORT)
-        if admin_port != fed_learn_port:
-            raise ValueError(
-                f"Docker mode requires fed_learn_port == admin_port, "
-                f"but got fed_learn_port={fed_learn_port}, admin_port={admin_port}. "
-                f"Remove the explicit admin_port from project.yml or set it to match fed_learn_port."
-            )
-
-        server = project.get_server()
-        if server:
-            self._build_server(server, ctx)
-
-        for client in project.get_clients():
-            self._build_client(client, ctx)
+        pass

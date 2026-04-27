@@ -48,13 +48,4 @@ class DXOBlocker(DXOFilter):
 
         Returns: filtered dxo
         """
-        if self.allow_data_kinds:
-            if dxo.data_kind in self.configured_data_kinds:
-                return None
-            else:
-                raise ContentBlockedException(f"DXO kind {dxo.data_kind} is blocked")
-        else:
-            if dxo.data_kind not in self.configured_data_kinds:
-                return None
-            else:
-                raise ContentBlockedException(f"DXO kind {dxo.data_kind} is blocked")
+        pass

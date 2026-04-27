@@ -51,13 +51,4 @@ def export_components(
         reserved_keys: keys that are reserved for system purpose.
         export_mode (str): export to peer (`ExportMode.PEER`) or to self (`ExportMode.SELF`).
     """
-    components_data = {}
-    for component_id, component_instance in components.items():
-        check_object_type(component_id, component_instance, AttributesExportable)
-        export_id, export_args = component_instance.export(export_mode)
-        if export_id in components_data:
-            raise RuntimeError(f"export_id {export_id} from {component_id} is duplicated, please change.")
-        if export_id in reserved_keys:
-            raise RuntimeError(f"export_id {export_id} from {component_id} is a reserved key, please change.")
-        components_data[export_id] = export_args
-    return components_data
+    pass

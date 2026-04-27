@@ -93,10 +93,7 @@ class CheckWriting(CheckRule):
 
 
 def _get_primary_sp(sp_list):
-    for sp in sp_list:
-        if sp["primary"]:
-            return sp
-    return None
+    pass
 
 
 class CheckServerAvailable(CheckRule):

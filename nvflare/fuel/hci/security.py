@@ -34,11 +34,7 @@ def hash_password(password):
     Returns: hashed password
 
     """
-    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode("ascii")
-    pwd_hash = hashlib.pbkdf2_hmac(hash_name="sha512", password=password.encode("utf-8"), salt=salt, iterations=100000)
-
-    pwd_hash = binascii.hexlify(pwd_hash)
-    return (salt + pwd_hash).decode("ascii")
+    pass
 
 
 def verify_password(stored_password, provided_password):
@@ -51,14 +47,7 @@ def verify_password(stored_password, provided_password):
     Returns: True if the stored password equals the provided password, otherwise False
 
     """
-    salt = stored_password[:64]
-    stored_password = stored_password[64:]
-    pwd_hash = hashlib.pbkdf2_hmac(
-        hash_name="sha512", password=provided_password.encode("utf-8"), salt=salt.encode("ascii"), iterations=100000
-    )
-
-    pwd_hash = binascii.hexlify(pwd_hash).decode("ascii")
-    return pwd_hash == stored_password
+    pass
 
 
 def make_session_token():
@@ -67,8 +56,7 @@ def make_session_token():
     Returns: created session token
 
     """
-    t = uuid.uuid1()
-    return str(t)
+    pass
 
 
 def get_identity_info(cert: dict):
@@ -81,21 +69,7 @@ def get_identity_info(cert: dict):
              if the cert is a dictionary, returning a dictionary containing three keys, common_name, organization and role.
 
     """
-    if cert is None:
-        return None
-
-    cn = None
-    role = None
-    organization = None
-    sub = cert.get("subject", {})
-    for key, value in sub.items():
-        if key == "commonName":
-            cn = value
-        elif key == "unstructuredName":
-            role = value
-        elif key == "organizationName":
-            organization = value
-    return {IdentityKey.NAME: cn, IdentityKey.ORG: organization, IdentityKey.ROLE: role}
+    pass
 
 
 def get_certificate_common_name(cert: dict):
@@ -107,10 +81,4 @@ def get_certificate_common_name(cert: dict):
     Returns: common name of provided cert
 
     """
-    if cert is None:
-        return None
-
-    for sub in cert.get("subject", ()):
-        for key, value in sub:
-            if key == "commonName":
-                return value
+    pass

@@ -20,58 +20,8 @@ class AzureBuilder(Builder):
         Builder.__init__(self)
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        ctx.load_templates(["master_template.yml", "azure_template.yml"])
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
         # build server
-        server = project.get_server()
-        dest_dir = ctx.get_kit_dir(server)
-        admin_port = ctx.get(CtxKey.ADMIN_PORT)
-        fl_port = ctx.get(CtxKey.FED_LEARN_PORT)
-        ctx.build_from_template(
-            dest_dir=dest_dir,
-            file_name=ProvFileName.AZURE_START_SH,
-            temp_section=[
-                TemplateSectionKey.CLOUD_SCRIPT_HEADER,
-                TemplateSectionKey.AZURE_START_SVR_HEADER_SH,
-                TemplateSectionKey.AZURE_START_COMMON_SH,
-            ],
-            # use the server org for project.
-            replacement={
-                "admin_port": admin_port,
-                "fed_learn_port": fl_port,
-                "config_folder": "config",
-                "ha_mode": "false",
-                "docker_image": "nvflare/nvflare",
-                "org_name": "",
-                "type": "server",
-                "cln_uid": "",
-                "docker_network": "--network host",
-                "server_name": server.name,
-                "ORG": server.org,
-            },
-            exe=True,
-        )
-
-        for participant in project.get_clients():
-            dest_dir = ctx.get_kit_dir(participant)
-            ctx.build_from_template(
-                dest_dir=dest_dir,
-                file_name=ProvFileName.AZURE_START_SH,
-                temp_section=[
-                    TemplateSectionKey.CLOUD_SCRIPT_HEADER,
-                    TemplateSectionKey.AZURE_START_CLN_HEADER_SH,
-                    TemplateSectionKey.AZURE_START_COMMON_SH,
-                ],
-                replacement={
-                    "client_name": participant.name,
-                    "config_folder": "config",
-                    "docker_image": "nvflare/nvflare",
-                    "org_name": participant.org,
-                    "type": "client",
-                    "cln_uid": f"uid={participant.name}",
-                    "docker_network": "",
-                    "ORG": participant.org,
-                },
-                exe=True,
-            )
+        pass

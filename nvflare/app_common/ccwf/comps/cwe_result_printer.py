@@ -20,14 +20,4 @@ from nvflare.app_common.ccwf.common import Constant
 
 class CWEResultPrinter(FLComponent):
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == Constant.EXECUTOR_FINALIZED:
-            e = fl_ctx.get_prop(Constant.EXECUTOR)
-            if not isinstance(e, SwarmClientController):
-                return
-
-            if e.best_result:
-                self.log_info(fl_ctx, f"My Best Round: {e.best_round}")
-                self.log_info(fl_ctx, f"My Best Metric: {e.best_metric}")
-                self.log_info(fl_ctx, f"My Best Result: {e.best_result}")
-            else:
-                self.log_info(fl_ctx, "I have no best result")
+        pass

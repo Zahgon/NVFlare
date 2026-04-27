@@ -94,74 +94,10 @@ class HEModelEncryptor(DXOFilter):
         decomposers.register()
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.START_RUN:
-            self.tenseal_context = load_tenseal_context_from_workspace(self.tenseal_context_file, fl_ctx)
-
-            if self.encrypt_layers is None:
-                self.encrypt_layers = [True]  # needs to be list for logic in encryption()
-                self.logger.info("Encrypting all layers")
-        elif event_type == EventType.END_RUN:
-            self.tenseal_context = None
+        pass
 
     def encryption(self, params, fl_ctx: FLContext):
-        n_params = len(params.keys())
-        self.log_info(fl_ctx, f"Running HE Encryption algorithm on {n_params} variables")
-
-        # parse regex encrypt layers
-        if isinstance(self.encrypt_layers, re.Pattern):
-            re_pattern = self.encrypt_layers
-            self.encrypt_layers = []
-            for var_name in params:
-                if re_pattern.search(var_name):
-                    self.encrypt_layers.append(var_name)
-            self.log_info(fl_ctx, f"Regex found {self.encrypt_layers} matching layers.")
-            if len(self.encrypt_layers) == 0:
-                raise ValueError(f"No matching layers found with regex {re_pattern}")
-
-        start_time = time.time()
-        n_encrypted, n_total = 0, 0
-        encryption_dict = {}
-        vmins, vmaxs = [], []
-        for i, param_name in enumerate(params.keys()):
-            values = params[param_name].ravel()
-            _n = np.size(values)
-            n_total += _n
-
-            # weigh before encryption
-            if self.aggregation_weight:
-                values = values * np.float64(self.aggregation_weight)
-            if self.weigh_by_local_iter:
-                values = values * np.float64(self.n_iter)
-
-            if param_name in self.encrypt_layers or self.encrypt_layers[0] is True:
-                self.log_info(fl_ctx, f"Encrypting vars {i + 1} of {n_params}: {param_name} with {_n} values")
-                vmin = np.min(params[param_name])
-                vmax = np.max(params[param_name])
-                vmins.append(vmin)
-                vmaxs.append(vmax)
-                params[param_name] = ts.ckks_vector(self.tenseal_context, values)
-                encryption_dict[param_name] = True
-                n_encrypted += _n
-            elif isinstance(values, CKKSVector):
-                self.log_error(
-                    fl_ctx, f"{i} of {n_params}: {param_name} = {np.shape(params[param_name])} already encrypted!"
-                )
-                raise ValueError("This should not happen!")
-            else:
-                params[param_name] = values
-                encryption_dict[param_name] = False
-        end_time = time.time()
-        if n_encrypted == 0:
-            raise ValueError("Nothing has been encrypted! Check provided encrypt_layers list of layer names or regex.")
-        self.log_info(
-            fl_ctx,
-            f"Encryption time for {n_encrypted} of {n_total} params"
-            f" (encrypted value range [{np.min(vmins)}, {np.max(vmaxs)}])"
-            f" {end_time - start_time} seconds.",
-        )
-        # params is a dictionary.  keys are layer names.  values are either weights or ckks_vector of weights.
-        # encryption_dict: keys are layer names.  values are True for ckks_vectors, False elsewhere.
-        return params, encryption_dict
+        pass
 
     def process_dxo(self, dxo: DXO, shareable: Shareable, fl_ctx: FLContext) -> Union[None, DXO]:
         """Filter process apply to the Shareable object.
@@ -174,32 +110,7 @@ class HEModelEncryptor(DXOFilter):
         Returns: DXO object with encrypted weights
 
         """
-        # TODO: could be removed later
-        if self.tenseal_context is None:
-            self.tenseal_context = load_tenseal_context_from_workspace(self.tenseal_context_file, fl_ctx)
-
-        peer_ctx = fl_ctx.get_peer_context()
-        assert isinstance(peer_ctx, FLContext)
-        self.client_name = peer_ctx.get_identity_name(default="?")
-
-        if self.aggregation_weights:
-            self.aggregation_weight = self.aggregation_weights.get(self.client_name, 1.0)
-            self.log_info(fl_ctx, f"weighting {self.client_name} by aggregation weight {self.aggregation_weight}")
-
-        if self.weigh_by_local_iter:
-            self.n_iter = dxo.get_meta_prop(MetaKey.NUM_STEPS_CURRENT_ROUND, None)
-            if self.n_iter is None:
-                raise ValueError("DXO data does not have local iterations for weighting!")
-            self.log_info(fl_ctx, f"weighting by local iter before encryption with {self.n_iter}")
-
-        return self._process(dxo, fl_ctx)
+        pass
 
     def _process(self, dxo: DXO, fl_ctx: FLContext) -> DXO:
-        self.log_info(fl_ctx, "Running HE encryption...")
-        encrypted_params, encryption_dict = self.encryption(params=dxo.data, fl_ctx=fl_ctx)
-        new_dxo = DXO(data_kind=dxo.data_kind, data=encrypted_params, meta=dxo.meta)
-        new_dxo.set_meta_prop(key=MetaKey.PROCESSED_KEYS, value=encryption_dict)
-        new_dxo.set_meta_prop(key=MetaKey.PROCESSED_ALGORITHM, value=HE_ALGORITHM_CKKS)
-        n_encrypted, n_total = count_encrypted_layers(encryption_dict)
-        self.log_info(fl_ctx, f"{n_encrypted} of {n_total} layers encrypted")
-        return new_dxo
+        pass

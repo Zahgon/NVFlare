@@ -81,7 +81,7 @@ class Message:
                 and the provided `topic`, `data`, and `msg_id`.
 
         """
-        return Message(Message.REQUEST, topic, data, msg_id)
+        pass
 
     @staticmethod
     def new_reply(topic: str, data: Any, req_msg_id, msg_id=None):
@@ -103,7 +103,7 @@ class Message:
             Message: A `Message` object with the type set to `Message.REPLY`,
                 and the provided `topic`, `data`, `msg_id`, and `req_msg_id`.
         """
-        return Message(Message.REPLY, topic, data, msg_id, req_id=req_msg_id)
+        pass
 
     def __str__(self):
         return f"Message(topic={self.topic}, msg_id={self.msg_id}, req_id={self.req_id}, msg_type={self.msg_type})"
@@ -198,12 +198,7 @@ class Pipe(AttributesExportable, ABC):
         Returns: the last time that the peer is known to be active; or 0 if this info is not available
 
         """
-        return 0
+        pass
 
     def export(self, export_mode: str) -> Tuple[str, dict]:
-        if export_mode == ExportMode.SELF:
-            mode = self.mode
-        else:
-            mode = Mode.ACTIVE if self.mode == Mode.PASSIVE else Mode.PASSIVE
-
-        return f"{self.__module__}.{self.__class__.__name__}", {"mode": mode}
+        pass

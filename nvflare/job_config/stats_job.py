@@ -52,40 +52,19 @@ class StatsJob(FedJob):
 
     def setup_server(self, server_name: str = SERVER_SITE_NAME):
         # define stats controller
-        ctr = self.get_stats_controller()
-        self.to(ctr, "server")
-        # define stat writer to output Json file
-        stats_writer = self.get_stats_output_writer()
-        self.to(stats_writer, server_name, id=self.writer_id)
+        pass
 
     def setup_clients(self, sites: List[str]):
         # Client side job config
         # Add client site
-        for site_id in sites:
-            stats_generator_id = self.to(self.stats_generator, site_id, id=self.stats_generator_id_prefix)
-            executor = StatisticsExecutor(generator_id=stats_generator_id)
-            self.to(executor, site_id, tasks=["fed_stats_pre_run", "fed_stats"])
-            self.add_privacy_result_filters(site_id)
+        pass
 
     def get_stats_controller(self) -> StatisticsController:
-        return StatisticsController(
-            statistic_configs=self.statistic_configs, writer_id=self.writer_id, enable_pre_run_task=False
-        )
+        pass
 
     def get_stats_output_writer(self):
-        json_encoder_path = "nvflare.app_common.utils.json_utils.ObjectEncoder"
-        return JsonStatsFileWriter(output_path=self.output_path, json_encoder_path=json_encoder_path)
+        pass
 
     def add_privacy_result_filters(self, site_id: str):
         # add privacy filters
-        min_count_cleanser = MinCountCleanser(min_count=self.min_count)
-        min_max_cleanser = AddNoiseToMinMax(min_noise_level=self.min_noise_level, max_noise_level=self.max_noise_level)
-        hist_bins_cleanser = HistogramBinsCleanser(max_bins_percent=self.max_bins_percent)
-        result_cleanser_ids = [
-            self.to(min_count_cleanser, site_id, id="min_count_cleanser"),
-            self.to(min_max_cleanser, site_id, id="min_max_noise_cleanser"),
-            self.to(hist_bins_cleanser, site_id, id="hist_bins_cleanser"),
-        ]
-
-        result_filter = StatisticsPrivacyFilter(result_cleanser_ids=result_cleanser_ids)
-        self.to(result_filter, site_id, filter_type=FilterType.TASK_RESULT, tasks=["fed_stats"])
+        pass

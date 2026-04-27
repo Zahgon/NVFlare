@@ -99,10 +99,7 @@ class ANSIColor:
         Returns:
             colorized text
         """
-        if not any(c.isdigit() for c in color):
-            color = cls.COLORS.get(color.lower(), cls.COLORS["reset"])
-
-        return f"\x1b[{color}m{text}\x1b[{cls.COLORS['reset']}m"
+        pass
 
 
 class BaseFormatter(logging.Formatter):
@@ -126,45 +123,10 @@ class BaseFormatter(logging.Formatter):
 
     def format(self, record):
         # make a copy of record for modification
-        self.record = copy.copy(record)
-        if not hasattr(self.record, "fullName"):
-            self.record.fullName = self.record.name
-            self.record.name = self.record.name.split(".")[-1]
-
-        if not hasattr(self.record, "fl_ctx"):
-            self.record.fl_ctx = ""
-            self.record.identity = ""
-
-        if not self.record.fl_ctx:
-            # attempt to parse fl ctx key value pairs "[key0=value0, key1=value1,... ]: " from message
-            message = self.record.getMessage()
-            fl_ctx_match = re.search(r"\[(.*?)\]: ", message)
-
-            if fl_ctx_match:
-                try:
-                    fl_ctx_pairs = {
-                        pair.split("=", 1)[0]: pair.split("=", 1)[1] for pair in fl_ctx_match.group(1).split(", ")
-                    }
-                    self.record.fl_ctx = fl_ctx_match[0][:-2]
-                    # TODO add more fl_ctx values as attributes?
-                    self.record.identity = fl_ctx_pairs.get("identity", "")
-                    self.record.msg = message.replace(fl_ctx_match[0], "")
-                    self._style._fmt = self.fmt
-                except:
-                    # found brackets pattern, but was not valid fl_ctx format
-                    pass
-
-            if not self.record.fl_ctx:
-                self.remove_empty_attributes()
-
-        return super().format(self.record)
+        pass
 
     def remove_empty_attributes(self):
-        for placeholder in [
-            " %(fl_ctx)s -",
-            " %(identity)s -",
-        ]:  # TODO generalize this or add default values?
-            self._style._fmt = self._style._fmt.replace(placeholder, "")
+        pass
 
 
 class ColorFormatter(BaseFormatter):
@@ -191,22 +153,7 @@ class ColorFormatter(BaseFormatter):
         self.logger_colors = logger_colors
 
     def format(self, record):
-        record_s = super().format(record)
-
-        # Apply level_colors based on record levelname
-        log_color = self.level_colors.get(self.record.levelname, "reset")
-
-        # Apply logger_colors to logger names if INFO or below.
-        logger_specificity = 0
-        if self.record.levelno <= logging.INFO:
-            for name, color in self.logger_colors.items():
-                if (name.count(".") >= logger_specificity or self.record.name == name) and (
-                    self.record.fullName.startswith(name) or self.record.name == name
-                ):
-                    log_color = color
-                    logger_specificity = name.count(".")
-
-        return ANSIColor.colorize(record_s, log_color)
+        pass
 
 
 class JsonFormatter(BaseFormatter):
@@ -229,28 +176,13 @@ class JsonFormatter(BaseFormatter):
 
     def generate_fmt_dict(self, fmt: str) -> dict:
         # Parse the `fmt` string and create a mapping of keys to LogRecord attributes
-        matches = re.findall(r"%\((.*?)\)([sd])", fmt)
-
-        fmt_dict = {}
-        for key, _ in matches:
-            fmt_dict[key] = key
-
-        return fmt_dict
+        pass
 
     def formatMessageDict(self, record) -> dict:
-        message_dict = {}
-        for fmt_key, fmt_val in self.fmt_dict.items():
-            message_dict[fmt_key] = record.__dict__.get(fmt_val, "")
-        return message_dict
+        pass
 
     def format(self, record) -> str:
-        super().format(record)
-
-        self.record.asctime = self.formatTime(self.record, self.datefmt)
-        formatted_message_dict = self.formatMessageDict(self.record)
-        message_dict = {k: v for k, v in formatted_message_dict.items()}
-
-        return json.dumps(message_dict, default=str)
+        pass
 
 
 class LoggerNameFilter(logging.Filter):
@@ -270,135 +202,46 @@ class LoggerNameFilter(logging.Filter):
         self.allow_all_error_logs = allow_all_error_logs
 
     def filter(self, record):
-        name = getattr(record, "fullName", record.name)
-
-        is_logger_included = self.matches_name(name, self.logger_names)
-        is_logger_excluded = self.matches_name(name, self.exclude_logger_names)
-
-        return (self.allow_all_error_logs and record.levelno > logging.INFO) or (
-            is_logger_included and not is_logger_excluded
-        )
+        pass
 
     def matches_name(self, name, logger_names) -> bool:
-        return any(name.startswith(logger_name) or name.split(".")[-1] == logger_name for logger_name in logger_names)
+        pass
 
 
 def get_module_logger(module=None, name=None) -> logging.Logger:
     # Get module logger name adhering to logger hierarchy. Optionally add name as a suffix.
-    if module is None:
-        caller_globals = inspect.stack()[1].frame.f_globals
-        module = caller_globals.get("__name__", "")
-
-    return logging.getLogger(f"{module}.{name}" if name else module)
+    pass
 
 
 def get_obj_logger(obj) -> logging.Logger:
     # Get object logger name adhering to logger hierarchy.
-    if isinstance(obj, type):
-        # the obj is a class
-        logger_name = f"{obj.__module__}.{obj.__name__}"
-    elif obj:
-        logger_name = f"{obj.__module__}.{obj.__class__.__qualname__}"
-    else:
-        logger_name = None
-    return logging.getLogger(logger_name) if logger_name else None
+    pass
 
 
 def get_script_logger() -> logging.Logger:
     # Get script logger name adhering to logger hierarchy. Based on package and filename. If not in a package, default to custom.
-    caller_frame = inspect.stack()[1]
-    package = caller_frame.frame.f_globals.get("__package__", "")
-    file = caller_frame.frame.f_globals.get("__file__", "")
-
-    return logging.getLogger(
-        f"{package if package else 'custom'}{'.' + os.path.splitext(os.path.basename(file))[0] if file else ''}"
-    )
+    pass
 
 
 def custom_logger(logger: logging.Logger) -> logging.Logger:
     # From a logger, return a new logger with "custom" prepended to the logger name
-    return logging.getLogger(f"custom.{logger.name}")
+    pass
 
 
 def configure_logging(workspace: Workspace, job_id: str = None, file_prefix: str = ""):
     # Read log_config.json from workspace, update with file_prefix, and apply to log_root of th workspace
-    log_config_file_path = workspace.get_log_config_file_path()
-    assert os.path.isfile(log_config_file_path), f"missing log config file {log_config_file_path}"
-
-    with open(log_config_file_path, "r") as f:
-        dict_config = json.load(f)
-
-    log_root = workspace.get_log_root(job_id)
-    apply_log_config(dict_config, log_root, file_prefix)
-
-    env_log_config = os.environ.get(FL_LOG_LEVEL)
-    if env_log_config:
-        dynamic_log_config(env_log_config, log_root, log_config_file_path, file_prefix=file_prefix)
+    pass
 
 
 def apply_log_config(dict_config, dir_path: str = "", file_prefix: str = ""):
     # Update log config dictionary with file_prefix, and apply to dir_path
-    stack = [dict_config]
-    while stack:
-        current_dict = stack.pop()
-        for key, value in current_dict.items():
-            if isinstance(value, dict):
-                stack.append(value)
-            elif key == "filename":
-                if file_prefix:
-                    value = os.path.join(os.path.dirname(value), file_prefix + "_" + os.path.basename(value))
-                current_dict[key] = os.path.join(dir_path, value)
-
-    logging.config.dictConfig(dict_config)
-    logging.captureWarnings(True)  # route Python warnings through logging so they reach file handlers
+    pass
 
 
 def dynamic_log_config(config: Union[dict, str], dir_path: str, reload_path: str, file_prefix: str = ""):
     # Dynamically configure log given a config (dict, filepath, LogMode, or level), apply the config to the proper locations.
 
-    if isinstance(config, dict):
-        apply_log_config(config, dir_path, file_prefix=file_prefix)
-    elif isinstance(config, str):
-        config = config.strip()
-
-        # Accept inline JSON strings forwarded through admin commands as dictConfig payloads.
-        if config.startswith("{"):
-            try:
-                dict_config = json.loads(config)
-            except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid dictConfig JSON: {e.msg}") from e
-            if isinstance(dict_config, dict):
-                apply_log_config(dict_config, dir_path, file_prefix=file_prefix)
-                return
-
-        # Handle pre-defined LogModes
-        if config == LogMode.RELOAD:
-            config = reload_path
-        elif log_config := logmode_config_dict.get(config):
-            apply_log_config(copy.deepcopy(log_config), dir_path, file_prefix=file_prefix)
-            return
-
-        # Read config file
-        if os.path.isfile(config):
-            with open(config, "r") as f:
-                dict_config = json.load(f)
-
-            apply_log_config(dict_config, dir_path, file_prefix=file_prefix)
-        else:
-            # If logging is not yet configured, use default config
-            if not logging.getLogger().hasHandlers():
-                apply_log_config(default_log_dict, dir_path, file_prefix=file_prefix)
-
-            # Set level of root logger based on levelname or levelnumber
-            level = int(config) if config.isdigit() else getattr(logging, config.upper(), None)
-            if level is None or not (0 <= level <= 50):
-                raise ValueError(f"Invalid logging level: {config}")
-
-            logging.getLogger().setLevel(level)
-    else:
-        raise ValueError(
-            f"Unsupported config type. Expect config to be a dict, filepath, level, or LogMode but got {type(config)}"
-        )
+    pass
 
 
 def validate_site_log_config(config) -> str:
@@ -408,79 +251,20 @@ def validate_site_log_config(config) -> str:
     dictConfig support: only simple log levels and built-in log modes are
     allowed on this admin command path.
     """
-
-    if not isinstance(config, str):
-        raise ValueError("configure_site_log only supports log levels and built-in log modes")
-
-    config = config.strip()
-    if not config:
-        raise ValueError("configure_site_log only supports log levels and built-in log modes")
-
-    if config == LogMode.RELOAD or config in logmode_config_dict:
-        return config
-
-    level = int(config) if config.isdigit() else getattr(logging, config.upper(), None)
-    if level is None or not (0 <= level <= 50):
-        raise ValueError("configure_site_log only supports log levels and built-in log modes")
-
-    return config
+    pass
 
 
 def add_log_file_handler(log_file_name):
-    root_logger = logging.getLogger()
-    main_handler = root_logger.handlers[0]
-    file_handler = RotatingFileHandler(log_file_name, maxBytes=20 * 1024 * 1024, backupCount=10)
-    file_handler.setLevel(main_handler.level)
-    file_handler.setFormatter(main_handler.formatter)
-    root_logger.addHandler(file_handler)
+    pass
 
 
 def print_logger_hierarchy(package_name="nvflare", level_colors=ANSIColor.DEFAULT_LEVEL_COLORS):
-    all_loggers = logging.root.manager.loggerDict
-
-    # Filter for package loggers based on package_name
-    package_loggers = {name: logger for name, logger in all_loggers.items() if name.startswith(package_name)}
-    sorted_package_loggers = sorted(package_loggers.keys())
-
-    # Print package loggers with hierarcjy
-    print(f"hierarchical loggers ({len(package_loggers)}):")
-
     def get_effective_level(logger_name):
-        # Search for effective level from parent loggers
-        parts = logger_name.split(".")
-        for i in range(len(parts), 0, -1):
-            parent_name = ".".join(parts[:i])
-            parent_logger = package_loggers.get(parent_name)
-            if isinstance(parent_logger, Logger) and parent_logger.level != logging.NOTSET:
-                return logging.getLevelName(parent_logger.level)
-
-        # If no parent has a set level, default to the root logger's effective level
-        return logging.getLevelName(logging.root.level)
-
+        pass
     def print_hierarchy(logger_name, indent_level=0):
-        logger = package_loggers.get(logger_name)
-        level_name = get_effective_level(logger_name)
-
-        # Indicate "(unset)" placeholders if logger.level == NOTSET
-        is_unset = isinstance(logger, Logger) and logger.level == logging.NOTSET or not isinstance(logger, Logger)
-        level_display = f"{level_name} (SET)" if not is_unset else level_name
-
-        # Print the logger with color and indentation
-        color = level_colors.get(level_name, ANSIColor.COLORS["reset"])
-        print("    " * indent_level + ANSIColor.colorize(f"{logger_name} [{level_display}]", color))
-
-        # Find child loggers based on the current hierarchy level
-        for name in sorted_package_loggers:
-            if name.startswith(logger_name + ".") and name.count(".") == logger_name.count(".") + 1:
-                print_hierarchy(name, indent_level + 1)
-
-    print_hierarchy(package_name)
+        pass
+    pass
 
 
 def center_message(message: str, boarder_str="=", line_width=80):
-    if not message:
-        return
-
-    boarder = f"\n{boarder_str * line_width}\n" if boarder_str else "\n"
-    centered_message = message.center(line_width)
-    return f"{boarder}{centered_message}{boarder}"
+    pass

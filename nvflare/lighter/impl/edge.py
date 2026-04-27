@@ -23,33 +23,10 @@ class EdgeBuilder(Builder):
         Builder.__init__(self)
 
     def initialize(self, project: Project, ctx: ProvisionContext):
-        ctx.load_templates("edge_template.yml")
+        pass
 
     def build(self, project: Project, ctx: ProvisionContext):
-        for client in project.get_clients():
-            self._build_client(client, ctx)
+        pass
 
     def _build_client(self, client: Participant, ctx: ProvisionContext):
-        is_leaf = client.get_prop(PropKey.IS_LEAF, True)
-        if not is_leaf:
-            return
-
-        service_port = client.get_prop(PropKey.EDGE_SERVICE_PORT)
-        if not service_port:
-            ctx.error(f"missing {PropKey.EDGE_SERVICE_PORT} in client {client.name}")
-            return
-
-        lh = client.get_listening_host()
-        if not lh:
-            ctx.error(f"missing {PropKey.LISTENING_HOST} in client {client.name}")
-            return
-
-        replacement = {"host": "0.0.0.0", "port": service_port}
-
-        dest_dir = ctx.get_local_dir(client)
-        ctx.build_from_template(
-            dest_dir=dest_dir,
-            file_name=ProvFileName.EDGE_RESOURCES_JSON,
-            temp_section=TemplateSectionKey.EDGE_LCP_RESOURCES,
-            replacement=replacement,
-        )
+        pass

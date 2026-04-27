@@ -45,7 +45,7 @@ class ProcessAdapter:
         Sends SIGKILL to the entire process group. No need to call process.terminate()
         separately since SIGKILL already terminates all processes in the group.
         """
-        self._kill_process_group()
+        pass
 
     def poll(self) -> Optional[int]:
         """Check if the process has terminated.
@@ -53,83 +53,20 @@ class ProcessAdapter:
         Returns:
             None if process is still running, otherwise the exit code.
         """
-        if self.process:
-            return self.process.poll()
-
-        return self._poll_pid()
+        pass
 
     def wait(self) -> None:
         """Wait for the process to terminate."""
-        if self.process:
-            self.process.wait()
-            return
-
-        if self.pid is None:
-            return
-
-        if self._return_code is None:
-            try:
-                _, status = os.waitpid(self.pid, 0)
-                self._return_code = self._decode_status(status)
-            except ChildProcessError:
-                pass
+        pass
 
     def _poll_pid(self) -> Optional[int]:
-        if self.pid is None:
-            return None
-
-        if self._return_code is not None:
-            return self._return_code
-
-        try:
-            pid, status = os.waitpid(self.pid, os.WNOHANG)
-        except ChildProcessError:
-            # Process already reaped or doesn't exist, treat as terminated
-            if self._return_code is None:
-                self._return_code = -1
-            return self._return_code
-
-        if pid == 0:
-            return None
-
-        self._return_code = self._decode_status(status)
-        return self._return_code
+        pass
 
     def _decode_status(self, status: int) -> int:
-        if hasattr(os, "waitstatus_to_exitcode"):
-            return os.waitstatus_to_exitcode(status)
-
-        if os.WIFEXITED(status):
-            return os.WEXITSTATUS(status)
-        if os.WIFSIGNALED(status):
-            return -os.WTERMSIG(status)
-        # Fallback/Error case
-        return -1
+        pass
 
     def _kill_process_group(self):
-        if self.pid is None:
-            return
-
-        if not hasattr(os, "killpg") or not hasattr(os, "getpgid"):
-            return
-
-        try:
-            pgid = os.getpgid(self.pid)
-        except ProcessLookupError:
-            # Process already gone; nothing left to terminate.
-            return
-        except PermissionError as exc:
-            self.logger.warning("Unable to read pgid for %s (%s)", self.pid, exc)
-            pgid = self.pid
-
-        try:
-            os.killpg(pgid, signal.SIGKILL)
-            self.logger.debug("kill signal sent")
-        except ProcessLookupError:
-            # Group already terminated, treat as success.
-            return
-        except Exception as exc:
-            self.logger.warning("Failed to kill process group %s (%s)", pgid, exc)
+        pass
 
 
 def spawn_process(cmd_args: List[str], env: dict) -> ProcessAdapter:
@@ -146,23 +83,4 @@ def spawn_process(cmd_args: List[str], env: dict) -> ProcessAdapter:
     Returns:
         ProcessAdapter: An adapter wrapping the launched process.
     """
-    if _POSIX_SPAWN_SUPPORTED and cmd_args:
-        try:
-            # Note: 'setsid' is a potential extension or patch in some python environments.
-            # We wrap it in try-except to gracefully fallback if not supported.
-            path = cmd_args[0]
-            pid = os.posix_spawn(path, cmd_args, env, setsid=True)
-            log.info("Launch the job in process ID: %s (posix_spawn)", pid)
-            return ProcessAdapter(pid=pid)
-        except TypeError as exc:
-            # Happens when this interpreter lacks posix_spawn(..., setsid=...) support and silently falls back to fork.
-            log.warning("posix_spawn missing setsid support (%s); falling back to subprocess.", exc)
-        except Exception as exc:
-            # Covers launch failures unrelated to setsid (e.g. binary missing, permission issues).
-            log.warning("posix_spawn failed (%s); falling back to subprocess.", exc)
-
-    preexec_fn = os.setsid if hasattr(os, "setsid") else None
-    process = subprocess.Popen(cmd_args, shell=False, preexec_fn=preexec_fn, env=env)
-    log.info("Launch the job in process ID: %s (subprocess)", process.pid)
-
-    return ProcessAdapter(process=process)
+    pass

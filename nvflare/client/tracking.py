@@ -47,15 +47,7 @@ class SummaryWriter(_BaseWriter):
             global_step (optional, int): Global step value. If omitted, TensorBoard records this at step 0.
             **kwargs: Additional arguments to pass to the receiver side.
         """
-        log(
-            key=tag,
-            value=scalar,
-            data_type=AnalyticsDataType.SCALAR,
-            global_step=global_step,
-            writer=LogWriterName.TORCH_TB,
-            ctx=self.ctx,
-            **kwargs,
-        )
+        pass
 
     def add_scalars(self, tag: str, scalars: dict, global_step: Optional[int] = None, **kwargs):
         """Sends scalars.
@@ -66,15 +58,7 @@ class SummaryWriter(_BaseWriter):
             global_step (optional, int): Global step value. If omitted, TensorBoard records these at step 0.
             **kwargs: Additional arguments to pass to the receiver side.
         """
-        log(
-            key=tag,
-            value=scalars,
-            data_type=AnalyticsDataType.SCALARS,
-            global_step=global_step,
-            writer=LogWriterName.TORCH_TB,
-            ctx=self.ctx,
-            **kwargs,
-        )
+        pass
 
     def flush(self):
         """Skip flushing which would normally write the event file to disk"""
@@ -96,14 +80,7 @@ class WandBWriter(_BaseWriter):
             metrics (Dict[str, float]): Dictionary of metric_name of type String to Float values.
             step (int, optional): A single integer step at which to log the specified Metrics.
         """
-        log(
-            key="metrics",
-            value=metrics,
-            data_type=AnalyticsDataType.METRICS,
-            global_step=step,
-            writer=LogWriterName.WANDB,
-            ctx=self.ctx,
-        )
+        pass
 
 
 class MLflowWriter(_BaseWriter):
@@ -126,7 +103,7 @@ class MLflowWriter(_BaseWriter):
                 All backend stores support values up to length 500, but some
                 may support larger values.
         """
-        log(key=key, value=value, data_type=AnalyticsDataType.PARAMETER, writer=LogWriterName.MLFLOW, ctx=self.ctx)
+        pass
 
     def log_params(self, values: dict) -> None:
         """Log a batch of params for the current run.
@@ -134,13 +111,7 @@ class MLflowWriter(_BaseWriter):
         Args:
             values (dict): Dictionary of param_name: String -> value: (String, but will be string-ified if not)
         """
-        log(
-            key="params",
-            value=values,
-            data_type=AnalyticsDataType.PARAMETERS,
-            writer=LogWriterName.MLFLOW,
-            ctx=self.ctx,
-        )
+        pass
 
     def log_metric(self, key: str, value: float, step: Optional[int] = None) -> None:
         """Log a metric under the current run.
@@ -155,14 +126,7 @@ class MLflowWriter(_BaseWriter):
                 support larger values.
             step (int, optional): Metric step. Defaults to zero if unspecified.
         """
-        log(
-            key=key,
-            value=value,
-            data_type=AnalyticsDataType.METRIC,
-            global_step=step,
-            writer=LogWriterName.MLFLOW,
-            ctx=self.ctx,
-        )
+        pass
 
     def log_metrics(self, metrics: Dict[str, float], step: Optional[int] = None) -> None:
         """Log multiple metrics for the current run.
@@ -174,14 +138,7 @@ class MLflowWriter(_BaseWriter):
             step (int, optional): A single integer step at which to log the specified Metrics. If unspecified, each metric is
                 logged at step zero.
         """
-        log(
-            key="metrics",
-            value=metrics,
-            data_type=AnalyticsDataType.METRICS,
-            global_step=step,
-            writer=LogWriterName.MLFLOW,
-            ctx=self.ctx,
-        )
+        pass
 
     def log_text(self, text: str, artifact_file_path: str) -> None:
         """Log text as an artifact under the current run.
@@ -191,14 +148,7 @@ class MLflowWriter(_BaseWriter):
             artifact_file_path (str): The run-relative artifact file path in posixpath format
                 to which the text is saved (e.g. “dir/file.txt”).
         """
-        log(
-            key="text",
-            value=text,
-            data_type=AnalyticsDataType.TEXT,
-            path=artifact_file_path,
-            writer=LogWriterName.MLFLOW,
-            ctx=self.ctx,
-        )
+        pass
 
     def set_tag(self, key: str, tag: any) -> None:
         """Set a tag under the current run.
@@ -209,7 +159,7 @@ class MLflowWriter(_BaseWriter):
                 All backend stores will support values up to length 5000, but some
                 may support larger values.
         """
-        log(key=key, value=tag, data_type=AnalyticsDataType.TAG, writer=LogWriterName.MLFLOW, ctx=self.ctx)
+        pass
 
     def set_tags(self, tags: dict) -> None:
         """Log a batch of tags for the current run.
@@ -218,4 +168,4 @@ class MLflowWriter(_BaseWriter):
             tags (dict): Dictionary of tag_name: String -> value: (String, but will be string-ified if
                 not)
         """
-        log(key="tags", value=tags, data_type=AnalyticsDataType.TAGS, writer=LogWriterName.MLFLOW, ctx=self.ctx)
+        pass

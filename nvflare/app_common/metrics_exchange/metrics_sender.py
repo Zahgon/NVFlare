@@ -56,25 +56,7 @@ class MetricsSender(AnalyticsSender):
         self._pipe_channel_name = pipe_channel_name
 
     def handle_event(self, event_type: str, fl_ctx: FLContext):
-        if event_type == EventType.ABOUT_TO_START_RUN:
-            self.engine = fl_ctx.get_engine()
-            pipe = self.engine.get_component(self._pipe_id)
-            if not isinstance(pipe, Pipe):
-                self.log_error(fl_ctx, f"component {self._pipe_id} must be Pipe but got {type(pipe)}")
-                self.system_panic(f"bad component {self._pipe_id}", fl_ctx)
-                return
-
-            pipe.open(self._pipe_channel_name)
-
-            self._pipe_handler = PipeHandler(
-                pipe,
-                read_interval=self._read_interval,
-                heartbeat_interval=self._heartbeat_interval,
-                heartbeat_timeout=self._heartbeat_timeout,
-            )
-            self._pipe_handler.start()
+        pass
 
     def add(self, tag: str, value: Any, data_type: AnalyticsDataType, **kwargs):
-        data = create_analytic_dxo(tag=tag, value=value, data_type=data_type, **kwargs)
-        req = Message.new_request(topic="_metrics_sender", data=data)
-        self._pipe_handler.send_to_peer(req)
+        pass

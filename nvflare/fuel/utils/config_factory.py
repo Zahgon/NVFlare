@@ -62,37 +62,11 @@ class ConfigFactory:
             Tuple of None,None or ConfigFormat and real configuration file path
 
         """
-        logger = ConfigFactory.logger
-        if not search_dirs:  # empty or None
-            parent_dir = pathlib.Path(init_file_path).parent
-            search_dirs = [str(parent_dir)]
-
-        target_exts = None
-        if target_fmt:
-            target_exts = ConfigFormat.extensions(target_fmt)
-
-        # we ignore the original extension
-        file_basename = ConfigFactory.get_file_basename(init_file_path)
-        ext2fmt_map = ConfigFormat.config_ext_formats()
-        extensions = target_exts if target_fmt else ext2fmt_map.keys()
-        for search_dir in search_dirs:
-            logger.debug(f"search file basename:'{file_basename}', search dir = {search_dir}")
-            for ext in extensions:
-                fmt = ext2fmt_map[ext]
-                filename = f"{file_basename}{ext}"
-                for root, dirs, files in os.walk(search_dir):
-                    if filename in files:
-                        config_file = os.path.join(root, filename)
-                        return fmt, config_file
-
-        return None, None
+        pass
 
     @staticmethod
     def get_file_basename(init_file_path):
-        base_path = os.path.basename(init_file_path)
-        index = base_path.find(".")
-        file_basename = base_path[:index]
-        return file_basename
+        pass
 
     @staticmethod
     def load_config(
@@ -114,15 +88,7 @@ class ConfigFactory:
             None if not found, or Config
 
         """
-        config_format, real_config_file_path = ConfigFactory.search_config_format(file_path, search_dirs, target_fmt)
-        if config_format is not None and real_config_file_path is not None:
-            config_loader = ConfigFactory.get_config_loader(config_format)
-            if config_loader:
-                conf = config_loader.load_config(file_path=real_config_file_path)
-                return conf
-            else:
-                return None
-        return None
+        pass
 
     @staticmethod
     def get_config_loader(config_format: ConfigFormat) -> Optional[ConfigLoader]:
@@ -135,21 +101,13 @@ class ConfigFactory:
             the matching ConfigLoader for the given format
 
         """
-        if config_format is None:
-            return None
-        return ConfigFactory._fmt2Loader.get(config_format)
+        pass
 
     @staticmethod
     def match_config(parent, init_file_path, match_fn) -> bool:
         # we ignore the original extension
-        basename = os.path.splitext(pathlib.Path(init_file_path).name)[0]
-        ext2fmt_map = ConfigFormat.config_ext_formats()
-        for ext in ext2fmt_map:
-            if match_fn(parent, f"{basename}{ext}"):
-                return True
-        return False
+        pass
 
     @staticmethod
     def has_config(init_file_path: str, search_dirs: Optional[List[str]] = None) -> bool:
-        fmt, real_file_path = ConfigFactory.search_config_format(init_file_path, search_dirs)
-        return real_file_path is not None
+        pass

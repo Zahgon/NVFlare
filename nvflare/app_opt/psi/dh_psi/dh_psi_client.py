@@ -37,21 +37,17 @@ class PSIClient:
         self.setup = None
 
     def get_items_size(self) -> int:
-        return len(self.items)
+        pass
 
     def receive_setup(self, setup_msg: str):
         """
         Args:
             setup_msg: serialized setup str
         """
-        s_setup_sub = psi.ServerSetup()
-        s_setup_sub.ParseFromString(setup_msg)
-        self.setup = s_setup_sub
+        pass
 
     def get_request(self, items):
-        self.items = items
-        request = self.psi_client.CreateRequest(items).SerializeToString()
-        return request
+        pass
 
     def get_intersection(self, server_response_msg: str) -> List[str]:
         """Returns the intersection of client and server items.
@@ -60,11 +56,4 @@ class PSIClient:
         Returns:
             The intersection set (List[str]) of client and server items
         """
-        resp_sub = psi.Response()
-        resp_sub.ParseFromString(server_response_msg)
-        response = resp_sub
-        client_item_indices = sorted(self.psi_client.GetIntersection(self.setup, response))
-        item_size = self.get_items_size()
-
-        # if the index is out of client item range, simply ignore.
-        return [self.items[i] for i in client_item_indices if i < item_size]
+        pass

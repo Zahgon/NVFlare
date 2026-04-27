@@ -18,38 +18,19 @@ from .validation_utils import check_object_type
 
 
 def update(d, u):
-    for k, v in u.items():
-        if isinstance(v, collections.Mapping):
-            d[k] = update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
+    pass
 
 
 def update_configs_with_envs(configs, env):
-    for k, v in configs.items():
-        if isinstance(v, list):
-            length = len(v)
-            for i in range(length):
-                if isinstance(v[i], dict):
-                    configs[k][i] = update_configs_with_envs(v[i], env)
-        elif isinstance(v, dict):
-            configs[k] = update_configs_with_envs(v, env)
-        elif isinstance(v, str):
-            configs[k] = v.format(**env)
-    return configs
+    pass
 
 
 def merge_dict(dict1, dict2):
-    return {**dict1, **dict2}
+    pass
 
 
 def extract_first_level_primitive(d):
-    result = {}
-    for k, v in d.items():
-        if type(v) in (int, float, bool, str):
-            result[k] = v
-    return result
+    pass
 
 
 def augment(to_dict: dict, from_dict: dict, from_override_to=False, append_list="components") -> str:
@@ -74,72 +55,11 @@ def augment(to_dict: dict, from_dict: dict, from_override_to=False, append_list=
        The content of the to_dict is updated
 
     """
-    check_object_type("to_dict", to_dict, dict)
-    check_object_type("from_dict", from_dict, dict)
-
-    if isinstance(append_list, str):
-        append_list = [append_list]
-    elif not isinstance(append_list, list):
-        return f"append_list must be str or list but got {type(append_list)}"
-
-    for k, fv in from_dict.items():
-        if k not in to_dict:
-            to_dict[k] = fv
-            continue
-
-        tv = to_dict[k]
-        if isinstance(fv, dict):
-            if not isinstance(tv, dict):
-                return f"type conflict in element '{k}': dict in from_dict but {type(tv)} in to_dict"
-            err = augment(tv, fv)
-            if err:
-                return err
-            continue
-
-        if isinstance(fv, list):
-            if not isinstance(tv, list):
-                return f"type conflict in element '{k}': list in from_dict but {type(tv)} in to_dict"
-
-            if k in append_list:
-                # items in "from_dict" are appended to "to_dict"
-                tv.extend(fv)
-                continue
-
-            if len(fv) != len(tv):
-                return f"list length conflict in element '{k}': {len(fv)} in from_dict but {len(tv)} in to_dict"
-
-            for i in range(len(fv)):
-                # we only support list of dicts!
-                fvi = fv[i]
-                tvi = tv[i]
-                if not isinstance(fvi, dict):
-                    return f"invalid list item {i} in element '{k}' in from_dict: must be dict but got {type(fvi)}"
-
-                if not isinstance(tvi, dict):
-                    return f"invalid list item {i} in element '{k}' in to_dict: must be dict but got {type(tvi)}"
-
-                err = augment(tv[i], fv[i])
-                if err:
-                    return err
-            continue
-
-        if type(fv) != type(tv):
-            return f"type conflict in element '{k}': {type(fv)} in from_dict but {type(tv)} in to_dict"
-
-        if from_override_to:
-            to_dict[k] = fv
-
-    return ""
+    pass
 
 
 def _update_component_dict(comp_list: list, target: dict) -> str:
-    for c in comp_list:
-        check_object_type("element in comp_list", c, dict)
-        cid = c.get("id", None)
-        if not cid:
-            return "missing 'id' from a component"
-        target[cid] = c
-    return ""
+    pass
 
 
 def update_components(target_dict: dict, from_dict: dict) -> str:
@@ -152,44 +72,4 @@ def update_components(target_dict: dict, from_dict: dict) -> str:
         from_dict: the dict that will be used to update the target_dict
     Returns:
     """
-    key_components = "components"
-
-    from_comp_list = from_dict.get(key_components, None)
-    if not from_comp_list:
-        # no components to update
-        return ""
-
-    check_object_type("from_comp_list", from_comp_list, list)
-
-    target_comp_list = target_dict.get(key_components, None)
-    if not target_comp_list:
-        target_dict[key_components] = from_comp_list
-        return ""
-
-    check_object_type("target_comp_list", target_comp_list, list)
-
-    from_comp_dict = {}
-    err = _update_component_dict(from_comp_list, from_comp_dict)
-    if err:
-        return f"error in from_dict: {err}"
-
-    target_comp_dict = {}
-    err = _update_component_dict(target_comp_list, target_comp_dict)
-    if err:
-        return f"error in target_dict: {err}"
-
-    # determine components in both
-    dups = []
-    for cid in target_comp_dict.keys():
-        if cid in from_comp_dict:
-            dups.append(cid)
-
-    for cid in dups:
-        # remove from target_comp_dict
-        target_comp_dict.pop(cid)
-
-    new_target_comp_list = list(target_comp_dict.values())
-    new_target_comp_list.extend(from_comp_list)
-
-    target_dict[key_components] = new_target_comp_list
-    return ""
+    pass
